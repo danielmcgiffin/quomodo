@@ -1,41 +1,31 @@
 import { env as publicEnv } from "$env/dynamic/public"
 import {
   createBrowserClient,
-  createServerClient,
   isBrowser,
 } from "@supabase/ssr"
 import { redirect } from "@sveltejs/kit"
-import { load_helper } from "$lib/load_helpers.js"
 
 const { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } = publicEnv
 
 export const load = async ({ fetch, data, depends }) => {
   depends("supabase:auth")
 
-  const supabase = isBrowser()
-    ? createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-        global: {
-          fetch,
-        },
-      })
-    : createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-        global: {
-          fetch,
-        },
-        cookies: {
-          getAll() {
-            return data.cookies
+  const authConfigured = Boolean(PUBLIC_SUPABASE_URL && PUBLIC_SUPABASE_ANON_KEY)
+  const supabase =
+    isBrowser() && authConfigured
+      ? createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+          global: {
+            fetch,
           },
-        },
-      })
+        })
+      : null
 
-  // Redirect if already logged in
-  const { session, user } = await load_helper(data.session, supabase)
-  if (session && user) {
+  // Server session from hooks is enough for redirect on login routes.
+  if (data.session) {
     redirect(303, "/account")
   }
 
   const url = data.url
 
-  return { supabase, url }
+  return { supabase, url, authConfigured }
 }

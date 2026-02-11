@@ -6,9 +6,12 @@
   import { page } from "$app/stores"
 
   let { data } = $props()
-  let { supabase } = data
+  const supabase = data.supabase
 
   onMount(() => {
+    if (!supabase) {
+      return
+    }
     supabase.auth.onAuthStateChange((event) => {
       // Redirect to account after successful login
       if (event == "SIGNED_IN") {
@@ -45,19 +48,25 @@
   </div>
 {/if}
 <h1 class="text-2xl font-bold mb-6">Sign In</h1>
-<Auth
-  supabaseClient={data.supabase}
-  view="sign_in"
-  redirectTo={`${data.url}/auth/callback`}
-  providers={oauthProviders}
-  socialLayout="horizontal"
-  showLinks={false}
-  appearance={sharedAppearance}
-  additionalData={undefined}
-/>
-<div class="text-l text-slate-800 mt-4">
-  <a class="underline" href="/login/forgot_password">Forgot password?</a>
-</div>
-<div class="text-l text-slate-800 mt-3">
-  Don't have an account? <a class="underline" href="/login/sign_up">Sign up</a>.
-</div>
+{#if data.authConfigured && data.supabase}
+  <Auth
+    supabaseClient={data.supabase}
+    view="sign_in"
+    redirectTo={`${data.url}/auth/callback`}
+    providers={oauthProviders}
+    socialLayout="horizontal"
+    showLinks={false}
+    appearance={sharedAppearance}
+    additionalData={undefined}
+  />
+  <div class="text-l text-slate-800 mt-4">
+    <a class="underline" href="/login/forgot_password">Forgot password?</a>
+  </div>
+  <div class="text-l text-slate-800 mt-3">
+    Don't have an account? <a class="underline" href="/login/sign_up">Sign up</a>.
+  </div>
+{:else}
+  <div role="alert" class="alert alert-error">
+    Auth is not configured. Set `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` in Cloudflare.
+  </div>
+{/if}

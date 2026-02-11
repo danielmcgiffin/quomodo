@@ -10,16 +10,22 @@
 </svelte:head>
 
 <h1 class="text-2xl font-bold mb-6">Sign Up</h1>
-<Auth
-  supabaseClient={data.supabase}
-  view="sign_up"
-  redirectTo={`${data.url}/auth/callback`}
-  showLinks={false}
-  providers={oauthProviders}
-  socialLayout="horizontal"
-  appearance={sharedAppearance}
-  additionalData={undefined}
-/>
-<div class="text-l text-slate-800 mt-4 mb-2">
-  Have an account? <a class="underline" href="/login/sign_in">Sign in</a>.
-</div>
+{#if data.authConfigured && data.supabase}
+  <Auth
+    supabaseClient={data.supabase}
+    view="sign_up"
+    redirectTo={`${data.url}/auth/callback`}
+    showLinks={false}
+    providers={oauthProviders}
+    socialLayout="horizontal"
+    appearance={sharedAppearance}
+    additionalData={undefined}
+  />
+  <div class="text-l text-slate-800 mt-4 mb-2">
+    Have an account? <a class="underline" href="/login/sign_in">Sign in</a>.
+  </div>
+{:else}
+  <div role="alert" class="alert alert-error">
+    Auth is not configured. Set `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` in Cloudflare.
+  </div>
+{/if}
