@@ -1,8 +1,9 @@
 // src/hooks.server.ts
+import { dev } from "$app/environment"
 import { env as privateEnv } from "$env/dynamic/private"
 import { env as publicEnv } from "$env/dynamic/public"
 import { createServerClient } from "@supabase/ssr"
-import { createClient, type AMREntry } from "@supabase/supabase-js"
+import { createClient, type AMREntry, type User } from "@supabase/supabase-js"
 import type { Handle } from "@sveltejs/kit"
 import { sequence } from "@sveltejs/kit/hooks"
 import type { SupabaseClient } from "@supabase/supabase-js"
@@ -10,6 +11,10 @@ import type { Database } from "./DatabaseDefinitions"
 
 const { PRIVATE_SUPABASE_SERVICE_ROLE } = privateEnv
 const { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } = publicEnv
+const DEV_AUTH_BYPASS_ENABLED =
+  dev && privateEnv.PRIVATE_DEV_AUTH_BYPASS === "true"
+const DEV_AUTH_BYPASS_USER_ID = privateEnv.PRIVATE_DEV_AUTH_BYPASS_USER_ID
+const DEV_AUTH_BYPASS_USER_EMAIL = privateEnv.PRIVATE_DEV_AUTH_BYPASS_USER_EMAIL
 
 const missingSupabaseEnvMessage =
   "Supabase env vars are missing. Set PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, and PRIVATE_SUPABASE_SERVICE_ROLE."
@@ -130,6 +135,40 @@ export const supabase: Handle = async ({ event, resolve }) => {
 // Next-page CSR will mean relatively minimal calls to this hook
 const authGuard: Handle = async ({ event, resolve }) => {
   const { session, user } = await event.locals.safeGetSession()
+  if (!user && DEV_AUTH_BYPASS_ENABLED) {
+    let bypassUserId = DEV_AUTH_BYPASS_USER_ID ?? null
+
+    if (!bypassUserId) {
+      const { data: org, error: orgError } = await event.locals.supabaseServiceRole
+        .from("orgs")
+        .select("owner_id")
+        .not("owner_id", "is", null)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle()
+
+      if (!orgError && org?.owner_id) {
+        bypassUserId = org.owner_id
+      }
+    }
+
+    if (bypassUserId) {
+      // Local-only dev ergonomics: run app data access as service role.
+      event.locals.supabase = event.locals.supabaseServiceRole
+      event.locals.session = session
+      event.locals.user = {
+        id: bypassUserId,
+        email: DEV_AUTH_BYPASS_USER_EMAIL ?? "local-dev@systemscraft.local",
+        user_metadata: { full_name: "Local Dev" },
+      } as unknown as User
+      return resolve(event)
+    }
+
+    console.warn(
+      "Dev auth bypass is enabled, but no user id was found. Set PRIVATE_DEV_AUTH_BYPASS_USER_ID or create a workspace with an owner.",
+    )
+  }
+
   event.locals.session = session
   event.locals.user = user
 
