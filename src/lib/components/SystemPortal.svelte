@@ -4,9 +4,15 @@
     name: string
   }
 
-  export let system: SystemPortalModel
-  export let size: "sm" | "md" | "base" | "lg" = "md"
-  export let showName = true
+  let {
+    system,
+    size = "md",
+    showName = true,
+  }: {
+    system: SystemPortalModel
+    size?: "sm" | "md" | "base" | "lg"
+    showName?: boolean
+  } = $props()
 
   const sizeMap = {
     sm: 22,

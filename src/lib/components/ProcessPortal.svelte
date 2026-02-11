@@ -4,8 +4,13 @@
     name: string
   }
 
-  export let process: ProcessPortalModel
-  export let showName = true
+  let {
+    process,
+    showName = true,
+  }: {
+    process: ProcessPortalModel
+    showName?: boolean
+  } = $props()
 </script>
 
 <a class="sc-portal sc-portal-process" href={`/app/processes/${process.slug}`}>

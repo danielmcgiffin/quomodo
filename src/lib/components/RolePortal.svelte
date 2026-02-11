@@ -5,9 +5,15 @@
     initials: string
   }
 
-  export let role: RolePortalModel
-  export let size: "sm" | "md" | "base" | "lg" = "md"
-  export let showName = true
+  let {
+    role,
+    size = "md",
+    showName = true,
+  }: {
+    role: RolePortalModel
+    size?: "sm" | "md" | "base" | "lg"
+    showName?: boolean
+  } = $props()
 
   const sizeMap = {
     sm: { size: 22, font: 9 },
