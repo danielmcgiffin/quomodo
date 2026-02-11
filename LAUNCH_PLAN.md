@@ -206,12 +206,12 @@ LP-008 route isolation inventory:
 - Rule for retained legacy routes: maintenance and compatibility fixes only; no new product scope.
 
 ### WS2: Supabase Data Model and Migrations
-- [ ] `LP-010` Create new migration for triad schema in `supabase/migrations/*`.
+- [x] `LP-010` Create new migration for triad schema in `supabase/migrations/*`.
 Acceptance:
 - Tables exist for `orgs`, `org_members`, `roles`, `systems`, `processes`, `actions` (rename from `steps`), and `flags`.
 - Constraints enforce one role + one system per action.
 
-- [ ] `LP-011` Add indexes and helper views for retrieval.
+- [x] `LP-011` Add indexes and helper views for retrieval.
 Acceptance:
 - Indexes support list/detail/search queries by `org_id`, foreign keys, and flag status.
 - Unified search view/materialized view for entities exists.
@@ -221,12 +221,12 @@ Acceptance:
 - `flags.target_path` supports field-level targeting (example: `description`, `owner_role_id`).
 - API and UI can create/read flags for both entity-level and sub-entity-level targets.
 
-- [ ] `LP-012` Implement RLS policies for all triad tables.
+- [x] `LP-012` Implement RLS policies for all triad tables.
 Acceptance:
 - Org members can read/write only their org data according to role.
 - Non-members cannot access org data.
 
-- [ ] `LP-014` Implement role model and authorization rules (`owner`, `admin`, `editor`, `member`).
+- [x] `LP-014` Implement role model and authorization rules (`owner`, `admin`, `editor`, `member`).
 Acceptance:
 - Membership enum and policies support all four roles.
 - Permission checks match the locked model in this plan.
@@ -235,7 +235,7 @@ Acceptance:
 Acceptance:
 - Fresh local project can be seeded and browsed in `/app` without manual SQL.
 
-- [ ] `LP-016` Add DB-level constraints and triggers for action ordering.
+- [x] `LP-016` Add DB-level constraints and triggers for action ordering.
 Acceptance:
 - Unique sequence per process (`UNIQUE(process_id, sequence)`).
 - Trigger/function keeps `updated_at` current and preserves ordering behavior on reorder.

@@ -22,9 +22,9 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [x] Hosting target decision reflected in docs/deploy configuration (Cloudflare only)
 
 ## Phase 1: Data Foundation
-- [ ] Supabase schema with roles, systems, processes, actions, flags
-- [ ] Permission model implemented: owner/admin/editor/member
-- [ ] RLS policies for org membership
+- [x] Supabase schema with roles, systems, processes, actions, flags
+- [x] Permission model implemented: owner/admin/editor/member
+- [x] RLS policies for org membership
 - [ ] CRUD for roles, systems, processes, actions, flags
 - [ ] Nav counts from live data
 - [ ] Portals wired to live IDs
