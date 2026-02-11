@@ -13,13 +13,13 @@
       return
     }
     supabase.auth.onAuthStateChange((event) => {
-      // Redirect to account after successful login
+      // Redirect to app after successful login
       if (event == "SIGNED_IN") {
         // Delay needed because order of callback not guaranteed.
         // Give the layout callback priority to update state or
-        // we'll just bounch back to login when /account tries to load
+        // we'll just bounce back to login when /app/processes tries to load
         setTimeout(() => {
-          goto("/account")
+          goto("/app/processes")
         }, 1)
       }
     })

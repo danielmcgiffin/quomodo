@@ -22,7 +22,7 @@ export const load = async ({ fetch, data, depends }) => {
 
   // Server session from hooks is enough for redirect on login routes.
   if (data.session) {
-    redirect(303, "/account")
+    redirect(303, "/app/processes")
   }
 
   const url = data.url
