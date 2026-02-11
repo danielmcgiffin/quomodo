@@ -16,10 +16,17 @@
     <div class="sc-section-title">Add Process</div>
     <form class="sc-card" method="POST" action="?/createProcess">
       {#if form?.createProcessError}
-        <div style="color: var(--sc-danger); margin-bottom: 10px;">{form.createProcessError}</div>
+        <div style="color: var(--sc-danger); margin-bottom: 10px;">
+          {form.createProcessError}
+        </div>
       {/if}
       <div class="sc-byline" style="margin-bottom:10px;">
-        <input class="sc-search" name="name" placeholder="Process name" required />
+        <input
+          class="sc-search"
+          name="name"
+          placeholder="Process name"
+          required
+        />
       </div>
       <div class="sc-byline" style="margin-bottom:10px;">
         <input class="sc-search" name="trigger" placeholder="Trigger" />
@@ -49,7 +56,10 @@
     {#each data.processes as process}
       <div class="sc-card">
         <div class="sc-section-title">
-          <a class="sc-portal sc-portal-process" href={`/app/processes/${process.slug}`}>
+          <a
+            class="sc-portal sc-portal-process"
+            href={`/app/processes/${process.slug}`}
+          >
             {process.name}
           </a>
         </div>

@@ -8,18 +8,19 @@
   adminSection.set("settings")
 
   let { data } = $props()
-  let { user, supabase } = data
 
   // True if definitely has a password, but can be false if they
   // logged in with oAuth or email link
 
   // @ts-expect-error: we ignore because Supabase does not maintain an AMR typedef
-  let hasPassword = user?.amr?.find((x) => x.method === "password")
-    ? true
-    : false
+  const hasPassword = $derived(
+    data.user?.amr?.find((x) => x.method === "password") ? true : false,
+  )
 
   // @ts-expect-error: we ignore because Supabase does not maintain an AMR typedef
-  let usingOAuth = user?.amr?.find((x) => x.method === "oauth") ? true : false
+  const usingOAuth = $derived(
+    data.user?.amr?.find((x) => x.method === "oauth") ? true : false,
+  )
 
   let sendBtnDisabled = $state(false)
   let sendBtnText = $state("Send Set Password Email")
@@ -28,9 +29,9 @@
     sendBtnDisabled = true
     sendBtnText = "Sending..."
 
-    let email = user?.email
+    let email = data.user?.email
     if (email) {
-      supabase.auth
+      data.supabase.auth
         .resetPasswordForEmail(email, {
           redirectTo: `${$page.url.origin}/auth/callback?next=%2Faccount%2Fsettings%2Freset_password`,
         })
@@ -93,8 +94,8 @@
         <div class="font-bold">Change Password By Email</div>
       {/if}
       <div>
-        The button below will send you an email at {user?.email} which will allow
-        you to set your password.
+        The button below will send you an email at {data.user?.email} which will
+        allow you to set your password.
       </div>
       <button
         class="btn btn-outline btn-wide {sentEmail ? 'hidden' : ''}"

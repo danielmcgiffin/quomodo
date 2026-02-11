@@ -7,7 +7,6 @@
   adminSection.set("settings")
 
   let { data } = $props()
-  let { profile, user } = data
 </script>
 
 <svelte:head>
@@ -20,16 +19,20 @@
   title="Profile"
   editable={false}
   fields={[
-    { id: "fullName", label: "Name", initialValue: profile?.full_name ?? "" },
+    {
+      id: "fullName",
+      label: "Name",
+      initialValue: data.profile?.full_name ?? "",
+    },
     {
       id: "companyName",
       label: "Company Name",
-      initialValue: profile?.company_name ?? "",
+      initialValue: data.profile?.company_name ?? "",
     },
     {
       id: "website",
       label: "Company Website",
-      initialValue: profile?.website ?? "",
+      initialValue: data.profile?.website ?? "",
     },
   ]}
   editButtonTitle="Edit Profile"
@@ -39,7 +42,7 @@
 <SettingsModule
   title="Email"
   editable={false}
-  fields={[{ id: "email", initialValue: user?.email || "" }]}
+  fields={[{ id: "email", initialValue: data.user?.email || "" }]}
   editButtonTitle="Change Email"
   editLink="/account/settings/change_email"
 />
@@ -58,7 +61,7 @@
   fields={[
     {
       id: "subscriptionStatus",
-      initialValue: profile?.unsubscribed ? "Unsubscribed" : "Subscribed",
+      initialValue: data.profile?.unsubscribed ? "Unsubscribed" : "Subscribed",
     },
   ]}
   editButtonTitle="Change Subscription"

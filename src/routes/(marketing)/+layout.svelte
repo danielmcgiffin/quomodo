@@ -34,7 +34,12 @@
       </nav>
 
       <div class="mk-nav-actions">
-        <a class="mk-btn mk-btn-quiet" href={marketingSite.secondaryCta.href} target="_blank" rel="noreferrer">
+        <a
+          class="mk-btn mk-btn-quiet"
+          href={marketingSite.secondaryCta.href}
+          target="_blank"
+          rel="noreferrer"
+        >
           {marketingSite.secondaryCta.label}
         </a>
         <a class="mk-btn mk-btn-primary" href={marketingSite.primaryCta.href}>
@@ -55,9 +60,17 @@
     {#if mobileOpen}
       <div class="mk-mobile-nav mk-container" aria-label="Mobile primary">
         {#each marketingSite.nav as item}
-          <a class="mk-mobile-link" href={item.href} onclick={() => (mobileOpen = false)}>{item.label}</a>
+          <a
+            class="mk-mobile-link"
+            href={item.href}
+            onclick={() => (mobileOpen = false)}>{item.label}</a
+          >
         {/each}
-        <a class="mk-mobile-link" href={marketingSite.primaryCta.href} onclick={() => (mobileOpen = false)}>
+        <a
+          class="mk-mobile-link"
+          href={marketingSite.primaryCta.href}
+          onclick={() => (mobileOpen = false)}
+        >
           {marketingSite.primaryCta.label}
         </a>
       </div>
@@ -72,7 +85,10 @@
     <div class="mk-container mk-footer-grid">
       <div>
         <div class="mk-footer-brand">SystemsCraft</div>
-        <p class="mk-footer-copy">A living operational atlas built for retrieval, ownership, and execution.</p>
+        <p class="mk-footer-copy">
+          A living operational atlas built for retrieval, ownership, and
+          execution.
+        </p>
       </div>
       <nav class="mk-footer-links" aria-label="Footer">
         {#each marketingSite.footerLinks as item}

@@ -1,8 +1,5 @@
 import { env as publicEnv } from "$env/dynamic/public"
-import {
-  createBrowserClient,
-  isBrowser,
-} from "@supabase/ssr"
+import { createBrowserClient, isBrowser } from "@supabase/ssr"
 import { redirect } from "@sveltejs/kit"
 
 const { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } = publicEnv
@@ -10,7 +7,9 @@ const { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } = publicEnv
 export const load = async ({ fetch, data, depends }) => {
   depends("supabase:auth")
 
-  const authConfigured = Boolean(PUBLIC_SUPABASE_URL && PUBLIC_SUPABASE_ANON_KEY)
+  const authConfigured = Boolean(
+    PUBLIC_SUPABASE_URL && PUBLIC_SUPABASE_ANON_KEY,
+  )
   const supabase =
     isBrowser() && authConfigured
       ? createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {

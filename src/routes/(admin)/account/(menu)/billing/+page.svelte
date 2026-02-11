@@ -13,10 +13,10 @@
 
   let { data } = $props()
 
-  let currentPlanId = data.currentPlanId ?? defaultPlanId
-  let currentPlanName = pricingPlans.find(
-    (x) => x.id === data.currentPlanId,
-  )?.name
+  const currentPlanId = $derived(data.currentPlanId ?? defaultPlanId)
+  const currentPlanName = $derived(
+    pricingPlans.find((x) => x.id === data.currentPlanId)?.name,
+  )
 </script>
 
 <svelte:head>

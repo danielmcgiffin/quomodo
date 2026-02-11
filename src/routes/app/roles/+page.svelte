@@ -15,14 +15,20 @@
     <div class="sc-section-title">Add Role</div>
     <form class="sc-card" method="POST" action="?/createRole">
       {#if form?.createRoleError}
-        <div style="color: var(--sc-danger); margin-bottom: 10px;">{form.createRoleError}</div>
+        <div style="color: var(--sc-danger); margin-bottom: 10px;">
+          {form.createRoleError}
+        </div>
       {/if}
       <div class="sc-byline" style="margin-bottom:10px;">
         <input class="sc-search" name="name" placeholder="Role name" required />
       </div>
       <div class="sc-byline" style="margin-bottom:10px;">
         <input class="sc-search" name="person_name" placeholder="Person name" />
-        <input class="sc-search" name="hours_per_week" placeholder="Hours/week" />
+        <input
+          class="sc-search"
+          name="hours_per_week"
+          placeholder="Hours/week"
+        />
       </div>
       <div class="sc-byline" style="margin-bottom:10px;">
         <textarea
@@ -40,7 +46,7 @@
     {#each data.roles as role}
       <div class="sc-card">
         <div class="sc-byline">
-          <RolePortal role={role} size="lg" />
+          <RolePortal {role} size="lg" />
           {#if role.personName}
             <span class="sc-pill">{role.personName}</span>
           {/if}

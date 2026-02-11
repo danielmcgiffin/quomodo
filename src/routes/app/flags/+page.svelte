@@ -20,7 +20,9 @@
     <div class="sc-section-title">Create Flag</div>
     <form class="sc-card" method="POST" action="?/createFlag">
       {#if form?.createFlagError}
-        <div style="color: var(--sc-danger); margin-bottom: 10px;">{form.createFlagError}</div>
+        <div style="color: var(--sc-danger); margin-bottom: 10px;">
+          {form.createFlagError}
+        </div>
       {/if}
       <div class="sc-byline" style="margin-bottom:10px;">
         <select class="sc-search" name="target" required>
@@ -38,7 +40,11 @@
         </select>
       </div>
       <div class="sc-byline" style="margin-bottom:10px;">
-        <input class="sc-search" name="target_path" placeholder="Target path (optional)" />
+        <input
+          class="sc-search"
+          name="target_path"
+          placeholder="Target path (optional)"
+        />
       </div>
       <div class="sc-byline" style="margin-bottom:10px;">
         <textarea
@@ -67,13 +73,23 @@
         <div class="sc-byline" style="margin-top:12px;">
           <span>Target</span>
           {#if flag.targetType === "process" && flag.target}
-            <ProcessPortal process={flag.target as any} />
+            <ProcessPortal
+              process={flag.target as { slug: string; name: string }}
+            />
           {:else if flag.targetType === "system" && flag.target}
-            <SystemPortal system={flag.target as any} />
+            <SystemPortal
+              system={flag.target as { slug: string; name: string }}
+            />
           {:else if flag.targetType === "role" && flag.target}
-            <RolePortal role={flag.target as any} />
+            <RolePortal
+              role={flag.target as {
+                slug: string
+                name: string
+                initials: string
+              }}
+            />
           {:else if flag.targetType === "action" && flag.target}
-            <span>{(flag.target as any).label}</span>
+            <span>{(flag.target as { label: string }).label}</span>
           {/if}
           {#if flag.targetPath}
             <span>·</span>

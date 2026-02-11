@@ -1,8 +1,10 @@
 import { ensureOrgContext, makeInitials } from "$lib/server/atlas"
 
-type SupabaseAny = any
-
-const countTable = async (supabase: SupabaseAny, table: string, orgId: string) => {
+const countTable = async (
+  supabase: App.Locals["supabase"],
+  table: string,
+  orgId: string,
+) => {
   const { count, error } = await supabase
     .from(table)
     .select("id", { count: "exact", head: true })
@@ -16,7 +18,7 @@ const countTable = async (supabase: SupabaseAny, table: string, orgId: string) =
 
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
-  const supabase = locals.supabase as unknown as SupabaseAny
+  const supabase = locals.supabase
 
   const [processCount, roleCount, systemCount, flagCount, profileResult] =
     await Promise.all([

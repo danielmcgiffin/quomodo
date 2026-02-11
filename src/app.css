@@ -379,12 +379,24 @@ button[disabled].authBtn::before {
 
 .mk-shell {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 10% 10%, rgba(201, 168, 76, 0.08), transparent 40%),
-    radial-gradient(circle at 90% 0%, rgba(201, 168, 76, 0.06), transparent 35%),
+  background: radial-gradient(
+      circle at 10% 10%,
+      rgba(201, 168, 76, 0.08),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 90% 0%,
+      rgba(201, 168, 76, 0.06),
+      transparent 35%
+    ),
     var(--mk-bg);
   color: var(--mk-text);
-  font-family: "Segoe UI", "Avenir Next", system-ui, -apple-system, sans-serif;
+  font-family:
+    "Segoe UI",
+    "Avenir Next",
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 .mk-container {
@@ -479,7 +491,10 @@ button[disabled].authBtn::before {
   text-decoration: none;
   padding: 0.65rem 0.95rem;
   border: 1px solid transparent;
-  transition: transform 140ms ease, background-color 140ms ease, color 140ms ease;
+  transition:
+    transform 140ms ease,
+    background-color 140ms ease,
+    color 140ms ease;
 }
 
 .mk-btn:hover {
@@ -605,7 +620,11 @@ button[disabled].authBtn::before {
 .mk-query-card,
 .mk-method-action-card {
   border: 1px solid var(--mk-border);
-  background: linear-gradient(180deg, var(--mk-bg-card), var(--mk-bg-card-soft));
+  background: linear-gradient(
+    180deg,
+    var(--mk-bg-card),
+    var(--mk-bg-card-soft)
+  );
   border-radius: 14px;
   padding: 1rem;
   animation: mk-rise 380ms ease both;
@@ -648,8 +667,11 @@ button[disabled].authBtn::before {
   border: 1px solid rgba(212, 182, 92, 0.28);
   border-radius: 18px;
   padding: 1.5rem;
-  background:
-    linear-gradient(120deg, rgba(212, 182, 92, 0.08), rgba(20, 20, 22, 0.94));
+  background: linear-gradient(
+    120deg,
+    rgba(212, 182, 92, 0.08),
+    rgba(20, 20, 22, 0.94)
+  );
 }
 
 .mk-cta-band h2 {
@@ -683,7 +705,9 @@ button[disabled].authBtn::before {
   background: rgba(20, 20, 22, 0.8);
   padding: 0.95rem;
   color: inherit;
-  transition: border-color 160ms ease, transform 160ms ease;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
 }
 
 .mk-method-link:hover {

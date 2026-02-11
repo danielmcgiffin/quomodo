@@ -20,12 +20,21 @@
 
   let { data, form }: Props = $props()
 
-  let { user, profile } = data
+  const profile = $derived(data.profile)
 
   let loading = $state(false)
-  let fullName: string = profile?.full_name ?? ""
-  let companyName: string = profile?.company_name ?? ""
-  let website: string = profile?.website ?? ""
+  let fullName: string = $state("")
+  let companyName: string = $state("")
+  let website: string = $state("")
+
+  $effect(() => {
+    if (fullName || companyName || website) {
+      return
+    }
+    fullName = profile?.full_name ?? ""
+    companyName = profile?.company_name ?? ""
+    website = profile?.website ?? ""
+  })
 
   const fieldError = (liveForm: FormAccountUpdateResult, name: string) => {
     let errors = liveForm?.errorFields ?? []
@@ -125,7 +134,7 @@
       </form>
 
       <div class="text-sm text-slate-800 mt-14">
-        You are logged in as {user?.email}.
+        You are logged in as {data.user?.email}.
         <br />
         <a class="underline" href="/account/sign_out"> Sign out </a>
       </div>

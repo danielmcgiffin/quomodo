@@ -15,7 +15,8 @@ export const methodSections: MethodSection[] = [
   {
     slug: "diagnose-the-break",
     title: "Diagnose The Break",
-    summary: "Find the operational bottleneck that creates the most interruptions.",
+    summary:
+      "Find the operational bottleneck that creates the most interruptions.",
     intro:
       "Start where the founder or manager is constantly pulled back into execution. That is your highest-leverage entry point.",
     actions: [
@@ -89,8 +90,7 @@ export const methodSections: MethodSection[] = [
   {
     slug: "operationalize-maintenance",
     title: "Operationalize Maintenance",
-    summary:
-      "Surface drift with flags and comments where work is executed.",
+    summary: "Surface drift with flags and comments where work is executed.",
     intro:
       "Maintenance must happen through usage. Comments are stored as flags so context stays attached to the target entity.",
     actions: [
@@ -138,6 +138,8 @@ export const methodSections: MethodSection[] = [
   },
 ]
 
-export const methodBySlug = new Map(methodSections.map((section) => [section.slug, section]))
+export const methodBySlug = new Map(
+  methodSections.map((section) => [section.slug, section]),
+)
 
 export const methodPath = (slug: string) => `/method/${slug}`

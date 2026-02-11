@@ -26,6 +26,7 @@
   </div>
 {:else}
   <div role="alert" class="alert alert-error">
-    Auth is not configured. Set `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` in Cloudflare.
+    Auth is not configured. Set `PUBLIC_SUPABASE_URL` and
+    `PUBLIC_SUPABASE_ANON_KEY` in Cloudflare.
   </div>
 {/if}

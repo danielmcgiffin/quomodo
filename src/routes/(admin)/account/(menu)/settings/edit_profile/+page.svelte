@@ -7,8 +7,6 @@
   adminSection.set("settings")
 
   let { data } = $props()
-
-  let { profile } = data
 </script>
 
 <svelte:head>
@@ -26,20 +24,20 @@
     {
       id: "fullName",
       label: "Name",
-      initialValue: profile?.full_name ?? "",
+      initialValue: data.profile?.full_name ?? "",
       placeholder: "Your full name",
       maxlength: 50,
     },
     {
       id: "companyName",
       label: "Company Name",
-      initialValue: profile?.company_name ?? "",
+      initialValue: data.profile?.company_name ?? "",
       maxlength: 50,
     },
     {
       id: "website",
       label: "Company Website",
-      initialValue: profile?.website ?? "",
+      initialValue: data.profile?.website ?? "",
       maxlength: 50,
     },
   ]}

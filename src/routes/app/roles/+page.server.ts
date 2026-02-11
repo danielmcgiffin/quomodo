@@ -8,7 +8,6 @@ import {
   richToHtml,
 } from "$lib/server/atlas"
 
-type SupabaseAny = any
 type RoleRow = {
   id: string
   slug: string
@@ -20,7 +19,7 @@ type RoleRow = {
 
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
-  const supabase = locals.supabase as unknown as SupabaseAny
+  const supabase = locals.supabase
   const { data, error } = await supabase
     .from("roles")
     .select("id, slug, name, description_rich, person_name, hours_per_week")
@@ -53,7 +52,7 @@ export const actions = {
     if (!canManageDirectory(context.membershipRole)) {
       return fail(403, { createRoleError: "Insufficient permissions." })
     }
-    const supabase = locals.supabase as unknown as SupabaseAny
+    const supabase = locals.supabase
     const formData = await request.formData()
 
     const name = String(formData.get("name") ?? "").trim()

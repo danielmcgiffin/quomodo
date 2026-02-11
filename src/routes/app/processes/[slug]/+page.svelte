@@ -7,11 +7,11 @@
   let { data, form } = $props()
 </script>
 
-  <div class="sc-page">
-    <div class="sc-page-title">{data.process.name}</div>
-    <div class="sc-page-subtitle">
-      <RichText html={data.process.descriptionHtml} />
-    </div>
+<div class="sc-page">
+  <div class="sc-page-title">{data.process.name}</div>
+  <div class="sc-page-subtitle">
+    <RichText html={data.process.descriptionHtml} />
+  </div>
 
   <div class="sc-section">
     <div class="sc-section-title">Process Details</div>
@@ -31,7 +31,7 @@
     <div class="sc-card">
       <div class="sc-byline">
         {#each data.roles as role}
-          <RolePortal role={role} />
+          <RolePortal {role} />
         {/each}
       </div>
     </div>
@@ -42,7 +42,7 @@
     <div class="sc-card">
       <div class="sc-byline">
         {#each data.systems as system}
-          <SystemPortal system={system} />
+          <SystemPortal {system} />
         {/each}
       </div>
     </div>
@@ -65,16 +65,26 @@
     {#each data.actions as action}
       <div class="sc-card">
         <div class="sc-meta">Action {action.sequence}</div>
-        <div style="font-size: var(--sc-font-lg); font-weight: 600; margin-top:6px;">
+        <div
+          style="font-size: var(--sc-font-lg); font-weight: 600; margin-top:6px;"
+        >
           <RichText html={action.descriptionHtml} />
         </div>
         <div class="sc-byline" style="margin-top:10px;">
           {#if action.ownerRole}
-            <RolePortal role={action.ownerRole as any} />
+            <RolePortal
+              role={action.ownerRole as {
+                slug: string
+                name: string
+                initials: string
+              }}
+            />
           {/if}
           {#if action.system}
             <span>· in</span>
-            <SystemPortal system={action.system as any} />
+            <SystemPortal
+              system={action.system as { slug: string; name: string }}
+            />
           {/if}
         </div>
       </div>
@@ -85,10 +95,16 @@
     <div class="sc-section-title">Add Action</div>
     <form class="sc-card" method="POST" action="?/createAction">
       {#if form?.createActionError}
-        <div style="color: var(--sc-danger); margin-bottom: 10px;">{form.createActionError}</div>
+        <div style="color: var(--sc-danger); margin-bottom: 10px;">
+          {form.createActionError}
+        </div>
       {/if}
       <div class="sc-byline" style="margin-bottom:10px;">
-        <input class="sc-search" name="sequence" placeholder="Sequence (optional)" />
+        <input
+          class="sc-search"
+          name="sequence"
+          placeholder="Sequence (optional)"
+        />
       </div>
       <div class="sc-byline" style="margin-bottom:10px;">
         <select class="sc-search" name="owner_role_id" required>
@@ -121,7 +137,9 @@
     <div class="sc-section-title">Create Flag</div>
     <form class="sc-card" method="POST" action="?/createProcessFlag">
       {#if form?.createProcessFlagError}
-        <div style="color: var(--sc-danger); margin-bottom: 10px;">{form.createProcessFlagError}</div>
+        <div style="color: var(--sc-danger); margin-bottom: 10px;">
+          {form.createProcessFlagError}
+        </div>
       {/if}
       <div class="sc-byline" style="margin-bottom:10px;">
         <select class="sc-search" name="flag_type">
@@ -131,7 +149,11 @@
           <option value="stale">stale</option>
           <option value="incorrect">incorrect</option>
         </select>
-        <input class="sc-search" name="target_path" placeholder="Target path (optional)" />
+        <input
+          class="sc-search"
+          name="target_path"
+          placeholder="Target path (optional)"
+        />
       </div>
       <div class="sc-byline" style="margin-bottom:10px;">
         <textarea
@@ -151,11 +173,11 @@
     <div class="sc-card">
       <div class="sc-byline">
         {#each data.roles as role}
-          <RolePortal role={role} />
+          <RolePortal {role} />
         {/each}
         <span>·</span>
         {#each data.systems as system}
-          <SystemPortal system={system} />
+          <SystemPortal {system} />
         {/each}
         <span>·</span>
         <ProcessPortal process={data.process} />

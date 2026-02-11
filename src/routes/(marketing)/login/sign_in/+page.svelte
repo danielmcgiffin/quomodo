@@ -6,9 +6,9 @@
   import { page } from "$app/stores"
 
   let { data } = $props()
-  const supabase = data.supabase
 
   onMount(() => {
+    const supabase = data.supabase
     if (!supabase) {
       return
     }
@@ -63,10 +63,12 @@
     <a class="underline" href="/login/forgot_password">Forgot password?</a>
   </div>
   <div class="text-l text-slate-800 mt-3">
-    Don't have an account? <a class="underline" href="/login/sign_up">Sign up</a>.
+    Don't have an account? <a class="underline" href="/login/sign_up">Sign up</a
+    >.
   </div>
 {:else}
   <div role="alert" class="alert alert-error">
-    Auth is not configured. Set `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` in Cloudflare.
+    Auth is not configured. Set `PUBLIC_SUPABASE_URL` and
+    `PUBLIC_SUPABASE_ANON_KEY` in Cloudflare.
   </div>
 {/if}

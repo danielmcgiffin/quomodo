@@ -6,7 +6,6 @@ import {
   makeInitials,
 } from "$lib/server/atlas"
 
-type SupabaseAny = any
 type ProcessRow = { id: string; slug: string; name: string }
 type RoleRow = { id: string; slug: string; name: string }
 type SystemRow = { id: string; slug: string; name: string }
@@ -21,59 +20,70 @@ type FlagRow = {
   created_at: string
   status: string
 }
-type RolePortal = { id: string; slug: string; name: string; initials: string }
-type ProcessPortal = { id: string; slug: string; name: string }
-type SystemPortal = { id: string; slug: string; name: string }
 type ActionTarget = { id: string; label: string }
 
 const toTargetLabel = (type: string, name: string) => `${type}: ${name}`
 
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
-  const supabase = locals.supabase as unknown as SupabaseAny
+  const supabase = locals.supabase
 
-  const [processesResult, rolesResult, systemsResult, actionsResult, flagsResult] =
-    await Promise.all([
-      supabase
-        .from("processes")
-        .select("id, slug, name")
-        .eq("org_id", context.orgId)
-        .order("name"),
-      supabase
-        .from("roles")
-        .select("id, slug, name")
-        .eq("org_id", context.orgId)
-        .order("name"),
-      supabase
-        .from("systems")
-        .select("id, slug, name")
-        .eq("org_id", context.orgId)
-        .order("name"),
-      supabase
-        .from("actions")
-        .select("id, process_id, sequence")
-        .eq("org_id", context.orgId)
-        .order("sequence", { ascending: true }),
-      supabase
-        .from("flags")
-        .select(
-          "id, target_type, target_id, target_path, flag_type, message, created_at, status",
-        )
-        .eq("org_id", context.orgId)
-        .order("created_at", { ascending: false }),
-    ])
+  const [
+    processesResult,
+    rolesResult,
+    systemsResult,
+    actionsResult,
+    flagsResult,
+  ] = await Promise.all([
+    supabase
+      .from("processes")
+      .select("id, slug, name")
+      .eq("org_id", context.orgId)
+      .order("name"),
+    supabase
+      .from("roles")
+      .select("id, slug, name")
+      .eq("org_id", context.orgId)
+      .order("name"),
+    supabase
+      .from("systems")
+      .select("id, slug, name")
+      .eq("org_id", context.orgId)
+      .order("name"),
+    supabase
+      .from("actions")
+      .select("id, process_id, sequence")
+      .eq("org_id", context.orgId)
+      .order("sequence", { ascending: true }),
+    supabase
+      .from("flags")
+      .select(
+        "id, target_type, target_id, target_path, flag_type, message, created_at, status",
+      )
+      .eq("org_id", context.orgId)
+      .order("created_at", { ascending: false }),
+  ])
 
   if (processesResult.error) {
-    throw kitError(500, `Failed to load processes: ${processesResult.error.message}`)
+    throw kitError(
+      500,
+      `Failed to load processes: ${processesResult.error.message}`,
+    )
   }
   if (rolesResult.error) {
     throw kitError(500, `Failed to load roles: ${rolesResult.error.message}`)
   }
   if (systemsResult.error) {
-    throw kitError(500, `Failed to load systems: ${systemsResult.error.message}`)
+    throw kitError(
+      500,
+      `Failed to load systems: ${systemsResult.error.message}`,
+    )
   }
   if (actionsResult.error) {
-    throw kitError(500, `Failed to load actions: ${actionsResult.error.message}`)
+    throw kitError(
+      500,
+      `Failed to load actions: ${actionsResult.error.message}`,
+    )
   }
   if (flagsResult.error) {
     throw kitError(500, `Failed to load flags: ${flagsResult.error.message}`)
@@ -92,18 +102,18 @@ export const load = async ({ locals }) => {
     ((systemsResult.data ?? []) as SystemRow[]).map((x) => [x.id, x]),
   )
 
-  const actionTargets: ActionTarget[] = ((actionsResult.data ?? []) as ActionRow[]).map(
-    (action) => {
-      const process = processById.get(action.process_id)
-      const label = process
-        ? `Action ${action.sequence} in ${process.name}`
-        : `Action ${action.sequence}`
-      return {
-        id: action.id,
-        label,
-      }
-    },
-  )
+  const actionTargets: ActionTarget[] = (
+    (actionsResult.data ?? []) as ActionRow[]
+  ).map((action) => {
+    const process = processById.get(action.process_id)
+    const label = process
+      ? `Action ${action.sequence} in ${process.name}`
+      : `Action ${action.sequence}`
+    return {
+      id: action.id,
+      label,
+    }
+  })
 
   const targetOptions = [
     ...((processesResult.data ?? []) as ProcessRow[]).map((process) => ({
@@ -158,7 +168,7 @@ export const load = async ({ locals }) => {
 export const actions = {
   createFlag: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
-    const supabase = locals.supabase as unknown as SupabaseAny
+    const supabase = locals.supabase
     const formData = await request.formData()
 
     const targetToken = String(formData.get("target") ?? "").trim()
@@ -174,7 +184,9 @@ export const actions = {
       return fail(400, { createFlagError: "Message is required." })
     }
     if (!canCreateFlagType(context.membershipRole, flagType)) {
-      return fail(403, { createFlagError: "Members can only create comment flags." })
+      return fail(403, {
+        createFlagError: "Members can only create comment flags.",
+      })
     }
 
     const { error } = await supabase.from("flags").insert({
@@ -199,7 +211,7 @@ export const actions = {
     if (!canModerateFlags(context.membershipRole)) {
       return fail(403, { resolveFlagError: "Insufficient permissions." })
     }
-    const supabase = locals.supabase as unknown as SupabaseAny
+    const supabase = locals.supabase
     const formData = await request.formData()
     const id = String(formData.get("id") ?? "").trim()
     const resolution = String(formData.get("resolution_note") ?? "").trim()
@@ -231,7 +243,7 @@ export const actions = {
     if (!canModerateFlags(context.membershipRole)) {
       return fail(403, { dismissFlagError: "Insufficient permissions." })
     }
-    const supabase = locals.supabase as unknown as SupabaseAny
+    const supabase = locals.supabase
     const formData = await request.formData()
     const id = String(formData.get("id") ?? "").trim()
 

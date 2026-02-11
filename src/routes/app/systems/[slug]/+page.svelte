@@ -7,11 +7,11 @@
   let { data } = $props()
 </script>
 
-  <div class="sc-page">
-    <div class="sc-page-title">{data.system.name}</div>
-    <div class="sc-page-subtitle">
-      <RichText html={data.system.descriptionHtml} />
-    </div>
+<div class="sc-page">
+  <div class="sc-page-title">{data.system.name}</div>
+  <div class="sc-page-subtitle">
+    <RichText html={data.system.descriptionHtml} />
+  </div>
 
   <div class="sc-section">
     <div class="sc-section-title">System Details</div>
@@ -34,14 +34,20 @@
     <div class="sc-section-title">What Uses This?</div>
     {#each data.processesUsing as process}
       <div class="sc-card">
-        <ProcessPortal process={process} />
-        {#each data.actionsUsing.filter((action: any) => action.processId === process.id) as action}
+        <ProcessPortal {process} />
+        {#each data.actionsUsing.filter((action: { processId: string }) => action.processId === process.id) as action}
           <div style="margin-top:8px;">
             <div class="sc-meta">Action {action.sequence}</div>
             <RichText html={action.descriptionHtml} />
             <div class="sc-byline" style="margin-top:6px;">
               {#if action.ownerRole}
-                <RolePortal role={action.ownerRole as any} />
+                <RolePortal
+                  role={action.ownerRole as {
+                    slug: string
+                    name: string
+                    initials: string
+                  }}
+                />
               {/if}
               <span>· in</span>
               <SystemPortal system={data.system} size="sm" />
@@ -57,7 +63,7 @@
     <div class="sc-card">
       <div class="sc-byline">
         {#each data.rolesUsing as role}
-          <RolePortal role={role} />
+          <RolePortal {role} />
         {/each}
       </div>
     </div>

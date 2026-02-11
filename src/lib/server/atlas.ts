@@ -1,7 +1,5 @@
 import { error as kitError, redirect } from "@sveltejs/kit"
 
-type SupabaseAny = any
-
 export type MembershipRole = "owner" | "admin" | "editor" | "member"
 
 export type OrgContext = {
@@ -86,10 +84,7 @@ export const plainToRich = (value: string) => ({
 })
 
 export const makeInitials = (name: string): string => {
-  const parts = name
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
+  const parts = name.trim().split(/\s+/).filter(Boolean)
   if (parts.length === 0) {
     return "SC"
   }
@@ -114,8 +109,8 @@ const TRIAD_TABLES_HINT =
   "SystemsCraft triad tables are missing. Apply `supabase/migrations/20260211183000_systemscraft_triad_foundation.sql` to this Supabase project."
 
 const createOrgForUser = async (
-  supabase: SupabaseAny,
-  supabaseServiceRole: SupabaseAny,
+  supabase: App.Locals["supabase"],
+  supabaseServiceRole: App.Locals["supabaseServiceRole"],
   userId: string,
   preferredName: string,
 ) => {
@@ -179,20 +174,25 @@ const createOrgForUser = async (
       throw kitError(500, TRIAD_TABLES_HINT)
     }
     if (error?.code !== "23505") {
-      throw kitError(500, `Failed to create workspace: ${error?.message ?? "unknown error"}`)
+      throw kitError(
+        500,
+        `Failed to create workspace: ${error?.message ?? "unknown error"}`,
+      )
     }
   }
 
   throw kitError(500, "Failed to create workspace slug")
 }
 
-export const ensureOrgContext = async (locals: App.Locals): Promise<OrgContext> => {
+export const ensureOrgContext = async (
+  locals: App.Locals,
+): Promise<OrgContext> => {
   const user = locals.user
   if (!user) {
     throw redirect(303, "/login")
   }
 
-  const supabase = locals.supabase as unknown as SupabaseAny
+  const supabase = locals.supabase
   const { data: memberships, error: membershipError } = await supabase
     .from("org_members")
     .select("org_id, role")
@@ -204,13 +204,17 @@ export const ensureOrgContext = async (locals: App.Locals): Promise<OrgContext> 
     if (membershipError.code === "42P01") {
       throw kitError(500, TRIAD_TABLES_HINT)
     }
-    throw kitError(500, `Failed to load workspace membership: ${membershipError.message}`)
+    throw kitError(
+      500,
+      `Failed to load workspace membership: ${membershipError.message}`,
+    )
   }
 
   const membership = memberships?.[0]
   if (!membership) {
     const displayName =
-      (typeof user.user_metadata?.full_name === "string" && user.user_metadata.full_name) ||
+      (typeof user.user_metadata?.full_name === "string" &&
+        user.user_metadata.full_name) ||
       (typeof user.email === "string" && user.email.split("@")[0]) ||
       "My Workspace"
     const org = await createOrgForUser(
@@ -234,7 +238,10 @@ export const ensureOrgContext = async (locals: App.Locals): Promise<OrgContext> 
     .single()
 
   if (orgError || !org) {
-    throw kitError(500, `Failed to load workspace: ${orgError?.message ?? "not found"}`)
+    throw kitError(
+      500,
+      `Failed to load workspace: ${orgError?.message ?? "not found"}`,
+    )
   }
 
   return {
@@ -246,7 +253,7 @@ export const ensureOrgContext = async (locals: App.Locals): Promise<OrgContext> 
 }
 
 export const ensureUniqueSlug = async (
-  supabase: SupabaseAny,
+  supabase: App.Locals["supabase"],
   table: "roles" | "systems" | "processes",
   orgId: string,
   rawName: string,
@@ -255,7 +262,7 @@ export const ensureUniqueSlug = async (
   let candidate = base
   let suffix = 1
 
-  while (true) {
+  for (let attempts = 0; attempts < 1000; attempts += 1) {
     const { data, error } = await supabase
       .from(table)
       .select("id")
@@ -272,4 +279,6 @@ export const ensureUniqueSlug = async (
     suffix += 1
     candidate = `${base}-${suffix}`
   }
+
+  throw kitError(500, "Failed to generate unique slug")
 }

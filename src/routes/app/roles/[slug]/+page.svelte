@@ -7,11 +7,11 @@
   let { data } = $props()
 </script>
 
-  <div class="sc-page">
-    <div class="sc-page-title">{data.role.name}</div>
-    <div class="sc-page-subtitle">
-      <RichText html={data.role.descriptionHtml} />
-    </div>
+<div class="sc-page">
+  <div class="sc-page-title">{data.role.name}</div>
+  <div class="sc-page-subtitle">
+    <RichText html={data.role.descriptionHtml} />
+  </div>
 
   <div class="sc-section">
     <div class="sc-section-title">Role Details</div>
@@ -38,7 +38,7 @@
     <div class="sc-card">
       <div class="sc-byline">
         {#each data.ownedProcesses as process}
-          <ProcessPortal process={process} />
+          <ProcessPortal {process} />
         {/each}
       </div>
     </div>
@@ -49,7 +49,9 @@
     {#each data.actionsByProcess as entry}
       <div class="sc-card">
         <div class="sc-meta">
-          <ProcessPortal process={entry.process as any} />
+          <ProcessPortal
+            process={entry.process as { slug: string; name: string }}
+          />
         </div>
         {#if entry.actions.length === 0}
           <div style="margin-top:8px; color: var(--sc-text-muted);">
@@ -64,7 +66,10 @@
                 <RolePortal role={data.role} size="sm" />
                 <span>· in</span>
                 {#if action.system}
-                  <SystemPortal system={action.system as any} size="sm" />
+                  <SystemPortal
+                    system={action.system as { slug: string; name: string }}
+                    size="sm"
+                  />
                 {/if}
               </div>
             </div>
@@ -79,7 +84,7 @@
     <div class="sc-card">
       <div class="sc-byline">
         {#each data.systemsAccessed as system}
-          <SystemPortal system={system} />
+          <SystemPortal {system} />
         {/each}
       </div>
     </div>

@@ -16,10 +16,17 @@
     <div class="sc-section-title">Add System</div>
     <form class="sc-card" method="POST" action="?/createSystem">
       {#if form?.createSystemError}
-        <div style="color: var(--sc-danger); margin-bottom: 10px;">{form.createSystemError}</div>
+        <div style="color: var(--sc-danger); margin-bottom: 10px;">
+          {form.createSystemError}
+        </div>
       {/if}
       <div class="sc-byline" style="margin-bottom:10px;">
-        <input class="sc-search" name="name" placeholder="System name" required />
+        <input
+          class="sc-search"
+          name="name"
+          placeholder="System name"
+          required
+        />
         <input class="sc-search" name="location" placeholder="Location" />
       </div>
       <div class="sc-byline" style="margin-bottom:10px;">
@@ -47,10 +54,17 @@
     {#each data.systems as system}
       <div class="sc-card">
         <div class="sc-byline">
-          <SystemPortal system={system} size="lg" />
+          <SystemPortal {system} size="lg" />
           {#if system.ownerRole}
             <span>Owner</span>
-            <RolePortal role={system.ownerRole as any} size="sm" />
+            <RolePortal
+              role={system.ownerRole as {
+                slug: string
+                name: string
+                initials: string
+              }}
+              size="sm"
+            />
           {/if}
           {#if system.location}
             <span class="sc-pill">{system.location}</span>

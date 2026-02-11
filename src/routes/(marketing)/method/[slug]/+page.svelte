@@ -12,7 +12,9 @@
 <article class="mk-method-article">
   <header>
     <span class="mk-eyebrow">
-      Step {String(data.index + 1).padStart(2, "0")} / {String(data.total).padStart(2, "0")}
+      Step {String(data.index + 1).padStart(2, "0")} / {String(
+        data.total,
+      ).padStart(2, "0")}
     </span>
     <h1>{data.section.title}</h1>
     <p>{data.section.intro}</p>

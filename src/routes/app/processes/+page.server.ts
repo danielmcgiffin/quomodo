@@ -8,7 +8,6 @@ import {
   richToHtml,
 } from "$lib/server/atlas"
 
-type SupabaseAny = any
 type RoleRow = { id: string; slug: string; name: string }
 type SystemRow = { id: string; slug: string; name: string }
 type ProcessRow = {
@@ -37,7 +36,7 @@ const toSystem = (row: SystemRow) => ({
 
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
-  const supabase = locals.supabase as unknown as SupabaseAny
+  const supabase = locals.supabase
 
   const [rolesResult, systemsResult, processesResult, actionsResult] =
     await Promise.all([
@@ -53,7 +52,9 @@ export const load = async ({ locals }) => {
         .order("name"),
       supabase
         .from("processes")
-        .select("id, slug, name, description_rich, trigger, end_state, owner_role_id")
+        .select(
+          "id, slug, name, description_rich, trigger, end_state, owner_role_id",
+        )
         .eq("org_id", context.orgId)
         .order("created_at", { ascending: false }),
       supabase
@@ -67,18 +68,29 @@ export const load = async ({ locals }) => {
     throw kitError(500, `Failed to load roles: ${rolesResult.error.message}`)
   }
   if (systemsResult.error) {
-    throw kitError(500, `Failed to load systems: ${systemsResult.error.message}`)
+    throw kitError(
+      500,
+      `Failed to load systems: ${systemsResult.error.message}`,
+    )
   }
   if (processesResult.error) {
-    throw kitError(500, `Failed to load processes: ${processesResult.error.message}`)
+    throw kitError(
+      500,
+      `Failed to load processes: ${processesResult.error.message}`,
+    )
   }
   if (actionsResult.error) {
-    throw kitError(500, `Failed to load actions: ${actionsResult.error.message}`)
+    throw kitError(
+      500,
+      `Failed to load actions: ${actionsResult.error.message}`,
+    )
   }
 
   const roles = ((rolesResult.data ?? []) as RoleRow[]).map(toRole)
   const systems = ((systemsResult.data ?? []) as SystemRow[]).map(toSystem)
-  const roleById = new Map(roles.map((role: ReturnType<typeof toRole>) => [role.id, role]))
+  const roleById = new Map(
+    roles.map((role: ReturnType<typeof toRole>) => [role.id, role]),
+  )
   const systemById = new Map(
     systems.map((system: ReturnType<typeof toSystem>) => [system.id, system]),
   )
@@ -90,18 +102,22 @@ export const load = async ({ locals }) => {
     }
   }
 
-  const processes = ((processesResult.data ?? []) as ProcessRow[]).map((row) => ({
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-    descriptionHtml: richToHtml(row.description_rich),
-    trigger: row.trigger ?? "",
-    endState: row.end_state ?? "",
-    ownerRole: row.owner_role_id ? roleById.get(row.owner_role_id) ?? null : null,
-    primarySystem: firstSystemByProcess.get(row.id)
-      ? systemById.get(firstSystemByProcess.get(row.id)!) ?? null
-      : null,
-  }))
+  const processes = ((processesResult.data ?? []) as ProcessRow[]).map(
+    (row) => ({
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+      descriptionHtml: richToHtml(row.description_rich),
+      trigger: row.trigger ?? "",
+      endState: row.end_state ?? "",
+      ownerRole: row.owner_role_id
+        ? (roleById.get(row.owner_role_id) ?? null)
+        : null,
+      primarySystem: firstSystemByProcess.get(row.id)
+        ? (systemById.get(firstSystemByProcess.get(row.id)!) ?? null)
+        : null,
+    }),
+  )
 
   return {
     org: context,
@@ -117,7 +133,7 @@ export const actions = {
     if (!canEditAtlas(context.membershipRole)) {
       return fail(403, { createProcessError: "Insufficient permissions." })
     }
-    const supabase = locals.supabase as unknown as SupabaseAny
+    const supabase = locals.supabase
     const formData = await request.formData()
 
     const name = String(formData.get("name") ?? "").trim()
@@ -130,7 +146,12 @@ export const actions = {
       return fail(400, { createProcessError: "Process name is required." })
     }
 
-    const slug = await ensureUniqueSlug(supabase, "processes", context.orgId, name)
+    const slug = await ensureUniqueSlug(
+      supabase,
+      "processes",
+      context.orgId,
+      name,
+    )
     const ownerRoleId = ownerRoleIdRaw || null
 
     const insertPayload = {

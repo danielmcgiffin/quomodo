@@ -6,6 +6,7 @@ Locked decisions: Cloudflare-only hosting, TipTap for rich text, and RBAC roles 
 Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 
 ## Phase 0: Design Foundation
+
 - [x] Portal pattern implemented everywhere (role/action/system mentions are links)
 - [x] Triad model in UI: Process → Actions (Role + System)
 - [x] `Action` terminology and section labels aligned with PRD wording
@@ -16,12 +17,14 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [ ] Search entry stub (button only) finalized and placed consistently
 
 ## Marketing Surface
+
 - [x] Marketing IA aligned to PRD pages (Home, Method, Partners, Contact)
 - [x] Black/gold/green marketing theme separate but related to product UI theme
 - [x] Legacy `qstr-mrktng` structure/content migrated to new brand tokens
 - [x] Hosting target decision reflected in docs/deploy configuration (Cloudflare only)
 
 ## Phase 1: Data Foundation
+
 - [x] Supabase schema with roles, systems, processes, actions, flags
 - [x] Permission model implemented: owner/admin/editor/member
 - [x] RLS policies for org membership
@@ -32,11 +35,13 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [x] Portals wired to live IDs
 
 ## Phase 2: Retrieval
+
 - [ ] ⌘K search for roles/systems/processes/actions
 - [ ] Search results rendered as portals
 - [ ] Action lists filterable by entry point (role/system/process)
 
 ## Phase 3: Flags
+
 - [x] Flag creation from any entity
 - [x] Member alert/comment creation flow (`comment` as `flag_type`)
 - [x] Sub-entity flag targeting (`target_path`) support
@@ -44,10 +49,12 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [x] Resolve/Dismiss flow
 
 ## Deployment
+
 - [ ] Cloudflare env vars set (Supabase + Stripe)
 - [ ] Production route access verified for `/app/*`
 - [ ] Cloudflare-only runbook present; no active Vercel deployment docs in launch flow
 
 ## Route Isolation
+
 - [x] Legacy starter routes are explicitly marked as deferred (`LP-008`) with TODO markers in retained files
 - [x] Active SystemsCraft routes vs retained legacy routes are documented in `LAUNCH_PLAN.md`

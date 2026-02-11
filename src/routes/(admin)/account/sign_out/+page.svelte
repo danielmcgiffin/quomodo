@@ -4,12 +4,11 @@
 
   let { data } = $props()
 
-  let { supabase } = data
   let message = $state("Signing out....")
 
   // on mount, sign out
   onMount(() => {
-    supabase.auth.signOut().then(({ error }) => {
+    data.supabase.auth.signOut().then(({ error }) => {
       if (error) {
         message = "There was an issue signing out."
       } else {

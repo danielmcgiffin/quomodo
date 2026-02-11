@@ -8,7 +8,6 @@ import {
   richToHtml,
 } from "$lib/server/atlas"
 
-type SupabaseAny = any
 type ProcessRow = {
   id: string
   slug: string
@@ -32,11 +31,13 @@ type FlagRow = { id: string; flag_type: string; message: string }
 
 export const load = async ({ params, locals }) => {
   const context = await ensureOrgContext(locals)
-  const supabase = locals.supabase as unknown as SupabaseAny
+  const supabase = locals.supabase
 
   const { data: process, error: processError } = await supabase
     .from("processes")
-    .select("id, slug, name, description_rich, trigger, end_state, owner_role_id")
+    .select(
+      "id, slug, name, description_rich, trigger, end_state, owner_role_id",
+    )
     .eq("org_id", context.orgId)
     .eq("slug", params.slug)
     .maybeSingle()
@@ -49,41 +50,50 @@ export const load = async ({ params, locals }) => {
   }
   const processRow = process as ProcessRow
 
-  const [actionsResult, rolesResult, systemsResult, flagsResult] = await Promise.all([
-    supabase
-      .from("actions")
-      .select("id, process_id, sequence, description_rich, owner_role_id, system_id")
-      .eq("org_id", context.orgId)
-      .eq("process_id", process.id)
-      .order("sequence"),
-    supabase
-      .from("roles")
-      .select("id, slug, name")
-      .eq("org_id", context.orgId)
-      .order("name"),
-    supabase
-      .from("systems")
-      .select("id, slug, name")
-      .eq("org_id", context.orgId)
-      .order("name"),
-    supabase
-      .from("flags")
-      .select("id, flag_type, message")
-      .eq("org_id", context.orgId)
-      .eq("target_type", "process")
-      .eq("target_id", processRow.id)
-      .eq("status", "open")
-      .order("created_at", { ascending: false }),
-  ])
+  const [actionsResult, rolesResult, systemsResult, flagsResult] =
+    await Promise.all([
+      supabase
+        .from("actions")
+        .select(
+          "id, process_id, sequence, description_rich, owner_role_id, system_id",
+        )
+        .eq("org_id", context.orgId)
+        .eq("process_id", process.id)
+        .order("sequence"),
+      supabase
+        .from("roles")
+        .select("id, slug, name")
+        .eq("org_id", context.orgId)
+        .order("name"),
+      supabase
+        .from("systems")
+        .select("id, slug, name")
+        .eq("org_id", context.orgId)
+        .order("name"),
+      supabase
+        .from("flags")
+        .select("id, flag_type, message")
+        .eq("org_id", context.orgId)
+        .eq("target_type", "process")
+        .eq("target_id", processRow.id)
+        .eq("status", "open")
+        .order("created_at", { ascending: false }),
+    ])
 
   if (actionsResult.error) {
-    throw kitError(500, `Failed to load actions: ${actionsResult.error.message}`)
+    throw kitError(
+      500,
+      `Failed to load actions: ${actionsResult.error.message}`,
+    )
   }
   if (rolesResult.error) {
     throw kitError(500, `Failed to load roles: ${rolesResult.error.message}`)
   }
   if (systemsResult.error) {
-    throw kitError(500, `Failed to load systems: ${systemsResult.error.message}`)
+    throw kitError(
+      500,
+      `Failed to load systems: ${systemsResult.error.message}`,
+    )
   }
   if (flagsResult.error) {
     throw kitError(500, `Failed to load flags: ${flagsResult.error.message}`)
@@ -100,9 +110,7 @@ export const load = async ({ params, locals }) => {
     slug: row.slug,
     name: row.name,
   }))
-  const roleById = new Map(
-    roles.map((role: { id: string }) => [role.id, role]),
-  )
+  const roleById = new Map(roles.map((role: { id: string }) => [role.id, role]))
   const systemById = new Map(
     systems.map((system: { id: string }) => [system.id, system]),
   )
@@ -137,12 +145,14 @@ export const load = async ({ params, locals }) => {
       trigger: processRow.trigger ?? "",
       endState: processRow.end_state ?? "",
       ownerRole: processRow.owner_role_id
-        ? roleById.get(processRow.owner_role_id) ?? null
+        ? (roleById.get(processRow.owner_role_id) ?? null)
         : null,
     },
     actions,
     roles: roles.filter((role: { id: string }) => linkedRoleIds.has(role.id)),
-    systems: systems.filter((system: { id: string }) => linkedSystemIds.has(system.id)),
+    systems: systems.filter((system: { id: string }) =>
+      linkedSystemIds.has(system.id),
+    ),
     allRoles: roles,
     allSystems: systems,
     processFlags: ((flagsResult.data ?? []) as FlagRow[]).map((flag) => ({
@@ -160,7 +170,7 @@ export const actions = {
     if (!canEditAtlas(context.membershipRole)) {
       return fail(403, { createActionError: "Insufficient permissions." })
     }
-    const supabase = locals.supabase as unknown as SupabaseAny
+    const supabase = locals.supabase
     const formData = await request.formData()
 
     const description = String(formData.get("description") ?? "").trim()
@@ -216,7 +226,7 @@ export const actions = {
 
   createProcessFlag: async ({ request, params, locals }) => {
     const context = await ensureOrgContext(locals)
-    const supabase = locals.supabase as unknown as SupabaseAny
+    const supabase = locals.supabase
     const formData = await request.formData()
 
     const message = String(formData.get("message") ?? "").trim()

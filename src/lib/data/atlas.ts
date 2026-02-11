@@ -165,8 +165,7 @@ export const actions: Action[] = [
     id: "action-hubspot-deal",
     processId: "process-onboarding",
     sequence: 2,
-    descriptionHtml:
-      "<p>Create HubSpot deal and assign onboarding owner.</p>",
+    descriptionHtml: "<p>Create HubSpot deal and assign onboarding owner.</p>",
     ownerRoleId: "role-cs",
     systemId: "system-hubspot",
   },

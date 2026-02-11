@@ -1,7 +1,6 @@
 import { error as kitError } from "@sveltejs/kit"
 import { ensureOrgContext, makeInitials, richToHtml } from "$lib/server/atlas"
 
-type SupabaseAny = any
 type RoleRow = {
   id: string
   slug: string
@@ -10,7 +9,12 @@ type RoleRow = {
   person_name: string | null
   hours_per_week: number | null
 }
-type ProcessRow = { id: string; slug: string; name: string; owner_role_id: string | null }
+type ProcessRow = {
+  id: string
+  slug: string
+  name: string
+  owner_role_id: string | null
+}
 type ActionRow = {
   id: string
   process_id: string
@@ -24,7 +28,7 @@ type FlagRow = { id: string; flag_type: string; message: string }
 
 export const load = async ({ params, locals }) => {
   const context = await ensureOrgContext(locals)
-  const supabase = locals.supabase as unknown as SupabaseAny
+  const supabase = locals.supabase
 
   const { data: role, error: roleError } = await supabase
     .from("roles")
@@ -41,41 +45,53 @@ export const load = async ({ params, locals }) => {
   }
   const roleRow = role as RoleRow
 
-  const [processesResult, actionsResult, systemsResult, flagsResult] = await Promise.all([
-    supabase
-      .from("processes")
-      .select("id, slug, name, owner_role_id")
-      .eq("org_id", context.orgId)
-      .order("name"),
-    supabase
-      .from("actions")
-      .select("id, process_id, sequence, description_rich, owner_role_id, system_id")
-      .eq("org_id", context.orgId)
-      .eq("owner_role_id", roleRow.id)
-      .order("sequence"),
-    supabase
-      .from("systems")
-      .select("id, slug, name")
-      .eq("org_id", context.orgId)
-      .order("name"),
-    supabase
-      .from("flags")
-      .select("id, flag_type, message")
-      .eq("org_id", context.orgId)
-      .eq("target_type", "role")
-      .eq("target_id", roleRow.id)
-      .eq("status", "open")
-      .order("created_at", { ascending: false }),
-  ])
+  const [processesResult, actionsResult, systemsResult, flagsResult] =
+    await Promise.all([
+      supabase
+        .from("processes")
+        .select("id, slug, name, owner_role_id")
+        .eq("org_id", context.orgId)
+        .order("name"),
+      supabase
+        .from("actions")
+        .select(
+          "id, process_id, sequence, description_rich, owner_role_id, system_id",
+        )
+        .eq("org_id", context.orgId)
+        .eq("owner_role_id", roleRow.id)
+        .order("sequence"),
+      supabase
+        .from("systems")
+        .select("id, slug, name")
+        .eq("org_id", context.orgId)
+        .order("name"),
+      supabase
+        .from("flags")
+        .select("id, flag_type, message")
+        .eq("org_id", context.orgId)
+        .eq("target_type", "role")
+        .eq("target_id", roleRow.id)
+        .eq("status", "open")
+        .order("created_at", { ascending: false }),
+    ])
 
   if (processesResult.error) {
-    throw kitError(500, `Failed to load processes: ${processesResult.error.message}`)
+    throw kitError(
+      500,
+      `Failed to load processes: ${processesResult.error.message}`,
+    )
   }
   if (actionsResult.error) {
-    throw kitError(500, `Failed to load actions: ${actionsResult.error.message}`)
+    throw kitError(
+      500,
+      `Failed to load actions: ${actionsResult.error.message}`,
+    )
   }
   if (systemsResult.error) {
-    throw kitError(500, `Failed to load systems: ${systemsResult.error.message}`)
+    throw kitError(
+      500,
+      `Failed to load systems: ${systemsResult.error.message}`,
+    )
   }
   if (flagsResult.error) {
     throw kitError(500, `Failed to load flags: ${flagsResult.error.message}`)
@@ -89,28 +105,36 @@ export const load = async ({ params, locals }) => {
   const systemById = new Map(
     systems.map((system: { id: string }) => [system.id, system]),
   )
-  const processes = ((processesResult.data ?? []) as ProcessRow[]).map((row) => ({
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-    ownerRoleId: row.owner_role_id,
-  }))
+  const processes = ((processesResult.data ?? []) as ProcessRow[]).map(
+    (row) => ({
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+      ownerRoleId: row.owner_role_id,
+    }),
+  )
   const processById = new Map(
     processes.map((process: { id: string }) => [process.id, process]),
   )
 
   const ownedProcesses = processes.filter(
-    (process: { ownerRoleId: string | null }) => process.ownerRoleId === roleRow.id,
+    (process: { ownerRoleId: string | null }) =>
+      process.ownerRoleId === roleRow.id,
   )
-  const actionsPerformed = ((actionsResult.data ?? []) as ActionRow[]).map((action) => ({
-    id: action.id,
-    processId: action.process_id,
-    sequence: action.sequence,
-    descriptionHtml: richToHtml(action.description_rich),
-    system: systemById.get(action.system_id) ?? null,
-  }))
+  const actionsPerformed = ((actionsResult.data ?? []) as ActionRow[]).map(
+    (action) => ({
+      id: action.id,
+      processId: action.process_id,
+      sequence: action.sequence,
+      descriptionHtml: richToHtml(action.description_rich),
+      system: systemById.get(action.system_id) ?? null,
+    }),
+  )
   const systemsAccessed = systems.filter((system: { id: string }) =>
-    actionsPerformed.some((action: { system: { id: string } | null }) => action.system?.id === system.id),
+    actionsPerformed.some(
+      (action: { system: { id: string } | null }) =>
+        action.system?.id === system.id,
+    ),
   )
   const actionsByProcess = ownedProcesses.map((process: { id: string }) => ({
     process,
@@ -124,7 +148,11 @@ export const load = async ({ params, locals }) => {
     if (!process) {
       continue
     }
-    if (!actionsByProcess.some((entry: { process: { id: string } }) => entry.process.id === process.id)) {
+    if (
+      !actionsByProcess.some(
+        (entry: { process: { id: string } }) => entry.process.id === process.id,
+      )
+    ) {
       actionsByProcess.push({
         process,
         actions: actionsPerformed.filter(

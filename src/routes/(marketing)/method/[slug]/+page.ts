@@ -3,7 +3,8 @@ import { methodBySlug, methodSections } from "$lib/marketing/method"
 
 export const prerender = true
 
-export const entries = () => methodSections.map((section) => ({ slug: section.slug }))
+export const entries = () =>
+  methodSections.map((section) => ({ slug: section.slug }))
 
 export const load = ({ params }) => {
   const section = methodBySlug.get(params.slug)

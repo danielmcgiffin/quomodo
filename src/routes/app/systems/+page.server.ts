@@ -8,7 +8,6 @@ import {
   richToHtml,
 } from "$lib/server/atlas"
 
-type SupabaseAny = any
 type RoleRow = { id: string; slug: string; name: string }
 type SystemRow = {
   id: string
@@ -22,7 +21,7 @@ type SystemRow = {
 
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
-  const supabase = locals.supabase as unknown as SupabaseAny
+  const supabase = locals.supabase
 
   const [rolesResult, systemsResult] = await Promise.all([
     supabase
@@ -41,7 +40,10 @@ export const load = async ({ locals }) => {
     throw kitError(500, `Failed to load roles: ${rolesResult.error.message}`)
   }
   if (systemsResult.error) {
-    throw kitError(500, `Failed to load systems: ${systemsResult.error.message}`)
+    throw kitError(
+      500,
+      `Failed to load systems: ${systemsResult.error.message}`,
+    )
   }
 
   const roles = ((rolesResult.data ?? []) as RoleRow[]).map((row) => ({
@@ -50,9 +52,7 @@ export const load = async ({ locals }) => {
     name: row.name,
     initials: makeInitials(row.name),
   }))
-  const roleById = new Map(
-    roles.map((role: { id: string }) => [role.id, role]),
-  )
+  const roleById = new Map(roles.map((role: { id: string }) => [role.id, role]))
 
   const systems = ((systemsResult.data ?? []) as SystemRow[]).map((row) => ({
     id: row.id,
@@ -61,7 +61,9 @@ export const load = async ({ locals }) => {
     descriptionHtml: richToHtml(row.description_rich),
     location: row.location ?? "",
     url: row.url ?? "",
-    ownerRole: row.owner_role_id ? roleById.get(row.owner_role_id) ?? null : null,
+    ownerRole: row.owner_role_id
+      ? (roleById.get(row.owner_role_id) ?? null)
+      : null,
   }))
 
   return {
@@ -77,7 +79,7 @@ export const actions = {
     if (!canManageDirectory(context.membershipRole)) {
       return fail(403, { createSystemError: "Insufficient permissions." })
     }
-    const supabase = locals.supabase as unknown as SupabaseAny
+    const supabase = locals.supabase
     const formData = await request.formData()
 
     const name = String(formData.get("name") ?? "").trim()
@@ -90,7 +92,12 @@ export const actions = {
       return fail(400, { createSystemError: "System name is required." })
     }
 
-    const slug = await ensureUniqueSlug(supabase, "systems", context.orgId, name)
+    const slug = await ensureUniqueSlug(
+      supabase,
+      "systems",
+      context.orgId,
+      name,
+    )
     const ownerRoleId = ownerRoleIdRaw || null
 
     const { data, error } = await supabase
