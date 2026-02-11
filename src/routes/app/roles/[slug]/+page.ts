@@ -9,6 +9,9 @@ import {
 } from "$lib/data/atlas"
 import { error } from "@sveltejs/kit"
 
+const isDefined = <T>(value: T | undefined): value is T =>
+  value !== undefined
+
 export const load = ({ params }) => {
   const role = roleBySlug.get(params.slug)
   if (!role) {
@@ -30,7 +33,7 @@ export const load = ({ params }) => {
     new Set(actionsPerformed.map((action) => action.systemId)),
   )
     .map((id) => systemById.get(id))
-    .filter(Boolean)
+    .filter(isDefined)
 
   const actionsByProcess = ownedProcesses.map((process) => ({
     process,

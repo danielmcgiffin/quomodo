@@ -2,11 +2,11 @@
 create extension if not exists "pgcrypto";
 
 -- Enums
-create type membership_role as enum ('owner','admin','member');
+create type membership_role as enum ('owner','admin','editor','member');
 create type process_status as enum ('active','paused','deprecated');
-create type flag_type as enum ('stale','incorrect','needs_review','question');
+create type flag_type as enum ('stale','incorrect','needs_review','question','comment');
 create type flag_status as enum ('open','resolved','dismissed');
-create type entity_type as enum ('process','step','role','system');
+create type entity_type as enum ('process','action','role','system');
 
 -- Orgs + members
 create table orgs (
@@ -67,11 +67,9 @@ create table processes (
   org_id uuid not null references orgs(id) on delete cascade,
   name text not null,
   description text,
-  cadence text,
   trigger text,
-  volume integer check (volume is null or volume >= 0),
+  end_state text,
   owner_role_id uuid,
-  review_date date,
   status process_status not null default 'active',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -80,26 +78,23 @@ create table processes (
   foreign key (org_id, owner_role_id) references roles(org_id, id)
 );
 
--- Steps (one role, one system)
-create table steps (
+-- Actions (one role, one system)
+create table actions (
   id uuid primary key default gen_random_uuid(),
   org_id uuid not null references orgs(id) on delete cascade,
   process_id uuid not null,
   sequence integer not null check (sequence > 0),
   description text not null,
   rich_content jsonb,
-  role_id uuid not null,
+  owner_role_id uuid not null,
   system_id uuid not null,
-  time_minutes integer check (time_minutes is null or time_minutes >= 0),
-  depends_on uuid,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (process_id, sequence),
   unique (org_id, id),
   foreign key (org_id, process_id) references processes(org_id, id) on delete cascade,
-  foreign key (org_id, role_id) references roles(org_id, id),
-  foreign key (org_id, system_id) references systems(org_id, id),
-  foreign key (org_id, depends_on) references steps(org_id, id)
+  foreign key (org_id, owner_role_id) references roles(org_id, id),
+  foreign key (org_id, system_id) references systems(org_id, id)
 );
 
 -- Role ↔ System access
@@ -122,6 +117,7 @@ create table flags (
   org_id uuid not null references orgs(id) on delete cascade,
   target_type entity_type not null,
   target_id uuid not null,
+  target_path text,
   flag_type flag_type not null,
   message text,
   created_by uuid references auth.users(id),
@@ -141,8 +137,8 @@ create view search_all as
   select 'process', id, org_id, name, coalesce(description, '')
     from processes
   union all
-  select 'step', id, org_id, 'Step ' || sequence::text, coalesce(description, '')
-    from steps
+  select 'action', id, org_id, 'Action ' || sequence::text, coalesce(description, '')
+    from actions
   union all
   select 'system', id, org_id, name, coalesce(description, '')
     from systems;
@@ -151,11 +147,12 @@ create view search_all as
 create index on roles(org_id);
 create index on systems(org_id);
 create index on processes(org_id);
-create index on steps(process_id);
-create index on steps(role_id);
-create index on steps(system_id);
+create index on actions(process_id);
+create index on actions(owner_role_id);
+create index on actions(system_id);
 create index on flags(org_id, status);
 create index on flags(target_type, target_id);
+create index on flags(target_type, target_id, target_path);
 
 -- updated_at trigger
 create or replace function set_updated_at() returns trigger as $$
@@ -173,7 +170,7 @@ create trigger set_updated_at_systems before update on systems
 for each row execute procedure set_updated_at();
 create trigger set_updated_at_processes before update on processes
 for each row execute procedure set_updated_at();
-create trigger set_updated_at_steps before update on steps
+create trigger set_updated_at_actions before update on actions
 for each row execute procedure set_updated_at();
 
 -- RLS helper (use per table)

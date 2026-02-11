@@ -41,9 +41,10 @@ export type Action = {
 
 export type Flag = {
   id: string
-  targetType: "role" | "process" | "system" | "step"
+  targetType: "role" | "process" | "system" | "action"
   targetId: string
-  flagType: "stale" | "incorrect" | "needs_review" | "question"
+  targetPath?: string
+  flagType: "stale" | "incorrect" | "needs_review" | "question" | "comment"
   message: string
   createdAt: string
   ownerRoleId?: string
@@ -215,6 +216,17 @@ export const flags: Flag[] = [
     createdAt: "1 week ago",
     ownerRoleId: "role-cs",
     processId: "process-renewals",
+  },
+  {
+    id: "flag-process-note",
+    targetType: "process",
+    targetId: "process-onboarding",
+    targetPath: "description",
+    flagType: "comment",
+    message: "Need clearer handoff wording before client kickoff.",
+    createdAt: "2 hours ago",
+    ownerRoleId: "role-founder",
+    processId: "process-onboarding",
   },
 ]
 

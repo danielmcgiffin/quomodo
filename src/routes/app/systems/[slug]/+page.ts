@@ -7,6 +7,9 @@ import {
 } from "$lib/data/atlas"
 import { error } from "@sveltejs/kit"
 
+const isDefined = <T>(value: T | undefined): value is T =>
+  value !== undefined
+
 export const load = ({ params }) => {
   const system = systemBySlug.get(params.slug)
   if (!system) {
@@ -23,12 +26,12 @@ export const load = ({ params }) => {
     new Set(actionsUsing.map((action) => action.processId)),
   )
     .map((id) => processById.get(id))
-    .filter(Boolean)
+    .filter(isDefined)
   const rolesUsing = Array.from(
     new Set(actionsUsing.map((action) => action.ownerRoleId)),
   )
     .map((id) => roleById.get(id))
-    .filter(Boolean)
+    .filter(isDefined)
 
   const systemFlags = flags.filter(
     (flag) => flag.targetType === "system" && flag.targetId === system.id,

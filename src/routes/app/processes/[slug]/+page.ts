@@ -8,6 +8,9 @@ import {
 
 import { error } from "@sveltejs/kit"
 
+const isDefined = <T>(value: T | undefined): value is T =>
+  value !== undefined
+
 export const load = ({ params }) => {
   const process = processBySlug.get(params.slug)
   if (!process) {
@@ -23,10 +26,10 @@ export const load = ({ params }) => {
     new Set([process.ownerRoleId, ...actions.map((action) => action.ownerRoleId)]),
   )
     .map((id) => roleById.get(id))
-    .filter(Boolean)
+    .filter(isDefined)
   const systems = Array.from(new Set(actions.map((action) => action.systemId)))
     .map((id) => systemById.get(id))
-    .filter(Boolean)
+    .filter(isDefined)
   const processFlags = flags.filter(
     (flag) => flag.targetType === "process" && flag.targetId === process.id,
   )
