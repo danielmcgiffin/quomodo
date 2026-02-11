@@ -21,6 +21,7 @@ It is detailed enough for founder decision-making and for any agent to execute w
 - Triad model is represented with static data: Process -> ordered Actions, each action has one Role and one System.
 - Entity detail views are connected through portal links.
 - Visual token system exists with parchment background and green accent (`--sc-green` family).
+- Marketing shell now uses SystemsCraft IA (`/`, `/method`, `/method/[slug]`, `/partners`, `/contact`) with dark/gold theme and `/app` entry CTA.
 - Cloudflare adapter and Wrangler config are present.
 - Sitemap excludes `/app` routes, preventing prerender failures from dynamic app slugs.
 
@@ -43,7 +44,7 @@ It is detailed enough for founder decision-making and for any agent to execute w
 - Triad modeling direction is aligned with PRD intent (Role/Action/System chains).
 - Portal-first traversal is partially aligned; current views support linking but not hover previews or search-entry parity.
 - Roman Martial visual direction is mostly aligned on product shell and tokens.
-- Marketing surface is not yet aligned with PRD marketing scope (`Home`, `Method`, `Partners`, `Contact` in black/gold).
+- Marketing IA and black/gold theming are now aligned with PRD scope (`Home`, `Method`, `Partners`, `Contact`).
 - Hosting direction is now explicitly Cloudflare-only.
 
 ## Launch Definition (V1)
@@ -158,22 +159,22 @@ Use task IDs in commits/PR notes so progress is auditable.
 Acceptance:
 - Single hosting target is documented and reflected in README and deploy scripts.
 
-- [ ] `LP-004` Align marketing IA to PRD (`Home`, `Method`, `Partners`, `Contact`).
+- [x] `LP-004` Align marketing IA to PRD (`Home`, `Method`, `Partners`, `Contact`).
 Acceptance:
 - Required pages exist, nav/footer point to them, and outdated template links are removed.
 - Structure and copy are ported from the referenced `qstr-mrktng` site where applicable.
 
-- [ ] `LP-005` Apply black/gold marketing theme independent from product UI theme.
+- [x] `LP-005` Apply black/gold/green marketing theme independent but linked to product UI theme.
 Acceptance:
 - Marketing route group uses brand-dark palette and retains legibility/mobile usability.
 - Product `/app` keeps parchment/green operational UI.
 
-- [ ] `LP-006` Extract and migrate reusable marketing assets/content from `qstr-mrktng`.
+- [x] `LP-006` Extract and migrate reusable marketing assets/content from `qstr-mrktng`.
 Acceptance:
 - Hero/value props, core sections, and CTA language are migrated or intentionally replaced.
 - Any old color tokens are replaced with current brand tokens.
 
-- [ ] `LP-007` Replace starter template nav/footer links with SystemsCraft IA.
+- [x] `LP-007` Replace starter template nav/footer links with SystemsCraft IA.
 Acceptance:
 - Remove `GitHub star`, template sponsor block, and template blog/pricing links from primary marketing nav.
 - Top-level nav reflects SystemsCraft pages and app entry.
@@ -184,7 +185,7 @@ Acceptance:
 - Authenticated users land on `/app/processes`.
 - No nav path leads users to placeholder starter dashboard by default.
 
-- [ ] `LP-002` Add global app entry links from marketing/account surfaces.
+- [x] `LP-002` Add global app entry links from marketing/account surfaces.
 Acceptance:
 - User can reach `/app` from known top-level nav after login.
 

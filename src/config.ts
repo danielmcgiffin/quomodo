@@ -1,5 +1,5 @@
-export const WebsiteName: string = "SaaS Starter"
-export const WebsiteBaseUrl: string = "https://saasstarter.work"
+export const WebsiteName: string = "SystemsCraft"
+export const WebsiteBaseUrl: string = "https://systemscraft.co"
 export const WebsiteDescription: string =
-  "Open source, fast, and free to host SaaS template. Built with SvelteKit, Supabase, Stripe, Tailwind, DaisyUI, and Postgres"
+  "SystemsCraft maps roles, processes, and systems into a connected operational atlas for one-interaction retrieval."
 export const CreateProfileStep: boolean = true

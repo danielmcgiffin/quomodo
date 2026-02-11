@@ -15,9 +15,9 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [ ] Search entry stub (button only) finalized and placed consistently
 
 ## Marketing Surface
-- [ ] Marketing IA aligned to PRD pages (Home, Method, Partners, Contact)
-- [ ] Black/gold/green marketing theme separate but related to product UI theme
-- [ ] Legacy `qstr-mrktng` structure/content migrated to new brand tokens
+- [x] Marketing IA aligned to PRD pages (Home, Method, Partners, Contact)
+- [x] Black/gold/green marketing theme separate but related to product UI theme
+- [x] Legacy `qstr-mrktng` structure/content migrated to new brand tokens
 - [x] Hosting target decision reflected in docs/deploy configuration (Cloudflare only)
 
 ## Phase 1: Data Foundation
