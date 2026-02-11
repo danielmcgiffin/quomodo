@@ -3,6 +3,7 @@
 This file is the source of truth for V1 scope. Update it as decisions change.
 Execution detail (task IDs, acceptance criteria, sequencing) lives in `LAUNCH_PLAN.md`.
 Locked decisions: Cloudflare-only hosting, TipTap for rich text, and RBAC roles (`owner/admin/editor/member`).
+Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 
 ## Phase 0: Design Foundation
 - [x] Portal pattern implemented everywhere (role/action/system mentions are links)
@@ -15,7 +16,8 @@ Locked decisions: Cloudflare-only hosting, TipTap for rich text, and RBAC roles 
 
 ## Marketing Surface
 - [ ] Marketing IA aligned to PRD pages (Home, Method, Partners, Contact)
-- [ ] Black/gold marketing theme separated from product UI theme
+- [ ] Black/gold/green marketing theme separate but related to product UI theme
+- [ ] Legacy `qstr-mrktng` structure/content migrated to new brand tokens
 - [x] Hosting target decision reflected in docs/deploy configuration (Cloudflare only)
 
 ## Phase 1: Data Foundation
@@ -41,3 +43,4 @@ Locked decisions: Cloudflare-only hosting, TipTap for rich text, and RBAC roles 
 ## Deployment
 - [ ] Cloudflare env vars set (Supabase + Stripe)
 - [ ] Production route access verified for `/app/*`
+- [ ] Cloudflare-only runbook present; no active Vercel deployment docs in launch flow
