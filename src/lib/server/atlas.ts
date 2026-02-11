@@ -110,6 +110,9 @@ export const slugify = (value: string): string =>
 
 const randomSuffix = () => Math.random().toString(36).slice(2, 8)
 
+const TRIAD_TABLES_HINT =
+  "SystemsCraft triad tables are missing. Apply `supabase/migrations/20260211183000_systemscraft_triad_foundation.sql` to this Supabase project."
+
 const createOrgForUser = async (
   supabase: SupabaseAny,
   userId: string,
@@ -132,6 +135,9 @@ const createOrgForUser = async (
 
     if (!error && data) {
       return data
+    }
+    if (error?.code === "42P01") {
+      throw kitError(500, TRIAD_TABLES_HINT)
     }
     if (error?.code !== "23505") {
       throw kitError(500, `Failed to create workspace: ${error?.message ?? "unknown error"}`)
@@ -156,6 +162,9 @@ export const ensureOrgContext = async (locals: App.Locals): Promise<OrgContext> 
     .limit(1)
 
   if (membershipError) {
+    if (membershipError.code === "42P01") {
+      throw kitError(500, TRIAD_TABLES_HINT)
+    }
     throw kitError(500, `Failed to load workspace membership: ${membershipError.message}`)
   }
 
