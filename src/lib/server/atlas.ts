@@ -115,6 +115,7 @@ const TRIAD_TABLES_HINT =
 
 const createOrgForUser = async (
   supabase: SupabaseAny,
+  supabaseServiceRole: SupabaseAny,
   userId: string,
   preferredName: string,
 ) => {
@@ -123,19 +124,57 @@ const createOrgForUser = async (
 
   for (let i = 0; i < 6; i += 1) {
     const slug = `${baseSlug}-${randomSuffix()}`
+    const insertPayload = {
+      name: baseName,
+      slug,
+      owner_id: userId,
+    }
+
     const { data, error } = await supabase
       .from("orgs")
-      .insert({
-        name: baseName,
-        slug,
-        owner_id: userId,
-      })
+      .insert(insertPayload)
       .select("id, name")
       .single()
 
     if (!error && data) {
       return data
     }
+
+    // Fallback for first-workspace bootstrap when RLS blocks anon-key insert.
+    if (error?.code === "42501") {
+      const { data: adminData, error: adminError } = await supabaseServiceRole
+        .from("orgs")
+        .insert(insertPayload)
+        .select("id, name")
+        .single()
+
+      if (!adminError && adminData) {
+        // Defensive upsert in case DB trigger wasn't present during insert.
+        const { error: ownerMembershipError } = await supabaseServiceRole
+          .from("org_members")
+          .upsert(
+            {
+              org_id: adminData.id,
+              user_id: userId,
+              role: "owner",
+              accepted_at: new Date().toISOString(),
+            },
+            {
+              onConflict: "org_id,user_id",
+            },
+          )
+
+        if (ownerMembershipError) {
+          throw kitError(
+            500,
+            `Failed to create owner membership: ${ownerMembershipError.message}`,
+          )
+        }
+
+        return adminData
+      }
+    }
+
     if (error?.code === "42P01") {
       throw kitError(500, TRIAD_TABLES_HINT)
     }
@@ -174,7 +213,12 @@ export const ensureOrgContext = async (locals: App.Locals): Promise<OrgContext> 
       (typeof user.user_metadata?.full_name === "string" && user.user_metadata.full_name) ||
       (typeof user.email === "string" && user.email.split("@")[0]) ||
       "My Workspace"
-    const org = await createOrgForUser(supabase, user.id, `${displayName}'s Workspace`)
+    const org = await createOrgForUser(
+      supabase,
+      locals.supabaseServiceRole,
+      user.id,
+      `${displayName}'s Workspace`,
+    )
     return {
       orgId: org.id,
       orgName: org.name,
