@@ -3,13 +3,23 @@
   import RolePortal from "$lib/components/RolePortal.svelte"
   import RichText from "$lib/components/RichText.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
+  import InlineCreateRoleModal from "$lib/components/InlineCreateRoleModal.svelte"
+  import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
 
   let { data, form } = $props()
   let isCreateSystemModalOpen = $state(false)
+  let isCreateRoleModalOpen = $state(false)
 
   $effect(() => {
-    if (form?.createSystemError) {
+    if (
+      form?.createSystemError ||
+      form?.createRoleError ||
+      form?.createRoleSuccess
+    ) {
       isCreateSystemModalOpen = true
+    }
+    if (form?.createRoleError) {
+      isCreateRoleModalOpen = true
     }
   })
 </script>
@@ -64,9 +74,20 @@
         <select class="sc-search sc-field" name="owner_role_id">
           <option value="">Owner role (optional)</option>
           {#each data.roles as role}
-            <option value={role.id}>{role.name}</option>
+            <option value={role.id} selected={form?.createdRoleId === role.id}
+              >{role.name}</option
+            >
           {/each}
         </select>
+        <button
+          class="sc-btn secondary"
+          type="button"
+          onclick={() => {
+            isCreateRoleModalOpen = true
+          }}
+        >
+          Create Role
+        </button>
       </div>
       <div class="sc-form-row">
         <textarea
@@ -82,12 +103,35 @@
         </div>
         <button class="sc-btn" type="submit">Create System</button>
       </div>
+      {#if form?.createRoleSuccess}
+        <div class="sc-page-subtitle">
+          Role created. Select it as owner and continue creating your system.
+        </div>
+      {/if}
     </form>
   </ScModal>
 
+  <InlineCreateRoleModal
+    bind:open={isCreateRoleModalOpen}
+    action="?/createRole"
+    errorMessage={form?.createRoleError}
+    description="Create a role without leaving system creation."
+    helperText="This role is immediately available as system owner."
+  />
+
   <div class="sc-section">
     {#each data.systems as system}
-      <div class="sc-card">
+      <div class="sc-card sc-entity-card">
+        <InlineEntityFlagControl
+          action="?/createFlag"
+          targetType="system"
+          targetId={system.id}
+          entityLabel={system.name}
+          viewerRole={data.org.membershipRole}
+          errorMessage={form?.createFlagError}
+          errorTargetType={form?.createFlagTargetType}
+          errorTargetId={form?.createFlagTargetId}
+        />
         <div class="sc-byline">
           <SystemPortal {system} size="lg" />
           {#if system.ownerRole}

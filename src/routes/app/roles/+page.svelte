@@ -2,6 +2,7 @@
   import RolePortal from "$lib/components/RolePortal.svelte"
   import RichText from "$lib/components/RichText.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
+  import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
 
   let { data, form } = $props()
   let isCreateRoleModalOpen = $state(false)
@@ -84,7 +85,17 @@
 
   <div class="sc-section">
     {#each data.roles as role}
-      <div class="sc-card">
+      <div class="sc-card sc-entity-card">
+        <InlineEntityFlagControl
+          action="?/createFlag"
+          targetType="role"
+          targetId={role.id}
+          entityLabel={role.name}
+          viewerRole={data.org.membershipRole}
+          errorMessage={form?.createFlagError}
+          errorTargetType={form?.createFlagTargetType}
+          errorTargetId={form?.createFlagTargetId}
+        />
         <div class="sc-byline">
           <RolePortal {role} size="lg" />
           {#if role.personName}

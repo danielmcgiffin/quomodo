@@ -22,6 +22,10 @@
   }
 
   const onBackdropKeydown = (event: KeyboardEvent) => {
+    if (event.target !== event.currentTarget) {
+      return
+    }
+
     if (event.key === "Enter" || event.key === " " || event.key === "Escape") {
       event.preventDefault()
       close()

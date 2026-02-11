@@ -219,6 +219,55 @@ button[disabled].authBtn::before {
   padding: 16px;
 }
 
+.sc-entity-card {
+  position: relative;
+}
+
+.sc-flag-hover-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sc-radius-full);
+  border: 1px solid var(--sc-border);
+  background: var(--sc-white);
+  color: var(--sc-green);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-2px);
+  transition: opacity 120ms ease, transform 120ms ease, border-color 120ms ease;
+  z-index: 1;
+}
+
+.sc-flag-hover-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sc-entity-card:hover .sc-flag-hover-btn,
+.sc-entity-card:focus-within .sc-flag-hover-btn {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.sc-flag-hover-btn:hover,
+.sc-flag-hover-btn:focus-visible {
+  border-color: var(--sc-green-border);
+}
+
+@media (hover: none) {
+  .sc-flag-hover-btn {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+}
+
 .sc-card + .sc-card {
   margin-top: 12px;
 }

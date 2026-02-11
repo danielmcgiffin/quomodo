@@ -3,13 +3,23 @@
   import SystemPortal from "$lib/components/SystemPortal.svelte"
   import RichText from "$lib/components/RichText.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
+  import InlineCreateRoleModal from "$lib/components/InlineCreateRoleModal.svelte"
+  import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
 
   let { data, form } = $props()
   let isCreateProcessModalOpen = $state(false)
+  let isCreateRoleModalOpen = $state(false)
 
   $effect(() => {
-    if (form?.createProcessError) {
+    if (
+      form?.createProcessError ||
+      form?.createRoleError ||
+      form?.createRoleSuccess
+    ) {
       isCreateProcessModalOpen = true
+    }
+    if (form?.createRoleError) {
+      isCreateRoleModalOpen = true
     }
   })
 </script>
@@ -78,17 +88,51 @@
         <select class="sc-search sc-field" name="owner_role_id">
           <option value="">Owner role (optional)</option>
           {#each data.roles as role}
-            <option value={role.id}>{role.name}</option>
+            <option value={role.id} selected={form?.createdRoleId === role.id}
+              >{role.name}</option
+            >
           {/each}
         </select>
+        <button
+          class="sc-btn secondary"
+          type="button"
+          onclick={() => {
+            isCreateRoleModalOpen = true
+          }}
+        >
+          Create Role
+        </button>
         <button class="sc-btn" type="submit">Create Process</button>
       </div>
+      {#if form?.createRoleSuccess}
+        <div class="sc-page-subtitle">
+          Role created. Select it as owner and continue creating your process.
+        </div>
+      {/if}
     </form>
   </ScModal>
 
+  <InlineCreateRoleModal
+    bind:open={isCreateRoleModalOpen}
+    action="?/createRole"
+    errorMessage={form?.createRoleError}
+    description="Create a role without leaving process creation."
+    helperText="This role is immediately available as process owner."
+  />
+
   <div class="sc-section">
     {#each data.processes as process}
-      <div class="sc-card">
+      <div class="sc-card sc-entity-card">
+        <InlineEntityFlagControl
+          action="?/createFlag"
+          targetType="process"
+          targetId={process.id}
+          entityLabel={process.name}
+          viewerRole={data.org.membershipRole}
+          errorMessage={form?.createFlagError}
+          errorTargetType={form?.createFlagTargetType}
+          errorTargetId={form?.createFlagTargetId}
+        />
         <div class="sc-section-title">
           <a
             class="sc-portal sc-portal-process"
