@@ -30,7 +30,7 @@
   </div>
 
   <div class="sc-section">
-    <div class="sc-section-title">What Do They Run?</div>
+    <div class="sc-section-title">What Processes?</div>
     <div class="sc-card">
       <div class="sc-byline">
         {#each data.ownedProcesses as process}
@@ -41,7 +41,7 @@
   </div>
 
   <div class="sc-section">
-    <div class="sc-section-title">What Do They Do?</div>
+    <div class="sc-section-title">What Actions?</div>
     {#each data.actionsByProcess as entry}
       <div class="sc-card">
         <div class="sc-meta">
@@ -49,7 +49,7 @@
         </div>
         {#if entry.actions.length === 0}
           <div style="margin-top:8px; color: var(--sc-text-muted);">
-            No direct actions recorded yet.
+            No direct actions recorded.
           </div>
         {:else}
           {#each entry.actions as action}
@@ -69,7 +69,7 @@
   </div>
 
   <div class="sc-section">
-    <div class="sc-section-title">What Tools?</div>
+    <div class="sc-section-title">What Systems?</div>
     <div class="sc-card">
       <div class="sc-byline">
         {#each data.systemsAccessed as system}

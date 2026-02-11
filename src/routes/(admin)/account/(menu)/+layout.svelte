@@ -1,4 +1,5 @@
 <script lang="ts">
+  // TODO(LP-008): This menu layout is legacy starter UI retained temporarily for account internals only.
   import "../../../../app.css"
   import { writable } from "svelte/store"
   import { setContext } from "svelte"

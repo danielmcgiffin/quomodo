@@ -1,4 +1,5 @@
 <script lang="ts">
+  // TODO(LP-008): Retained legacy account auth shell. Keep for session/billing flows until replaced by dedicated SystemsCraft account UX.
   import { invalidate } from "$app/navigation"
   import { onMount } from "svelte"
 

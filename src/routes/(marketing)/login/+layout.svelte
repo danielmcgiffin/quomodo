@@ -1,4 +1,5 @@
 <script lang="ts">
+  // TODO(LP-008): Legacy login presentation retained for auth continuity. Replace with SystemsCraft-auth-branded flow in later pass.
   interface Props {
     children?: import("svelte").Snippet
   }

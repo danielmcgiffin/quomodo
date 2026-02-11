@@ -1,4 +1,5 @@
 <script lang="ts">
+  // TODO(LP-008): Legacy starter blog route retained temporarily. Do not add new product scope here.
   import { sortedBlogPosts, blogInfo } from "./posts"
 </script>
 

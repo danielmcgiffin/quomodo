@@ -8,6 +8,7 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 ## Phase 0: Design Foundation
 - [x] Portal pattern implemented everywhere (role/action/system mentions are links)
 - [x] Triad model in UI: Process → Actions (Role + System)
+- [x] `Action` terminology and section labels aligned with PRD wording
 - [x] Role/Process/System detail views show self + connections
 - [x] Flags view shows rot across the atlas
 - [x] Parchment + phthalo green tokens applied
@@ -44,3 +45,7 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [ ] Cloudflare env vars set (Supabase + Stripe)
 - [ ] Production route access verified for `/app/*`
 - [ ] Cloudflare-only runbook present; no active Vercel deployment docs in launch flow
+
+## Route Isolation
+- [x] Legacy starter routes are explicitly marked as deferred (`LP-008`) with TODO markers in retained files
+- [x] Active SystemsCraft routes vs retained legacy routes are documented in `LAUNCH_PLAN.md`

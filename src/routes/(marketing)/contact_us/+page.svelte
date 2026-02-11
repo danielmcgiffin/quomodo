@@ -1,4 +1,5 @@
 <script lang="ts">
+  // TODO(LP-008): Legacy starter contact page retained for backward compatibility. Primary contact route is /contact.
   import { enhance, applyAction } from "$app/forms"
   import type { SubmitFunction } from "@sveltejs/kit"
   import type { FullAutoFill } from "svelte/elements"

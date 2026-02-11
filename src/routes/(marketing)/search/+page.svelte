@@ -1,4 +1,5 @@
 <script lang="ts">
+  // TODO(LP-008): Legacy starter search route retained for now. Keep maintenance-only until SystemsCraft retrieval search replaces it.
   import { page } from "$app/stores"
   import { browser } from "$app/environment"
   import { onMount } from "svelte"

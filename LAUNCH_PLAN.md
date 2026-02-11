@@ -189,15 +189,21 @@ Acceptance:
 Acceptance:
 - User can reach `/app` from known top-level nav after login.
 
-- [ ] `LP-003` Clean route semantics and wording consistency.
+- [x] `LP-003` Clean route semantics and wording consistency.
 Acceptance:
 - UI uses `Action` terminology everywhere.
 - Header, section labels, and empty states align with PRD vocabulary.
 
-- [ ] `LP-008` Legacy template isolation plan.
+- [x] `LP-008` Legacy template isolation plan.
 Acceptance:
 - Document which starter routes remain for auth/account internals vs which are replaced for SystemsCraft brand/product.
 - Add TODO markers in retained legacy files that are intentionally deferred.
+
+LP-008 route isolation inventory:
+- SystemsCraft primary product routes (active): `/app/processes`, `/app/processes/[slug]`, `/app/roles`, `/app/roles/[slug]`, `/app/systems`, `/app/systems/[slug]`, `/app/flags`.
+- SystemsCraft primary marketing routes (active): `/`, `/method`, `/method/[slug]`, `/partners`, `/contact`.
+- Legacy starter routes retained for continuity only (deferred): `/account/*` account/billing shell internals, `/login/*`, `/blog/*`, `/pricing`, `/search`, `/contact_us`.
+- Rule for retained legacy routes: maintenance and compatibility fixes only; no new product scope.
 
 ### WS2: Supabase Data Model and Migrations
 - [ ] `LP-010` Create new migration for triad schema in `supabase/migrations/*`.

@@ -153,7 +153,7 @@ export const processes: Process[] = [
 
 export const actions: Action[] = [
   {
-    id: "step-drive-folder",
+    id: "action-drive-folder",
     processId: "process-onboarding",
     sequence: 1,
     descriptionHtml:
@@ -162,7 +162,7 @@ export const actions: Action[] = [
     systemId: "system-drive",
   },
   {
-    id: "step-hubspot-deal",
+    id: "action-hubspot-deal",
     processId: "process-onboarding",
     sequence: 2,
     descriptionHtml:
@@ -171,7 +171,7 @@ export const actions: Action[] = [
     systemId: "system-hubspot",
   },
   {
-    id: "step-kickoff",
+    id: "action-kickoff",
     processId: "process-onboarding",
     sequence: 3,
     descriptionHtml: "<p>Schedule kickoff call and confirm attendees.</p>",
@@ -179,7 +179,7 @@ export const actions: Action[] = [
     systemId: "system-zoom",
   },
   {
-    id: "step-ops-review",
+    id: "action-ops-review",
     processId: "process-weekly-ops",
     sequence: 1,
     descriptionHtml: "<p>Scan flags and decide next actions.</p>",
@@ -187,7 +187,7 @@ export const actions: Action[] = [
     systemId: "system-drive",
   },
   {
-    id: "step-renewal-pipeline",
+    id: "action-renewal-pipeline",
     processId: "process-renewals",
     sequence: 1,
     descriptionHtml: "<p>Review renewal pipeline and outreach cadence.</p>",

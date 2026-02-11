@@ -1,4 +1,5 @@
 <script lang="ts">
+  // TODO(LP-008): Legacy starter pricing page retained temporarily; superseded by SystemsCraft marketing IA.
   import PricingModule from "./pricing_module.svelte"
   import { WebsiteName } from "./../../../config"
 

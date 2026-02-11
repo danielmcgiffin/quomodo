@@ -38,7 +38,7 @@
   </div>
 
   <div class="sc-section">
-    <div class="sc-section-title">What Tools?</div>
+    <div class="sc-section-title">What Systems?</div>
     <div class="sc-card">
       <div class="sc-byline">
         {#each data.systems as system}
