@@ -139,13 +139,14 @@ const authGuard: Handle = async ({ event, resolve }) => {
     let bypassUserId = DEV_AUTH_BYPASS_USER_ID ?? null
 
     if (!bypassUserId) {
-      const { data: org, error: orgError } = await event.locals.supabaseServiceRole
-        .from("orgs")
-        .select("owner_id")
-        .not("owner_id", "is", null)
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle()
+      const { data: org, error: orgError } =
+        await event.locals.supabaseServiceRole
+          .from("orgs")
+          .select("owner_id")
+          .not("owner_id", "is", null)
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle()
 
       if (!orgError && org?.owner_id) {
         bypassUserId = org.owner_id

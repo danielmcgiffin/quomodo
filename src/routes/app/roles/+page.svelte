@@ -1,46 +1,86 @@
 <script lang="ts">
   import RolePortal from "$lib/components/RolePortal.svelte"
   import RichText from "$lib/components/RichText.svelte"
+  import ScModal from "$lib/components/ScModal.svelte"
 
   let { data, form } = $props()
+  let isCreateRoleModalOpen = $state(false)
+
+  $effect(() => {
+    if (form?.createRoleError) {
+      isCreateRoleModalOpen = true
+    }
+  })
 </script>
 
 <div class="sc-page">
-  <div class="sc-page-title">Roles</div>
-  <div class="sc-page-subtitle">
-    Ownership lives here. Every avatar is a portal.
+  <div class="flex justify-between items-center gap-4 flex-wrap">
+    <div class="flex flex-col">
+      <div class="sc-page-title text-2xl font-bold">Roles</div>
+      <div class="sc-page-subtitle">
+        Define ownership clearly so responsibilities stop drifting.
+      </div>
+    </div>
+
+    <div class="sc-actions">
+      <button
+        class="sc-btn"
+        type="button"
+        onclick={() => {
+          isCreateRoleModalOpen = true
+        }}
+      >
+        Make a Role
+      </button>
+    </div>
   </div>
 
-  <div class="sc-section">
-    <div class="sc-section-title">Add Role</div>
-    <form class="sc-card" method="POST" action="?/createRole">
+  <ScModal
+    bind:open={isCreateRoleModalOpen}
+    title="Add Role"
+    description="Capture who owns what. Role name is required."
+    maxWidth="760px"
+  >
+    <form class="sc-form" method="POST" action="?/createRole">
       {#if form?.createRoleError}
-        <div style="color: var(--sc-danger); margin-bottom: 10px;">
-          {form.createRoleError}
-        </div>
+        <div class="sc-form-error">{form.createRoleError}</div>
       {/if}
-      <div class="sc-byline" style="margin-bottom:10px;">
-        <input class="sc-search" name="name" placeholder="Role name" required />
-      </div>
-      <div class="sc-byline" style="margin-bottom:10px;">
-        <input class="sc-search" name="person_name" placeholder="Person name" />
+      <div class="sc-form-row">
         <input
-          class="sc-search"
-          name="hours_per_week"
-          placeholder="Hours/week"
+          class="sc-search sc-field"
+          name="name"
+          placeholder="Role name"
+          required
         />
       </div>
-      <div class="sc-byline" style="margin-bottom:10px;">
+      <div class="sc-form-row">
+        <input
+          class="sc-search sc-field"
+          name="person_name"
+          placeholder="Person name (optional)"
+        />
+        <input
+          class="sc-search sc-field"
+          name="hours_per_week"
+          placeholder="Hours per week (optional)"
+        />
+      </div>
+      <div class="sc-form-row">
         <textarea
-          class="sc-search"
+          class="sc-search sc-field sc-textarea"
           name="description"
-          placeholder="Role description"
-          rows="3"
+          placeholder="Role description - what this role owns and why it exists"
+          rows="4"
         ></textarea>
       </div>
-      <button class="sc-btn" type="submit">Create Role</button>
+      <div class="sc-form-actions">
+        <div class="sc-page-subtitle">
+          This role becomes a portal across the atlas.
+        </div>
+        <button class="sc-btn" type="submit">Create Role</button>
+      </div>
     </form>
-  </div>
+  </ScModal>
 
   <div class="sc-section">
     {#each data.roles as role}

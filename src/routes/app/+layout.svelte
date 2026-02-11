@@ -50,7 +50,7 @@
       <div class="sc-actions">
         <button class="sc-search" type="button">
           <span>Search</span>
-          <span>⌘K</span>
+          <span>(Ctrl-?)</span>
         </button>
         <span class="sc-avatar" style="--avatar-size:36px;--avatar-font:14px;">
           {data.viewerInitials}

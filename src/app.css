@@ -350,6 +350,84 @@ button[disabled].authBtn::before {
   border-color: var(--sc-green-border);
 }
 
+.sc-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sc-form-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sc-field {
+  min-width: 0;
+  flex: 1 1 240px;
+}
+
+.sc-textarea {
+  resize: vertical;
+  align-items: flex-start;
+  font-family: inherit;
+}
+
+.sc-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sc-form-actions .sc-btn {
+  flex: 0 0 auto;
+}
+
+.sc-form-error {
+  color: var(--sc-danger);
+  margin-bottom: 2px;
+}
+
+.sc-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px 16px;
+  overflow: auto;
+  background: rgba(24, 23, 22, 0.45);
+}
+
+.sc-modal-shell {
+  width: min(100%, var(--sc-modal-max-width, 680px));
+  margin-top: max(20px, 4vh);
+  border-radius: var(--sc-radius-xl);
+  border: 1px solid var(--sc-border);
+  background: var(--sc-bg);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
+}
+
+.sc-modal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--sc-border-light);
+}
+
+.sc-modal-body {
+  padding: 16px;
+}
+
+.sc-modal-close {
+  white-space: nowrap;
+}
+
 .sc-rich p + p {
   margin-top: 8px;
 }

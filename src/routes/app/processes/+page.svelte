@@ -2,55 +2,89 @@
   import RolePortal from "$lib/components/RolePortal.svelte"
   import SystemPortal from "$lib/components/SystemPortal.svelte"
   import RichText from "$lib/components/RichText.svelte"
+  import ScModal from "$lib/components/ScModal.svelte"
 
   let { data, form } = $props()
+  let isCreateProcessModalOpen = $state(false)
+
+  $effect(() => {
+    if (form?.createProcessError) {
+      isCreateProcessModalOpen = true
+    }
+  })
 </script>
 
-<div class="sc-page">
-  <div class="sc-page-title">Processes</div>
-  <div class="sc-page-subtitle">
-    Every process is an entry point into the atlas.
+<div class="sc-page flex justify-between items-center">
+  <div class="flex flex-col">
+    <div class="sc-page-title text-2xl font-bold">Processes</div>
+    <div class="sc-page-subtitle">
+      Write down how your work works, and save yourself the headache later.
+    </div>
   </div>
 
-  <div class="sc-section">
-    <div class="sc-section-title">Add Process</div>
-    <form class="sc-card" method="POST" action="?/createProcess">
+  <div class="sc-actions">
+    <button
+      class="sc-btn"
+      type="button"
+      onclick={() => {
+        isCreateProcessModalOpen = true
+      }}
+    >
+      Write a Process
+    </button>
+  </div>
+
+  <ScModal
+    bind:open={isCreateProcessModalOpen}
+    title="Add Process"
+    description="Capture key info about the process. All fields required."
+    maxWidth="760px"
+  >
+    <form class="sc-form" method="POST" action="?/createProcess">
       {#if form?.createProcessError}
-        <div style="color: var(--sc-danger); margin-bottom: 10px;">
-          {form.createProcessError}
-        </div>
+        <div class="sc-form-error">{form.createProcessError}</div>
       {/if}
-      <div class="sc-byline" style="margin-bottom:10px;">
+      <div class="sc-form-row">
         <input
-          class="sc-search"
+          class="sc-search sc-field"
           name="name"
           placeholder="Process name"
           required
         />
       </div>
-      <div class="sc-byline" style="margin-bottom:10px;">
-        <input class="sc-search" name="trigger" placeholder="Trigger" />
-        <input class="sc-search" name="end_state" placeholder="End state" />
+      <div class="sc-form-row">
+        <textarea
+          class="sc-search sc-field sc-textarea"
+          name="description"
+          placeholder="Process description - an explanation about why you do the process"
+          rows="4"
+        ></textarea>
       </div>
-      <div class="sc-byline" style="margin-bottom:10px;">
-        <select class="sc-search" name="owner_role_id">
+      <div class="sc-form-row">
+        <textarea
+          class="sc-search sc-field sc-textarea"
+          name="trigger"
+          placeholder="Trigger - What event or schedule kicks off the process?"
+          rows="3"
+        ></textarea>
+        <textarea
+          class="sc-search sc-field sc-textarea"
+          name="end_state"
+          placeholder="Outcome - What should be different at the end of the process?"
+          rows="3"
+        ></textarea>
+      </div>
+      <div class="sc-form-actions">
+        <select class="sc-search sc-field" name="owner_role_id">
           <option value="">Owner role (optional)</option>
           {#each data.roles as role}
             <option value={role.id}>{role.name}</option>
           {/each}
         </select>
+        <button class="sc-btn" type="submit">Create Process</button>
       </div>
-      <div class="sc-byline" style="margin-bottom:10px;">
-        <textarea
-          class="sc-search"
-          name="description"
-          placeholder="Process description"
-          rows="3"
-        ></textarea>
-      </div>
-      <button class="sc-btn" type="submit">Create Process</button>
     </form>
-  </div>
+  </ScModal>
 
   <div class="sc-section">
     {#each data.processes as process}

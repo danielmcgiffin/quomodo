@@ -138,7 +138,9 @@ export const actions = {
 
     const name = String(formData.get("name") ?? "").trim()
     const trigger = String(formData.get("trigger") ?? "").trim()
-    const endState = String(formData.get("end_state") ?? "").trim()
+    const endState = String(
+      formData.get("end_state") ?? formData.get("endstate") ?? "",
+    ).trim()
     const description = String(formData.get("description") ?? "").trim()
     const ownerRoleIdRaw = String(formData.get("owner_role_id") ?? "").trim()
 
