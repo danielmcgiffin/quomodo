@@ -1,7 +1,4 @@
-import {
-  PUBLIC_SUPABASE_ANON_KEY,
-  PUBLIC_SUPABASE_URL,
-} from "$env/static/public"
+import { env as publicEnv } from "$env/dynamic/public"
 import {
   createBrowserClient,
   createServerClient,
@@ -11,6 +8,8 @@ import { redirect } from "@sveltejs/kit"
 import type { Database } from "../../../DatabaseDefinitions.js"
 import { CreateProfileStep } from "../../../config"
 import { load_helper } from "$lib/load_helpers"
+
+const { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } = publicEnv
 
 export const load = async ({ fetch, data, depends, url }) => {
   depends("supabase:auth")
