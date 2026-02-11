@@ -256,7 +256,7 @@ LP-008 route isolation inventory:
 - Membership enum and policies support all four roles.
 - Permission checks match the locked model in this plan.
 
-- [ ] `LP-013` Seed a development org and sample data script.
+- [x] `LP-013` Seed a development org and sample data script.
       Acceptance:
 - Fresh local project can be seeded and browsed in `/app` without manual SQL.
 

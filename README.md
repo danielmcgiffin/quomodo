@@ -235,6 +235,13 @@ If you find build, formatting or linting rules too tedious, you can disable enfo
   - Customize the email templates in the Supabase Auth console to include your product name and branding
 - Test authentication
   - Open the `/login` page in your browser, and ensure you can sign up, confirm email, log in, and edit your account.
+- Seed SystemsCraft launch demo data (optional, recommended for local launch work)
+  - Run:
+    ```
+    npm run seed:dev
+    ```
+  - This command creates/reuses a dev owner user, then seeds one org with starter roles, systems, processes, actions, and flags.
+  - You can override the seeded owner identity with `SEED_DEV_OWNER_USER_ID`, `SEED_DEV_OWNER_EMAIL`, and `SEED_DEV_OWNER_PASSWORD` in `.env.local`.
 
 ## Setup Stripe
 
