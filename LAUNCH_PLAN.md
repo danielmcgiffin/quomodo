@@ -18,21 +18,19 @@ It is detailed enough for founder decision-making and for any agent to execute w
 ## Current State Audit
 ### What is implemented
 - Product shell exists under `/app` with tabs for Processes, Roles, Systems, Flags.
-- Triad model is represented with static data: Process -> ordered Actions, each action has one Role and one System.
-- Entity detail views are connected through portal links.
+- Triad model is live in Supabase-backed routes: Process -> ordered Actions, each action has one Role and one System.
+- Entity detail views are connected through portal links and read from DB loaders.
+- Create flows exist for Roles, Systems, Processes, Actions, and Flags.
 - Visual token system exists with parchment background and green accent (`--sc-green` family).
 - Marketing shell now uses SystemsCraft IA (`/`, `/method`, `/method/[slug]`, `/partners`, `/contact`) with dark/gold theme and `/app` entry CTA.
 - Cloudflare adapter and Wrangler config are present.
-- Sitemap excludes `/app` routes, preventing prerender failures from dynamic app slugs.
+- Sitemap excludes `/app` routes and now includes `paramValues` for `/method/[slug]`.
 
 ### What is not implemented
-- `/app` uses static in-memory data, not Supabase.
-- No app CRUD for Roles, Systems, Processes, Actions, or Flags.
-- No org-level RLS-backed multitenancy in running app paths.
+- Full CRUD is incomplete (edit/delete and reorder UX still pending).
 - No command/search surface (`Cmd+K` is visual only).
-- Flags actions (`Resolve` and `Dismiss`) are non-functional.
 - No production-grade rich-text pipeline (currently rendering raw HTML).
-- Existing Supabase migrations are starter-template focused and do not include the SystemsCraft triad schema.
+- Supabase generated app typings are not updated to the triad schema yet.
 
 ### Technical risks to address before launch
 - `RichText.svelte` uses raw `{@html}` and is unsafe for untrusted content.
@@ -86,7 +84,7 @@ V1 is launch-ready when all of the following are true:
 
 ### Code ownership map
 - UI shell and nav: `src/routes/app/+layout.svelte`.
-- Triad seed data (temporary): `src/lib/data/atlas.ts`.
+- DB helpers and org context: `src/lib/server/atlas.ts`.
 - Rich text renderer (current risk): `src/lib/components/RichText.svelte`.
 - Auth and env handling: `src/hooks.server.ts`.
 - Search index plugin (current static-index source): `src/lib/build_index.ts`.
@@ -216,7 +214,7 @@ Acceptance:
 - Indexes support list/detail/search queries by `org_id`, foreign keys, and flag status.
 - Unified search view/materialized view for entities exists.
 
-- [ ] `LP-015` Add sub-entity targeting support on flags.
+- [x] `LP-015` Add sub-entity targeting support on flags.
 Acceptance:
 - `flags.target_path` supports field-level targeting (example: `description`, `owner_role_id`).
 - API and UI can create/read flags for both entity-level and sub-entity-level targets.
@@ -245,7 +243,7 @@ Acceptance:
 Acceptance:
 - App code imports typed table definitions for triad entities.
 
-- [ ] `LP-021` Replace static atlas data with repository/service layer.
+- [x] `LP-021` Replace static atlas data with repository/service layer.
 Acceptance:
 - All `/app` loaders read from Supabase.
 - No production route depends on hardcoded atlas arrays.
@@ -277,12 +275,12 @@ Acceptance:
 Acceptance:
 - Add/update/delete actions updates role and system traversals correctly.
 
-- [ ] `LP-034` Implement Flags CRUD from entity pages.
+- [x] `LP-034` Implement Flags CRUD from entity pages.
 Acceptance:
 - Any role/system/process/action can be flagged.
 - Flags list can resolve/dismiss with metadata update.
 
-- [ ] `LP-035` Implement comment-backed flags with member-create permissions.
+- [x] `LP-035` Implement comment-backed flags with member-create permissions.
 Acceptance:
 - Member comments create `flags` rows with `flag_type = comment`.
 - Owner/Admin/Editor can moderate comment flags according to policy.

@@ -1,7 +1,10 @@
 <script lang="ts">
-  import type { System } from "$lib/data/atlas"
+  type SystemPortalModel = {
+    slug: string
+    name: string
+  }
 
-  export let system: System
+  export let system: SystemPortalModel
   export let size: "sm" | "md" | "base" | "lg" = "md"
   export let showName = true
 

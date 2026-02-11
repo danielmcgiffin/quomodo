@@ -1,7 +1,11 @@
 <script lang="ts">
-  import type { Role } from "$lib/data/atlas"
+  type RolePortalModel = {
+    slug: string
+    name: string
+    initials: string
+  }
 
-  export let role: Role
+  export let role: RolePortalModel
   export let size: "sm" | "md" | "base" | "lg" = "md"
   export let showName = true
 

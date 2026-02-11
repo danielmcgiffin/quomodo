@@ -360,19 +360,27 @@ security definer
 set search_path = public
 as $$
 declare
-  current_role public.sc_membership_role;
+  v_current_role public.sc_membership_role;
 begin
-  current_role := public.sc_current_membership_role(p_org_id);
+  v_current_role := public.sc_current_membership_role(p_org_id);
 
-  if current_role is null then
+  if v_current_role is null then
     return false;
   end if;
 
-  if current_role in ('owner', 'admin', 'editor') then
+  if v_current_role = any(
+    array[
+      'owner'::public.sc_membership_role,
+      'admin'::public.sc_membership_role,
+      'editor'::public.sc_membership_role
+    ]
+  ) then
     return true;
   end if;
 
-  return current_role = 'member' and p_flag_type = 'comment';
+  return
+    (v_current_role = 'member'::public.sc_membership_role)
+    and (p_flag_type = 'comment'::public.sc_flag_type);
 end;
 $$;
 

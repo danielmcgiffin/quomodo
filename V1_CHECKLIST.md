@@ -25,9 +25,11 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [x] Supabase schema with roles, systems, processes, actions, flags
 - [x] Permission model implemented: owner/admin/editor/member
 - [x] RLS policies for org membership
+- [x] `/app` routes now load from Supabase (no static atlas dependency)
+- [x] Create flows exist in app for roles, systems, processes, actions, and flags
 - [ ] CRUD for roles, systems, processes, actions, flags
-- [ ] Nav counts from live data
-- [ ] Portals wired to live IDs
+- [x] Nav counts from live data
+- [x] Portals wired to live IDs
 
 ## Phase 2: Retrieval
 - [ ] ⌘K search for roles/systems/processes/actions
@@ -35,11 +37,11 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [ ] Action lists filterable by entry point (role/system/process)
 
 ## Phase 3: Flags
-- [ ] Flag creation from any entity
-- [ ] Member alert/comment creation flow (`comment` as `flag_type`)
-- [ ] Sub-entity flag targeting (`target_path`) support
-- [ ] Flags dashboard (global)
-- [ ] Resolve/Dismiss flow
+- [x] Flag creation from any entity
+- [x] Member alert/comment creation flow (`comment` as `flag_type`)
+- [x] Sub-entity flag targeting (`target_path`) support
+- [x] Flags dashboard (global)
+- [x] Resolve/Dismiss flow
 
 ## Deployment
 - [ ] Cloudflare env vars set (Supabase + Stripe)

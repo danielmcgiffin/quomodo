@@ -18,8 +18,12 @@
     <div class="sc-card">
       <div class="sc-byline">
         <RolePortal role={data.role} size="lg" />
-        <span class="sc-pill">{data.role.personName}</span>
-        <span class="sc-pill">{data.role.hoursPerWeek} hrs/week</span>
+        {#if data.role.personName}
+          <span class="sc-pill">{data.role.personName}</span>
+        {/if}
+        {#if data.role.hoursPerWeek !== null}
+          <span class="sc-pill">{data.role.hoursPerWeek} hrs/week</span>
+        {/if}
         {#if data.reportsTo}
           <span>·</span>
           <span>Reports to</span>
@@ -45,7 +49,7 @@
     {#each data.actionsByProcess as entry}
       <div class="sc-card">
         <div class="sc-meta">
-          <ProcessPortal process={entry.process} />
+          <ProcessPortal process={entry.process as any} />
         </div>
         {#if entry.actions.length === 0}
           <div style="margin-top:8px; color: var(--sc-text-muted);">
@@ -59,7 +63,9 @@
               <div class="sc-byline" style="margin-top:6px;">
                 <RolePortal role={data.role} size="sm" />
                 <span>· in</span>
-                <SystemPortal system={action.system} size="sm" />
+                {#if action.system}
+                  <SystemPortal system={action.system as any} size="sm" />
+                {/if}
               </div>
             </div>
           {/each}

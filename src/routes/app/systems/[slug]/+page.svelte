@@ -26,9 +26,6 @@
         {#if data.system.location}
           <span class="sc-pill">{data.system.location}</span>
         {/if}
-        {#if data.system.costMonthly}
-          <span class="sc-pill">${data.system.costMonthly}/mo</span>
-        {/if}
       </div>
     </div>
   </div>
@@ -38,12 +35,14 @@
     {#each data.processesUsing as process}
       <div class="sc-card">
         <ProcessPortal process={process} />
-        {#each data.actionsUsing.filter((action) => action.processId === process.id) as action}
+        {#each data.actionsUsing.filter((action: any) => action.processId === process.id) as action}
           <div style="margin-top:8px;">
             <div class="sc-meta">Action {action.sequence}</div>
             <RichText html={action.descriptionHtml} />
             <div class="sc-byline" style="margin-top:6px;">
-              <RolePortal role={action.ownerRole} />
+              {#if action.ownerRole}
+                <RolePortal role={action.ownerRole as any} />
+              {/if}
               <span>· in</span>
               <SystemPortal system={data.system} size="sm" />
             </div>

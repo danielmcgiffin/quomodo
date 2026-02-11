@@ -1,25 +1,37 @@
 <script lang="ts">
   import "../../app.css"
   import { page } from "$app/stores"
-  import {
-    processes,
-    roles,
-    systems,
-    flags,
-  } from "$lib/data/atlas"
 
   interface Props {
+    data: {
+      org: {
+        id: string
+        name: string
+        role: string
+      }
+      navCounts: {
+        processes: number
+        roles: number
+        systems: number
+        flags: number
+      }
+      viewerInitials: string
+    }
     children?: import("svelte").Snippet
   }
 
-  let { children }: Props = $props()
+  let { data, children }: Props = $props()
 
-  const navItems = [
-    { label: "Processes", href: "/app/processes", count: processes.length },
-    { label: "Roles", href: "/app/roles", count: roles.length },
-    { label: "Systems", href: "/app/systems", count: systems.length },
-    { label: "Flags", href: "/app/flags", count: flags.length },
-  ]
+  const navItems = $derived.by(() => [
+    {
+      label: "Processes",
+      href: "/app/processes",
+      count: data.navCounts.processes,
+    },
+    { label: "Roles", href: "/app/roles", count: data.navCounts.roles },
+    { label: "Systems", href: "/app/systems", count: data.navCounts.systems },
+    { label: "Flags", href: "/app/flags", count: data.navCounts.flags },
+  ])
 </script>
 
 <div class="sc-app">
@@ -40,7 +52,9 @@
           <span>Search</span>
           <span>⌘K</span>
         </button>
-        <span class="sc-avatar" style="--avatar-size:36px;--avatar-font:14px;">DM</span>
+        <span class="sc-avatar" style="--avatar-size:36px;--avatar-font:14px;">
+          {data.viewerInitials}
+        </span>
       </div>
     </div>
   </nav>

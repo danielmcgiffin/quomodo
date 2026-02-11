@@ -1,7 +1,10 @@
 <script lang="ts">
-  import type { Process } from "$lib/data/atlas"
+  type ProcessPortalModel = {
+    slug: string
+    name: string
+  }
 
-  export let process: Process
+  export let process: ProcessPortalModel
   export let showName = true
 </script>
 

@@ -1,8 +1,13 @@
 <script lang="ts">
-  import { flags, processById, roleById, systemById } from "$lib/data/atlas"
   import RolePortal from "$lib/components/RolePortal.svelte"
   import ProcessPortal from "$lib/components/ProcessPortal.svelte"
   import SystemPortal from "$lib/components/SystemPortal.svelte"
+
+  let { data, form } = $props()
+
+  const canModerate = $derived.by(() =>
+    ["owner", "admin", "editor"].includes(data.viewerRole),
+  )
 </script>
 
 <div class="sc-page">
@@ -12,37 +17,81 @@
   </div>
 
   <div class="sc-section">
-    {#each flags as flag}
+    <div class="sc-section-title">Create Flag</div>
+    <form class="sc-card" method="POST" action="?/createFlag">
+      {#if form?.createFlagError}
+        <div style="color: var(--sc-danger); margin-bottom: 10px;">{form.createFlagError}</div>
+      {/if}
+      <div class="sc-byline" style="margin-bottom:10px;">
+        <select class="sc-search" name="target" required>
+          <option value="">Target entity</option>
+          {#each data.targetOptions as option}
+            <option value={option.value}>{option.label}</option>
+          {/each}
+        </select>
+        <select class="sc-search" name="flag_type">
+          <option value="comment">comment</option>
+          <option value="question">question</option>
+          <option value="needs_review">needs_review</option>
+          <option value="stale">stale</option>
+          <option value="incorrect">incorrect</option>
+        </select>
+      </div>
+      <div class="sc-byline" style="margin-bottom:10px;">
+        <input class="sc-search" name="target_path" placeholder="Target path (optional)" />
+      </div>
+      <div class="sc-byline" style="margin-bottom:10px;">
+        <textarea
+          class="sc-search"
+          name="message"
+          placeholder="Flag message"
+          rows="3"
+          required
+        ></textarea>
+      </div>
+      <button class="sc-btn" type="submit">Create Flag</button>
+    </form>
+  </div>
+
+  <div class="sc-section">
+    {#each data.flags as flag}
       <div class="sc-card sc-card-flag">
         <div class="sc-byline">
           <div class="sc-flag-banner">⚑ {flag.flagType.replace("_", " ")}</div>
           <span class="sc-pill">Flagged {flag.createdAt}</span>
+          <span class="sc-pill">Status: {flag.status}</span>
         </div>
         <div style="margin-top:12px; font-size: var(--sc-font-md);">
           {flag.message}
         </div>
         <div class="sc-byline" style="margin-top:12px;">
           <span>Target</span>
-          {#if flag.targetType === "process"}
-            <ProcessPortal process={processById.get(flag.targetId)!} />
-          {:else if flag.targetType === "system"}
-            <SystemPortal system={systemById.get(flag.targetId)!} />
-          {:else if flag.targetType === "role"}
-            <RolePortal role={roleById.get(flag.targetId)!} />
+          {#if flag.targetType === "process" && flag.target}
+            <ProcessPortal process={flag.target as any} />
+          {:else if flag.targetType === "system" && flag.target}
+            <SystemPortal system={flag.target as any} />
+          {:else if flag.targetType === "role" && flag.target}
+            <RolePortal role={flag.target as any} />
+          {:else if flag.targetType === "action" && flag.target}
+            <span>{(flag.target as any).label}</span>
           {/if}
-          {#if flag.processId}
+          {#if flag.targetPath}
             <span>·</span>
-            <ProcessPortal process={processById.get(flag.processId)!} />
-          {/if}
-          {#if flag.ownerRoleId}
-            <span>·</span>
-            <RolePortal role={roleById.get(flag.ownerRoleId)!} />
+            <span>Path: {flag.targetPath}</span>
           {/if}
         </div>
-        <div class="sc-actions" style="margin-top:12px;">
-          <button class="sc-btn">Resolve</button>
-          <button class="sc-btn secondary">Dismiss</button>
-        </div>
+        {#if canModerate}
+          <div class="sc-actions" style="margin-top:12px;">
+            <form method="POST" action="?/resolveFlag">
+              <input type="hidden" name="id" value={flag.id} />
+              <button class="sc-btn" type="submit">Resolve</button>
+            </form>
+            <form method="POST" action="?/dismissFlag">
+              <input type="hidden" name="id" value={flag.id} />
+              <button class="sc-btn secondary" type="submit">Dismiss</button>
+            </form>
+          </div>
+        {/if}
       </div>
     {/each}
   </div>
