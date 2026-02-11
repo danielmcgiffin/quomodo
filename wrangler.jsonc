@@ -2,7 +2,7 @@
   "name": "quomodo",
   "account_id": "038f386f26a1a9bef9eb2d50e7f8c218",
   "compatibility_date": "2026-02-11",
-  "compatibility_flags": ["nodejs_als"],
+  "compatibility_flags": ["nodejs_als", "nodejs_compat"],
   "main": ".svelte-kit/cloudflare/_worker.js",
   "assets": {
     "directory": ".svelte-kit/cloudflare",
