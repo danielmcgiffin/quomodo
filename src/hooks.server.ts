@@ -5,11 +5,43 @@ import { createServerClient } from "@supabase/ssr"
 import { createClient, type AMREntry } from "@supabase/supabase-js"
 import type { Handle } from "@sveltejs/kit"
 import { sequence } from "@sveltejs/kit/hooks"
+import type { SupabaseClient } from "@supabase/supabase-js"
+import type { Database } from "./DatabaseDefinitions"
 
 const { PRIVATE_SUPABASE_SERVICE_ROLE } = privateEnv
 const { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } = publicEnv
 
+const missingSupabaseEnvMessage =
+  "Supabase env vars are missing. Set PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, and PRIVATE_SUPABASE_SERVICE_ROLE."
+
+const makeMissingClient = () =>
+  new Proxy(
+    {},
+    {
+      get() {
+        throw new Error(missingSupabaseEnvMessage)
+      },
+    },
+  ) as SupabaseClient<Database>
+
 export const supabase: Handle = async ({ event, resolve }) => {
+  if (
+    !PUBLIC_SUPABASE_URL ||
+    !PUBLIC_SUPABASE_ANON_KEY ||
+    !PRIVATE_SUPABASE_SERVICE_ROLE
+  ) {
+    console.warn(missingSupabaseEnvMessage)
+    event.locals.supabase = makeMissingClient()
+    event.locals.supabaseServiceRole = makeMissingClient()
+    event.locals.safeGetSession = async () => ({
+      session: null,
+      user: null,
+      amr: null,
+    })
+
+    return resolve(event)
+  }
+
   event.locals.supabase = createServerClient(
     PUBLIC_SUPABASE_URL,
     PUBLIC_SUPABASE_ANON_KEY,
