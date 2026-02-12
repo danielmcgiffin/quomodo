@@ -8,6 +8,16 @@
     "directory": ".svelte-kit/cloudflare",
     "binding": "ASSETS",
   },
+  "routes": [
+    {
+      "pattern": "systemscraft.co/*",
+      "custom_domain": true,
+    },
+    {
+      "pattern": "www.systemscraft.co/*",
+      "custom_domain": true,
+    },
+  ],
   "env": {
     "preview": {
       "name": "quomodo-preview",

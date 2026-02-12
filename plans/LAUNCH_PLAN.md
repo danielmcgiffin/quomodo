@@ -32,12 +32,14 @@ It is detailed enough for founder decision-making and for any agent to execute w
 
 ### What is not implemented
 
-- No remaining unchecked V1 launch tasks in `WS0` through `WS7`.
+- Customer onboarding readiness tasks (`LP-065` through `LP-069`) remain open for launch.
 - Data-gated `WS8` work (`LP-070` through `LP-074`) remains intentionally out of V1 scope.
 
 ### Technical risks to address before launch
 
 - Re-run deployed smoke checks on the exact launch commit to reconfirm `/app/*` route access and traversal in production.
+- `scripts/cloudflare-sync-secrets.sh` currently syncs only Supabase + Stripe secrets; email secrets remain a manual step.
+- Multi-user workspace provisioning (adding non-owner users into an existing org) is not yet exposed as a dedicated in-app flow.
 - Lint baseline still flags `RichText.svelte` for `svelte/no-at-html-tags`; keep sanitizer guarantees and lint policy aligned before release.
 - Retrieval still relies on lexical matching; monitor zero-result behavior until WS8 telemetry gates are active.
 
@@ -62,6 +64,7 @@ V1 is launch-ready when all of the following are true:
 3. `Ctrl-?` (or search input) returns entities and deep-links to their detail views.
 4. Deploy pipeline is stable on Cloudflare with required env vars and no blocking runtime errors.
 5. Basic quality gates pass: build, typecheck, lint, smoke tests for core flows.
+6. A new external user can complete signup on the production domain, verify email, create profile, and reach `/app/processes`, with billing and support email paths functioning.
 
 ## Scope Decisions For V1
 
@@ -431,6 +434,38 @@ LP-008 route isolation inventory:
   Status:
 - Completed 2026-02-12 (`plans/CLOUDFLARE_DEPLOY_RUNBOOK.md` is now the canonical Cloudflare release runbook; `README.md` deploy docs were reduced to Cloudflare-only instructions that point to the runbook).
 
+- [ ] `LP-065` Production domain + auth callback alignment.
+      Acceptance:
+- Cloudflare custom domain routes to the production worker.
+- `WebsiteBaseUrl` in `src/config.ts` matches the canonical production domain.
+- Supabase Auth callback + redirect allowlist include `<domain>/auth/callback` and `<domain>/auth/callback?*` (plus local dev callback entries).
+
+- [ ] `LP-066` Stripe launch catalog and pricing mapping hardening.
+      Acceptance:
+- `src/routes/(marketing)/pricing/pricing_plans.ts` no longer uses demo placeholder copy/IDs for launch plans.
+- Each paid plan has valid `stripe_price_id` + `stripe_product_id`, and `subscription_helpers.server.ts` resolves active subscriptions to app plans without mapping errors.
+- Stripe Billing Portal config is launch-safe (email editing disabled, plan-change path verified).
+- Checkout and billing portal roundtrips return to canonical domain paths.
+
+- [ ] `LP-067` Production email deliverability and template branding.
+      Acceptance:
+- Supabase Auth SMTP is configured for production-domain auth emails.
+- Resend is configured with verified sending domain and production sender identity.
+- `PRIVATE_RESEND_API_KEY`, `PRIVATE_ADMIN_EMAIL`, and `PRIVATE_FROM_ADMIN_EMAIL` are present in production + preview Cloudflare secrets.
+- Welcome/admin email content and sender values are branded (no `saasstarter` defaults).
+
+- [ ] `LP-068` First-customer onboarding runbook + validation pass.
+      Acceptance:
+- A single runbook documents the end-to-end external user path: sign up, verify email, create profile, land in `/app/processes`, create first role/system/process/action, run search, file a flag.
+- The runbook is executed once against production (or production-equivalent preview) with timestamped pass/fail notes.
+- Failures include explicit remediation owner and re-test step.
+
+- [ ] `LP-069` Multi-user workspace provisioning path.
+      Acceptance:
+- A tested method exists to add non-owner users to an existing org and assign `admin/editor/member` roles.
+- If invite UX is deferred, a documented operational procedure exists for provisioning + role changes (with rollback).
+- Smoke validation includes at least one non-owner user completing core `/app` traversal with role-appropriate permissions.
+
 ### WS8: Post-V1 Intelligence and Documentation (Data-Gated)
 
 Gate policy for WS8:
@@ -504,6 +539,7 @@ Gate policy for WS8:
 3. `LP-063` Resolve or defer noisy legacy-route warnings.
 4. Resolve rich-text path: complete `LP-051`/`LP-052`/`LP-053` or record explicit V1 de-scope decision in `V1_CHECKLIST.md` and this plan.
 5. `LP-042` and `LP-043` retrieval polish follow after the rich-text decision unless explicitly re-scoped.
+6. `LP-065` to `LP-069` customer onboarding readiness closeout.
 
 ### Stage E: Post-V1 intelligence (data-gated)
 
@@ -533,6 +569,11 @@ Current founder-priority execution queue (as of 2026-02-12) supersedes the gener
 12. `LP-064`
 13. `LP-063`
 14. Resolve `LP-051`/`LP-052`/`LP-053` path (ship or explicit V1 de-scope).
+15. `LP-065`
+16. `LP-066`
+17. `LP-067`
+18. `LP-068`
+19. `LP-069`
 
 - Week 1:
   - Finalize marketing IA/theme migration (`LP-004` to `LP-007`).
@@ -561,7 +602,8 @@ Current founder-priority execution queue (as of 2026-02-12) supersedes the gener
 3. Execute priority block in this order: `LP-030`, `LP-031`, `LP-033`, `LP-032`, `LP-036`, `LP-037`, `LP-040`, `LP-041`, `LP-060`, `LP-061`.
 4. Immediate closeout order: `LP-062`, `LP-064`, `LP-063`.
 5. Resolve rich-text path (`LP-051` to `LP-053`) or explicitly de-scope for V1 before launch sign-off.
-6. `WS8` only after launch and only with real customer data gates satisfied between each layer.
+6. Execute customer-onboarding readiness block: `LP-065`, `LP-066`, `LP-067`, `LP-068`, `LP-069`.
+7. `WS8` only after launch and only with real customer data gates satisfied between each layer.
 
 ## Quality Gates
 
