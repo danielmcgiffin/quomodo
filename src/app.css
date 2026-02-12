@@ -211,6 +211,53 @@ button[disabled].authBtn::before {
   font-size: var(--sc-font-md);
 }
 
+.sc-process-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
+  align-items: start;
+}
+
+.sc-process-main,
+.sc-process-sidebar {
+  min-width: 0;
+}
+
+.sc-process-sidebar .sc-section:first-child {
+  margin-top: 0;
+}
+
+.sc-sidebar-title {
+  font-size: var(--sc-font-lg);
+}
+
+.sc-process-facts {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sc-process-fact {
+  min-height: 128px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sc-process-fact-label {
+  color: var(--sc-text-light);
+  font-size: var(--sc-font-sm, 0.8125rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.sc-process-fact-value {
+  color: var(--sc-text);
+  font-size: var(--sc-font-md);
+}
+
 .sc-card {
   background: var(--sc-white);
   border: 1px solid var(--sc-border);
@@ -489,6 +536,16 @@ button[disabled].authBtn::before {
 
 .sc-rich li + li {
   margin-top: 6px;
+}
+
+@media (max-width: 980px) {
+  .sc-process-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sc-process-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* SystemsCraft marketing theme */
