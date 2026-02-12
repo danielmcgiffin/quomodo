@@ -1,13 +1,12 @@
 <script lang="ts">
-  import RolePortal from "$lib/components/RolePortal.svelte"
-  import SystemPortal from "$lib/components/SystemPortal.svelte"
-  import ProcessPortal from "$lib/components/ProcessPortal.svelte"
   import RichText from "$lib/components/RichText.svelte"
-  import ScModal from "$lib/components/ScModal.svelte"
   import InlineCreateRoleModal from "$lib/components/InlineCreateRoleModal.svelte"
   import InlineCreateSystemModal from "$lib/components/InlineCreateSystemModal.svelte"
-  import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
   import FlagSidebar from "$lib/components/FlagSidebar.svelte"
+  import ProcessOverviewCard from "$lib/components/ProcessOverviewCard.svelte"
+  import ProcessActionsSection from "$lib/components/ProcessActionsSection.svelte"
+  import ProcessTraverseCard from "$lib/components/ProcessTraverseCard.svelte"
+  import ActionEditorModal from "$lib/components/ActionEditorModal.svelte"
 
   type SidebarRole = {
     id: string
@@ -209,118 +208,26 @@
         <RichText html={data.process.descriptionHtml} />
       </div>
 
-      <div class="sc-section sc-entity-card">
-        <InlineEntityFlagControl
-          action="?/createFlag"
-          targetType="process"
-          targetId={data.process.id}
-          entityLabel={data.process.name}
-          viewerRole={data.viewerRole}
-          errorMessage={form?.createFlagError}
-          errorTargetType={form?.createFlagTargetType}
-          errorTargetId={form?.createFlagTargetId}
-        />
-        <div class="sc-process-details-grid">
-          <div class="sc-process-facts sc-process-facts--stack">
-            <div class="sc-card sc-process-fact">
-              <div class="sc-process-fact-label">Trigger</div>
-              <div class="sc-process-fact-value">
-                {data.process.trigger || "Not set"}
-              </div>
-            </div>
-            <div class="sc-card sc-process-fact">
-              <div class="sc-process-fact-label">End State</div>
-              <div class="sc-process-fact-value">
-                {data.process.endState || "Not set"}
-              </div>
-            </div>
-          </div>
-          <div class="sc-process-facts sc-process-facts--stack">
-            <div class="sc-card sc-process-fact">
-              <div class="sc-process-fact-label">Who Does It</div>
-              <div class="sc-byline">
-                {#if actionRoles.length === 0}
-                  <span class="sc-page-subtitle">No action owners yet.</span>
-                {:else}
-                  {#each actionRoles as role}
-                    <RolePortal {role} />
-                  {/each}
-                {/if}
-              </div>
-            </div>
-            <div class="sc-card sc-process-fact">
-              <div class="sc-process-fact-label">What Systems</div>
-              <div class="sc-byline">
-                {#if actionSystems.length === 0}
-                  <span class="sc-page-subtitle">No systems linked yet.</span>
-                {:else}
-                  {#each actionSystems as system}
-                    <SystemPortal {system} />
-                  {/each}
-                {/if}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ProcessOverviewCard
+        process={data.process}
+        {actionRoles}
+        {actionSystems}
+        viewerRole={data.viewerRole}
+        createFlagError={form?.createFlagError}
+        createFlagTargetType={form?.createFlagTargetType}
+        createFlagTargetId={form?.createFlagTargetId}
+      />
 
-      <div class="sc-section">
-        <div class="flex justify-between items-center gap-4 flex-wrap">
-          <div class="sc-section-title">What Happens?</div>
-          <button
-            class="sc-btn mb-2"
-            type="button"
-            onclick={openCreateActionModal}
-          >
-            Write an Action
-          </button>
-        </div>
-        {#each actions as action}
-          <div
-            class="sc-card sc-entity-card sc-action-card sc-action-card-clickable"
-            role="button"
-            tabindex="0"
-            aria-label={`Edit Action ${action.sequence}`}
-            onclick={(event) => openEditActionModal(event, action)}
-            onkeydown={(event) => onActionCardKeydown(event, action)}
-          >
-            <InlineEntityFlagControl
-              action="?/createFlag"
-              targetType="action"
-              targetId={action.id}
-              entityLabel={`Action ${action.sequence}`}
-              viewerRole={data.viewerRole}
-              errorMessage={form?.createFlagError}
-              errorTargetType={form?.createFlagTargetType}
-              errorTargetId={form?.createFlagTargetId}
-            />
-            <div class="sc-action-card-main">
-              <div
-                style="font-size: var(--sc-font-lg); font-weight: 600; margin-top:6px;"
-              >
-                <RichText html={action.descriptionHtml} />
-              </div>
-            </div>
-            <div class="sc-action-card-side">
-              <div class="sc-action-sequence">{action.sequence}</div>
-              <div class="sc-action-side-row">
-                {#if action.ownerRole}
-                  <RolePortal role={action.ownerRole} />
-                {:else}
-                  <span class="sc-page-subtitle">No owner</span>
-                {/if}
-              </div>
-              <div class="sc-action-side-row">
-                {#if action.system}
-                  <SystemPortal system={action.system} />
-                {:else}
-                  <span class="sc-page-subtitle">No system</span>
-                {/if}
-              </div>
-            </div>
-          </div>
-        {/each}
-      </div>
+      <ProcessActionsSection
+        {actions}
+        viewerRole={data.viewerRole}
+        createFlagError={form?.createFlagError}
+        createFlagTargetType={form?.createFlagTargetType}
+        createFlagTargetId={form?.createFlagTargetId}
+        onCreateAction={openCreateActionModal}
+        onEditAction={openEditActionModal}
+        onActionKeydown={onActionCardKeydown}
+      />
     </div>
     <aside class="sc-process-sidebar">
       <FlagSidebar
@@ -338,115 +245,26 @@
     </aside>
   </div>
 
-  <div class="sc-section">
-    <div class="sc-section-title">Traverse</div>
-    <div class="sc-card">
-      <div class="sc-byline">
-        {#if actionRoles.length === 0 && actionSystems.length === 0}
-          <span class="sc-page-subtitle"
-            >Add actions to build traversal links.</span
-          >
-        {:else}
-          {#each actionRoles as role}
-            <RolePortal {role} />
-          {/each}
-          {#if actionRoles.length > 0 && actionSystems.length > 0}
-            <span>·</span>
-          {/if}
-          {#each actionSystems as system}
-            <SystemPortal {system} />
-          {/each}
-          <span>·</span>
-          <ProcessPortal process={data.process} />
-        {/if}
-      </div>
-    </div>
-  </div>
+  <ProcessTraverseCard process={data.process} {actionRoles} {actionSystems} />
 
-  <ScModal
+  <ActionEditorModal
     bind:open={isCreateActionModalOpen}
-    title={editingActionId ? "Edit Action" : "Add Action"}
-    description={editingActionId
-      ? "Update this action's description, role, and system."
-      : "Capture one action in this process and link role + system."}
-    maxWidth="760px"
-  >
-    <form
-      class="sc-form sc-action-modal-form"
-      method="POST"
-      action="?/createAction"
-    >
-      {#if form?.createActionError}
-        <div class="sc-form-error">{form.createActionError}</div>
-      {/if}
-      {#if editingActionId}
-        <input type="hidden" name="action_id" value={editingActionId} />
-      {/if}
-      <div class="sc-form-row sc-action-modal-description-row">
-        <textarea
-          class="sc-search sc-field sc-textarea sc-action-modal-description"
-          name="description"
-          bind:value={actionDescriptionDraft}
-          placeholder="Action description"
-          rows="4"
-          required
-        ></textarea>
-      </div>
-      <div class="sc-form-row sc-action-modal-controls-row">
-        <select
-          class="sc-search sc-field sc-action-modal-select"
-          name="owner_role_id"
-          bind:value={selectedOwnerRoleId}
-          required
-        >
-          <option value="">Role responsible</option>
-          {#each data.allRoles as role}
-            <option value={role.id} selected={form?.createdRoleId === role.id}
-              >{role.name}</option
-            >
-          {/each}
-        </select>
-        <button
-          class="sc-btn secondary sc-action-modal-btn"
-          type="button"
-          onclick={() => {
-            isCreateRoleModalOpen = true
-          }}
-        >
-          Create Role
-        </button>
-        <select
-          class="sc-search sc-field sc-action-modal-select"
-          name="system_id"
-          bind:value={selectedSystemId}
-          required
-        >
-          <option value="">System</option>
-          {#each data.allSystems as system}
-            <option
-              value={system.id}
-              selected={form?.createdSystemId === system.id}
-              >{system.name}</option
-            >
-          {/each}
-        </select>
-        <button
-          class="sc-btn secondary sc-action-modal-btn"
-          type="button"
-          onclick={() => {
-            isCreateSystemModalOpen = true
-          }}
-        >
-          Create System
-        </button>
-      </div>
-      <div class="sc-form-row sc-action-modal-submit-row">
-        <button class="sc-btn" type="submit">
-          {editingActionId ? "Save Action" : "Create Action"}
-        </button>
-      </div>
-    </form>
-  </ScModal>
+    bind:editingActionId
+    bind:actionDescriptionDraft
+    bind:selectedOwnerRoleId
+    bind:selectedSystemId
+    allRoles={data.allRoles}
+    allSystems={data.allSystems}
+    createdRoleId={form?.createdRoleId}
+    createdSystemId={form?.createdSystemId}
+    createActionError={form?.createActionError}
+    onOpenRoleModal={() => {
+      isCreateRoleModalOpen = true
+    }}
+    onOpenSystemModal={() => {
+      isCreateSystemModalOpen = true
+    }}
+  />
 
   <InlineCreateRoleModal
     bind:open={isCreateRoleModalOpen}

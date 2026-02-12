@@ -18,31 +18,16 @@ import {
   type RolePortalModel,
   type SystemPortalModel,
 } from "$lib/server/app/mappers/portals"
+import {
+  mapOpenProcessFlags,
+  mapProcessCards,
+  type ProcessActionLinkRow,
+  type ProcessFlagLinkRow,
+  type ProcessListRow,
+} from "$lib/server/app/mappers/processes"
 
 type RoleRow = { id: string; slug: string; name: string }
 type SystemRow = { id: string; slug: string; name: string }
-type ProcessRow = {
-  id: string
-  slug: string
-  name: string
-  description_rich: unknown
-  trigger: string | null
-  end_state: string | null
-  owner_role_id: string | null
-}
-type ActionRow = {
-  process_id: string
-  system_id: string | null
-  owner_role_id: string | null
-}
-type FlagRow = {
-  id: string
-  target_id: string
-  target_path: string | null
-  flag_type: string
-  message: string
-  created_at: string
-}
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
@@ -112,7 +97,7 @@ export const load = async ({ locals }) => {
 
   const roles = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
   const systems = mapSystemPortals((systemsResult.data ?? []) as SystemRow[])
-  const processRows = (processesResult.data ?? []) as ProcessRow[]
+  const processRows = (processesResult.data ?? []) as ProcessListRow[]
   const roleById = new Map(
     roles.map((role: RolePortalModel) => [role.id, role]),
   )
@@ -130,96 +115,18 @@ export const load = async ({ locals }) => {
     ]),
   )
 
-  const roleIdsByProcess = new Map<string, Set<string>>()
-  const systemIdsByProcess = new Map<string, Set<string>>()
-  for (const action of (actionsResult.data ?? []) as ActionRow[]) {
-    if (action.owner_role_id) {
-      const roleSet =
-        roleIdsByProcess.get(action.process_id) ?? new Set<string>()
-      roleSet.add(action.owner_role_id)
-      roleIdsByProcess.set(action.process_id, roleSet)
-    }
-    if (action.system_id) {
-      const systemSet =
-        systemIdsByProcess.get(action.process_id) ?? new Set<string>()
-      systemSet.add(action.system_id)
-      systemIdsByProcess.set(action.process_id, systemSet)
-    }
-  }
+  const processes = mapProcessCards({
+    processRows,
+    actionRows: (actionsResult.data ?? []) as ProcessActionLinkRow[],
+    roleById,
+    systemById,
+    richToHtml,
+  })
 
-  const processes = processRows
-    .map((row) => {
-      const ownerRole = row.owner_role_id
-        ? (roleById.get(row.owner_role_id) ?? null)
-        : null
-      const actionRoles = Array.from(roleIdsByProcess.get(row.id) ?? [])
-        .map((roleId) => roleById.get(roleId) ?? null)
-        .filter(
-          (
-            role,
-          ): role is {
-            id: string
-            slug: string
-            name: string
-            initials: string
-          } => Boolean(role),
-        )
-      const roleBadges = ownerRole
-        ? [ownerRole, ...actionRoles.filter((role) => role.id !== ownerRole.id)]
-        : actionRoles
-      const systemBadges = Array.from(systemIdsByProcess.get(row.id) ?? [])
-        .map((systemId) => systemById.get(systemId) ?? null)
-        .filter(
-          (system): system is { id: string; slug: string; name: string } =>
-            Boolean(system),
-        )
-
-      return {
-        id: row.id,
-        slug: row.slug,
-        name: row.name,
-        descriptionHtml: richToHtml(row.description_rich),
-        trigger: row.trigger ?? "",
-        endState: row.end_state ?? "",
-        roleBadges,
-        systemBadges,
-      }
-    })
-    .sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
-    )
-
-  const openFlags = ((flagsResult.data ?? []) as FlagRow[])
-    .map((flag) => {
-      const process = processById.get(flag.target_id)
-      if (!process) {
-        return null
-      }
-      return {
-        id: flag.id,
-        flagType: flag.flag_type,
-        message: flag.message,
-        targetPath: flag.target_path,
-        createdAt: new Date(flag.created_at).toLocaleString(),
-        process,
-      }
-    })
-    .filter(
-      (
-        flag,
-      ): flag is {
-        id: string
-        flagType: string
-        message: string
-        targetPath: string | null
-        createdAt: string
-        process: {
-          id: string
-          slug: string
-          name: string
-        }
-      } => Boolean(flag),
-    )
+  const openFlags = mapOpenProcessFlags({
+    flagRows: (flagsResult.data ?? []) as ProcessFlagLinkRow[],
+    processById,
+  })
 
   return {
     org: context,

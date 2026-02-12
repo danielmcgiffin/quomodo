@@ -16,6 +16,12 @@ import {
   readSystemDraft,
 } from "$lib/server/app/actions/shared"
 import { mapRolePortals, mapSystemPortals } from "$lib/server/app/mappers/portals"
+import {
+  mapProcessDetailActions,
+  mapProcessDetailFlags,
+  type ProcessDetailActionRow,
+  type ProcessDetailFlagRow,
+} from "$lib/server/app/mappers/processes"
 
 type ProcessRow = {
   id: string
@@ -26,22 +32,8 @@ type ProcessRow = {
   end_state: string | null
   owner_role_id: string | null
 }
-type ActionRow = {
-  id: string
-  process_id: string
-  sequence: number
-  description_rich: unknown
-  owner_role_id: string
-  system_id: string
-}
 type RoleRow = { id: string; slug: string; name: string }
 type SystemRow = { id: string; slug: string; name: string }
-type FlagRow = {
-  id: string
-  flag_type: string
-  message: string
-  created_at: string
-}
 type FlagTargetType = "process" | "action"
 
 export const load = async ({ params, locals, url }) => {
@@ -116,19 +108,15 @@ export const load = async ({ params, locals, url }) => {
 
   const roles = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
   const systems = mapSystemPortals((systemsResult.data ?? []) as SystemRow[])
-  const roleById = new Map(roles.map((role: { id: string }) => [role.id, role]))
-  const systemById = new Map(
-    systems.map((system: { id: string }) => [system.id, system]),
-  )
+  const roleById = new Map(roles.map((role) => [role.id, role]))
+  const systemById = new Map(systems.map((system) => [system.id, system]))
 
-  const actions = ((actionsResult.data ?? []) as ActionRow[]).map((row) => ({
-    id: row.id,
-    processId: row.process_id,
-    sequence: row.sequence,
-    descriptionHtml: richToHtml(row.description_rich),
-    ownerRole: roleById.get(row.owner_role_id),
-    system: systemById.get(row.system_id),
-  }))
+  const actions = mapProcessDetailActions({
+    rows: (actionsResult.data ?? []) as ProcessDetailActionRow[],
+    roleById,
+    systemById,
+    richToHtml,
+  })
 
   return {
     process: {
@@ -145,12 +133,9 @@ export const load = async ({ params, locals, url }) => {
     actions,
     allRoles: roles,
     allSystems: systems,
-    processFlags: ((flagsResult.data ?? []) as FlagRow[]).map((flag) => ({
-      id: flag.id,
-      flagType: flag.flag_type,
-      message: flag.message,
-      createdAt: new Date(flag.created_at).toLocaleString(),
-    })),
+    processFlags: mapProcessDetailFlags(
+      (flagsResult.data ?? []) as ProcessDetailFlagRow[],
+    ),
     viewerRole: context.membershipRole,
     highlightedFlagId: url.searchParams.get("flagId") ?? null,
   }
