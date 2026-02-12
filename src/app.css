@@ -718,6 +718,79 @@ button[disabled].authBtn::before {
   font-family: inherit;
 }
 
+.sc-rich-editor {
+  width: 100%;
+}
+
+.sc-rich-editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.sc-rich-editor-btn {
+  border-radius: var(--sc-radius-sm);
+  border: 1px solid var(--sc-border);
+  background: var(--sc-bg-inset);
+  color: var(--sc-text);
+  padding: 6px 10px;
+  font-size: var(--sc-font-sm);
+  font-weight: 600;
+  min-height: 34px;
+}
+
+.sc-rich-editor-btn.is-active {
+  border-color: var(--sc-green-border);
+  background: var(--sc-green-light);
+  color: var(--sc-green-dark);
+}
+
+.sc-rich-editor-shell {
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  background: var(--sc-bg-inset);
+  min-height: 132px;
+  padding: 10px 12px;
+}
+
+.sc-rich-editor-content {
+  color: var(--sc-text);
+  min-height: 110px;
+  outline: none;
+  white-space: pre-wrap;
+}
+
+.sc-rich-editor-content p + p {
+  margin-top: 10px;
+}
+
+.sc-rich-editor-content ul,
+.sc-rich-editor-content ol {
+  margin-top: 10px;
+  padding-left: 20px;
+}
+
+.sc-rich-editor-content ul {
+  list-style: disc;
+}
+
+.sc-rich-editor-content ol {
+  list-style: decimal;
+}
+
+.sc-rich-editor-content li + li {
+  margin-top: 6px;
+}
+
+.sc-rich-editor-required {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .sc-form-actions {
   display: flex;
   align-items: center;

@@ -368,18 +368,24 @@ LP-008 route isolation inventory:
       Acceptance:
 - TipTap is the canonical editor and storage pipeline for V1.
 
-- [ ] `LP-051` Implement sanitization before render.
+- [x] `LP-051` Implement sanitization before render.
       Acceptance:
 - No direct unsanitized `{@html}` from user input.
 - XSS smoke tests added for malicious payloads.
+      Status:
+- Completed 2026-02-12 (server rich-text pipeline now renders TipTap JSON via `generateHTML` and sanitizes output with `sanitize-html` before `RichText` render; XSS-focused tests added in `src/lib/server/rich-text.test.ts`).
 
-- [ ] `LP-052` Add minimal rich text authoring UI for descriptions.
+- [x] `LP-052` Add minimal rich text authoring UI for descriptions.
       Acceptance:
 - Role/System/Process/Action descriptions can be formatted and persisted.
+      Status:
+- Completed 2026-02-12 (shared `RichTextEditor` toolbar wired into role/system/process/action create/edit flows, persisting canonical `description_rich` TipTap JSON while retaining plain-text form fallback).
 
-- [ ] `LP-053` Add migration fallback for existing HTML seed content.
+- [x] `LP-053` Add migration fallback for existing HTML seed content.
       Acceptance:
 - Existing static HTML description content is either converted to TipTap JSON or safely rendered through a compatibility adapter.
+      Status:
+- Completed 2026-02-12 (`normalizeRichTextDocument` now accepts legacy HTML/string payloads, converts through TipTap JSON compatibility parsing when possible, and safely falls back to sanitized text conversion).
 
 ### WS7: Launch Hardening and Operations
 
@@ -389,23 +395,38 @@ LP-008 route isolation inventory:
       Status:
 - Completed 2026-02-12 (`npm run cf:secrets:sync` applied secrets to production + preview and `wrangler secret list` verified all four required keys in both environments).
 
-- [ ] `LP-061` Add smoke test checklist for deployed app.
+- [x] `LP-061` Add smoke test checklist for deployed app.
       Acceptance:
 - Documented pass/fail for login, CRUD, portals, search, flags, billing route access.
+      Status:
+- Completed 2026-02-12 (run via `npm run smoke:deployed` against `https://quomodo.danielmcgiffin.workers.dev`).
+- Result 2026-02-12T19:52:04Z:
+  - PASS: Login (owner/admin/editor/member).
+  - PASS: CRUD (roles/systems/processes/actions).
+  - PASS: Portals traversal.
+  - PASS: Search endpoint + deep links.
+  - PASS: Flags create + dashboard visibility.
+  - PASS: Billing route access (`303` to `/account/create_profile`).
 
-- [ ] `LP-062` Add logging/error baseline.
+- [x] `LP-062` Add logging/error baseline.
       Acceptance:
 - Runtime errors are captured (Cloudflare logs minimum).
 - Common failure states return user-safe messages.
+      Status:
+- Completed 2026-02-12 (global `handleError` with per-request reference id + structured server logs, and `/app` loaders/search/workspace helpers now log internals while returning user-safe 500 messages).
 
-- [ ] `LP-063` Resolve or explicitly defer noisy Svelte warnings from legacy routes.
+- [x] `LP-063` Resolve or explicitly defer noisy Svelte warnings from legacy routes.
       Acceptance:
 - Either warnings fixed or documented as accepted technical debt with owners/date.
+      Status:
+- Completed 2026-02-12 (`npm run build` completes with no noisy legacy-route Svelte warnings; previously observed `listen EPERM 127.0.0.1` was a restricted local sandbox networking artifact and not route warning debt).
 
-- [ ] `LP-064` Deployment playbook for Cloudflare-only release.
+- [x] `LP-064` Deployment playbook for Cloudflare-only release.
       Acceptance:
 - Single runbook covers `npm run build`, `npx wrangler deploy`, required vars/secrets, and rollback strategy.
 - No Vercel deployment instructions remain in active docs.
+      Status:
+- Completed 2026-02-12 (`plans/CLOUDFLARE_DEPLOY_RUNBOOK.md` is now the canonical Cloudflare release runbook; `README.md` deploy docs were reduced to Cloudflare-only instructions that point to the runbook).
 
 ### WS8: Post-V1 Intelligence and Documentation (Data-Gated)
 

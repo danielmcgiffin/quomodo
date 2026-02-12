@@ -1,9 +1,10 @@
-import { error as kitError, fail, redirect } from "@sveltejs/kit"
+import { fail, redirect } from "@sveltejs/kit"
 import {
   canManageDirectory,
   ensureOrgContext,
   richToHtml,
 } from "$lib/server/atlas"
+import { throwRuntime500 } from "$lib/server/runtime-errors"
 import {
   createFlagForEntity,
   createRoleRecord,
@@ -18,6 +19,13 @@ type RoleRow = { id: string; slug: string; name: string }
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
+  const failLoad = (contextName: string, error: unknown) =>
+    throwRuntime500({
+      context: contextName,
+      error,
+      requestId: locals.requestId,
+      route: "/app/systems",
+    })
 
   const [rolesResult, systemsResult, flagsResult] = await Promise.all([
     supabase
@@ -40,16 +48,13 @@ export const load = async ({ locals }) => {
   ])
 
   if (rolesResult.error) {
-    throw kitError(500, `Failed to load roles: ${rolesResult.error.message}`)
+    failLoad("app.systems.load.roles", rolesResult.error)
   }
   if (systemsResult.error) {
-    throw kitError(
-      500,
-      `Failed to load systems: ${systemsResult.error.message}`,
-    )
+    failLoad("app.systems.load.systems", systemsResult.error)
   }
   if (flagsResult.error) {
-    throw kitError(500, `Failed to load flags: ${flagsResult.error.message}`)
+    failLoad("app.systems.load.flags", flagsResult.error)
   }
 
   const roles = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
@@ -111,6 +116,7 @@ export const actions = {
         createSystemError,
         systemNameDraft: draft.name,
         systemDescriptionDraft: draft.description,
+        systemDescriptionRichDraft: draft.descriptionRichRaw,
         systemLocationDraft: draft.location,
         systemUrlDraft: draft.url,
         selectedOwnerRoleIdDraft: draft.ownerRoleIdRaw,

@@ -59,16 +59,25 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [x] Resolve/Dismiss flow
 - [x] Right-side flags sidebar on all `/app/*` pages with stable main-content width (`LP-037`)
 
+## Rich Text
+
+- [x] Sanitized rich-text rendering in app descriptions (`LP-051`)
+- [x] TipTap authoring UI for role/system/process/action descriptions (`LP-052`)
+- [x] Legacy HTML compatibility adapter for description payloads (`LP-053`)
+
 ## Deployment
 
 - [x] Cloudflare env vars set (Supabase + Stripe)
+- [x] Deployed smoke checklist documented and run (`LP-061`)
+- [x] Runtime logging + user-safe 500 baseline implemented (`LP-062`)
 - [ ] Production route access verified for `/app/*`
-- [ ] Cloudflare-only runbook present; no active Vercel deployment docs in launch flow
+- [x] Cloudflare-only runbook present; no active Vercel deployment docs in launch flow (`LP-064`)
 
 ## Route Isolation
 
 - [x] Legacy starter routes are explicitly marked as deferred (`LP-008`) with TODO markers in retained files
 - [x] Active SystemsCraft routes vs retained legacy routes are documented in `LAUNCH_PLAN.md`
+- [x] No unresolved noisy legacy-route Svelte warning debt in current build (`LP-063`)
 
 ## Post-V1: Data-Gated Intelligence (Non-Blocking for V1)
 

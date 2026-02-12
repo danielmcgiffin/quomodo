@@ -1,5 +1,9 @@
-import { error as kitError, json, type RequestHandler } from "@sveltejs/kit"
+import { json, type RequestHandler } from "@sveltejs/kit"
 import { ensureOrgContext } from "$lib/server/atlas"
+import {
+  USER_SAFE_SEARCH_ERROR_MESSAGE,
+  throwRuntime500,
+} from "$lib/server/runtime-errors"
 import {
   mapSearchResults,
   type SearchActionRoute,
@@ -37,6 +41,14 @@ const dedupeSearchRows = (rows: SearchAllRow[]): SearchAllRow[] => {
 export const GET: RequestHandler = async ({ url, locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
+  const failSearch = (contextName: string, error: unknown) =>
+    throwRuntime500({
+      context: contextName,
+      error,
+      requestId: locals.requestId,
+      route: "/app/search",
+      userMessage: USER_SAFE_SEARCH_ERROR_MESSAGE,
+    })
   const queryRaw = String(
     url.searchParams.get("q") ?? url.searchParams.get("query") ?? "",
   )
@@ -67,10 +79,10 @@ export const GET: RequestHandler = async ({ url, locals }) => {
   ])
 
   if (titleResult.error) {
-    throw kitError(500, `Failed to search titles: ${titleResult.error.message}`)
+    failSearch("app.search.query.title", titleResult.error)
   }
   if (bodyResult.error) {
-    throw kitError(500, `Failed to search descriptions: ${bodyResult.error.message}`)
+    failSearch("app.search.query.body", bodyResult.error)
   }
 
   const baseRows = dedupeSearchRows([
@@ -91,7 +103,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
       .in("id", actionIds)
 
     if (actionRowsError) {
-      throw kitError(500, `Failed to map action routes: ${actionRowsError.message}`)
+      failSearch("app.search.routes.actions", actionRowsError)
     }
 
     const actionRows = (actionRowsData ?? []) as ActionRouteRow[]
@@ -108,10 +120,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
         .in("id", processIds)
 
       if (processRowsError) {
-        throw kitError(
-          500,
-          `Failed to map action process routes: ${processRowsError.message}`,
-        )
+        failSearch("app.search.routes.processes", processRowsError)
       }
 
       for (const process of (processRowsData ?? []) as ProcessRouteRow[]) {

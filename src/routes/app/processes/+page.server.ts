@@ -1,12 +1,13 @@
-import { error as kitError, fail, redirect } from "@sveltejs/kit"
+import { fail, redirect } from "@sveltejs/kit"
 import {
   canManageDirectory,
   canEditAtlas,
   ensureOrgContext,
   ensureUniqueSlug,
-  plainToRich,
   richToHtml,
 } from "$lib/server/atlas"
+import { readRichTextFormDraft } from "$lib/server/rich-text"
+import { throwRuntime500 } from "$lib/server/runtime-errors"
 import {
   createFlagForEntity,
   createRoleRecord,
@@ -31,6 +32,13 @@ type SystemRow = { id: string; slug: string; name: string }
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
+  const failLoad = (contextName: string, error: unknown) =>
+    throwRuntime500({
+      context: contextName,
+      error,
+      requestId: locals.requestId,
+      route: "/app/processes",
+    })
 
   const [
     rolesResult,
@@ -71,28 +79,19 @@ export const load = async ({ locals }) => {
   ])
 
   if (rolesResult.error) {
-    throw kitError(500, `Failed to load roles: ${rolesResult.error.message}`)
+    failLoad("app.processes.load.roles", rolesResult.error)
   }
   if (systemsResult.error) {
-    throw kitError(
-      500,
-      `Failed to load systems: ${systemsResult.error.message}`,
-    )
+    failLoad("app.processes.load.systems", systemsResult.error)
   }
   if (processesResult.error) {
-    throw kitError(
-      500,
-      `Failed to load processes: ${processesResult.error.message}`,
-    )
+    failLoad("app.processes.load.processes", processesResult.error)
   }
   if (actionsResult.error) {
-    throw kitError(
-      500,
-      `Failed to load actions: ${actionsResult.error.message}`,
-    )
+    failLoad("app.processes.load.actions", actionsResult.error)
   }
   if (flagsResult.error) {
-    throw kitError(500, `Failed to load flags: ${flagsResult.error.message}`)
+    failLoad("app.processes.load.flags", flagsResult.error)
   }
 
   const roles = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
@@ -151,7 +150,11 @@ export const actions = {
     const endState = String(
       formData.get("end_state") ?? formData.get("endstate") ?? "",
     ).trim()
-    const description = String(formData.get("description") ?? "").trim()
+    const descriptionDraft = readRichTextFormDraft({
+      formData,
+      richField: "description_rich",
+      textField: "description",
+    })
     const ownerRoleIdRaw = String(formData.get("owner_role_id") ?? "").trim()
 
     if (!name) {
@@ -173,7 +176,7 @@ export const actions = {
       trigger: trigger || null,
       end_state: endState || null,
       owner_role_id: ownerRoleId,
-      description_rich: plainToRich(description),
+      description_rich: descriptionDraft.rich,
     }
 
     const { data, error } = await supabase

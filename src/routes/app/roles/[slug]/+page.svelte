@@ -3,6 +3,7 @@
   import ProcessPortal from "$lib/components/ProcessPortal.svelte"
   import SystemPortal from "$lib/components/SystemPortal.svelte"
   import RichText from "$lib/components/RichText.svelte"
+  import RichTextEditor from "$lib/components/RichTextEditor.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
   import FlagSidebar from "$lib/components/FlagSidebar.svelte"
@@ -14,6 +15,7 @@
         slug: string
         name: string
         initials: string
+        descriptionRich: string
         descriptionHtml: string
         personName: string
         hoursPerWeek: number | null
@@ -53,6 +55,7 @@
       rolePersonNameDraft?: string
       roleHoursPerWeekDraft?: string
       roleDescriptionDraft?: string
+      roleDescriptionRichDraft?: string
     }
   }
 
@@ -79,6 +82,7 @@
   let rolePersonNameDraft = $state("")
   let roleHoursPerWeekDraft = $state("")
   let roleDescriptionDraft = $state("")
+  let roleDescriptionRichDraft = $state("")
 
   const roleFieldTargets = [
     { path: "name", label: "Name" },
@@ -96,6 +100,7 @@
     roleHoursPerWeekDraft =
       data.role.hoursPerWeek === null ? "" : String(data.role.hoursPerWeek)
     roleDescriptionDraft = htmlToDraftText(data.role.descriptionHtml)
+    roleDescriptionRichDraft = data.role.descriptionRich
   }
 
   const openEditRoleModal = () => {
@@ -130,6 +135,10 @@
       typeof form?.roleDescriptionDraft === "string"
         ? form.roleDescriptionDraft
         : htmlToDraftText(data.role.descriptionHtml)
+    roleDescriptionRichDraft =
+      typeof form?.roleDescriptionRichDraft === "string"
+        ? form.roleDescriptionRichDraft
+        : data.role.descriptionRich
   })
 </script>
 
@@ -200,13 +209,13 @@
             />
           </div>
           <div class="sc-form-row">
-            <textarea
-              class="sc-search sc-field sc-textarea"
-              name="description"
-              placeholder="Role description - what this role owns and why it exists"
-              bind:value={roleDescriptionDraft}
-              rows="4"
-            ></textarea>
+            <RichTextEditor
+              fieldName="description_rich"
+              textFieldName="description"
+              htmlValue={data.role.descriptionHtml}
+              bind:textValue={roleDescriptionDraft}
+              bind:richValue={roleDescriptionRichDraft}
+            />
           </div>
           <div class="sc-form-actions">
             <div class="sc-page-subtitle">

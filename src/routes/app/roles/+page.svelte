@@ -1,6 +1,7 @@
 <script lang="ts">
   import RolePortal from "$lib/components/RolePortal.svelte"
   import RichText from "$lib/components/RichText.svelte"
+  import RichTextEditor from "$lib/components/RichTextEditor.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
   import FlagSidebar from "$lib/components/FlagSidebar.svelte"
@@ -37,6 +38,7 @@
       rolePersonNameDraft?: string
       roleHoursPerWeekDraft?: string
       roleDescriptionDraft?: string
+      roleDescriptionRichDraft?: string
     }
   }
 
@@ -46,6 +48,7 @@
   let rolePersonNameDraft = $state("")
   let roleHoursPerWeekDraft = $state("")
   let roleDescriptionDraft = $state("")
+  let roleDescriptionRichDraft = $state("")
 
   const roleFieldTargets = [
     { path: "name", label: "Name" },
@@ -59,6 +62,7 @@
     rolePersonNameDraft = ""
     roleHoursPerWeekDraft = ""
     roleDescriptionDraft = ""
+    roleDescriptionRichDraft = ""
     isCreateRoleModalOpen = true
   }
 
@@ -77,6 +81,9 @@
     }
     if (typeof form?.roleDescriptionDraft === "string") {
       roleDescriptionDraft = form.roleDescriptionDraft
+    }
+    if (typeof form?.roleDescriptionRichDraft === "string") {
+      roleDescriptionRichDraft = form.roleDescriptionRichDraft
     }
   })
 </script>
@@ -137,13 +144,12 @@
             />
           </div>
           <div class="sc-form-row">
-            <textarea
-              class="sc-search sc-field sc-textarea"
-              name="description"
-              placeholder="Role description - what this role owns and why it exists"
-              bind:value={roleDescriptionDraft}
-              rows="4"
-            ></textarea>
+            <RichTextEditor
+              fieldName="description_rich"
+              textFieldName="description"
+              bind:textValue={roleDescriptionDraft}
+              bind:richValue={roleDescriptionRichDraft}
+            />
           </div>
           <div class="sc-form-actions">
             <div class="sc-page-subtitle">

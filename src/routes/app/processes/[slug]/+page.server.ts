@@ -5,10 +5,13 @@ import {
   canEditAtlas,
   ensureOrgContext,
   isScFlagType,
-  plainToRich,
+  richToJsonString,
   richToHtml,
   type ScFlagType,
 } from "$lib/server/atlas"
+import { readRichTextFormDraft } from "$lib/server/rich-text"
+import type { RichTextDocument } from "$lib/rich-text/document"
+import { throwRuntime500 } from "$lib/server/runtime-errors"
 import {
   createRoleRecord,
   createSystemRecord,
@@ -39,20 +42,31 @@ type ActionSequenceRow = { id: string; sequence: number }
 type ProcessDraft = {
   name: string
   description: string
+  descriptionRich: RichTextDocument
+  descriptionRichRaw: string
   trigger: string
   endState: string
   ownerRoleIdRaw: string
 }
 
-const readProcessDraft = (formData: FormData): ProcessDraft => ({
-  name: String(formData.get("name") ?? "").trim(),
-  description: String(formData.get("description") ?? "").trim(),
-  trigger: String(formData.get("trigger") ?? "").trim(),
-  endState: String(
-    formData.get("end_state") ?? formData.get("endstate") ?? "",
-  ).trim(),
-  ownerRoleIdRaw: String(formData.get("owner_role_id") ?? "").trim(),
-})
+const readProcessDraft = (formData: FormData): ProcessDraft => {
+  const descriptionDraft = readRichTextFormDraft({
+    formData,
+    richField: "description_rich",
+    textField: "description",
+  })
+  return {
+    name: String(formData.get("name") ?? "").trim(),
+    description: descriptionDraft.text,
+    descriptionRich: descriptionDraft.rich,
+    descriptionRichRaw: descriptionDraft.richRaw,
+    trigger: String(formData.get("trigger") ?? "").trim(),
+    endState: String(
+      formData.get("end_state") ?? formData.get("endstate") ?? "",
+    ).trim(),
+    ownerRoleIdRaw: String(formData.get("owner_role_id") ?? "").trim(),
+  }
+}
 
 const resequenceProcessActions = async ({
   supabase,
@@ -109,6 +123,13 @@ const resequenceProcessActions = async ({
 export const load = async ({ params, locals, url }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
+  const failLoad = (contextName: string, error: unknown) =>
+    throwRuntime500({
+      context: contextName,
+      error,
+      requestId: locals.requestId,
+      route: `/app/processes/${params.slug}`,
+    })
 
   const { data: process, error: processError } = await supabase
     .from("processes")
@@ -120,7 +141,7 @@ export const load = async ({ params, locals, url }) => {
     .maybeSingle()
 
   if (processError) {
-    throw kitError(500, `Failed to load process: ${processError.message}`)
+    failLoad("app.processes.detail.load.process", processError)
   }
   if (!process) {
     throw kitError(404, "Process not found")
@@ -158,22 +179,16 @@ export const load = async ({ params, locals, url }) => {
     ])
 
   if (actionsResult.error) {
-    throw kitError(
-      500,
-      `Failed to load actions: ${actionsResult.error.message}`,
-    )
+    failLoad("app.processes.detail.load.actions", actionsResult.error)
   }
   if (rolesResult.error) {
-    throw kitError(500, `Failed to load roles: ${rolesResult.error.message}`)
+    failLoad("app.processes.detail.load.roles", rolesResult.error)
   }
   if (systemsResult.error) {
-    throw kitError(
-      500,
-      `Failed to load systems: ${systemsResult.error.message}`,
-    )
+    failLoad("app.processes.detail.load.systems", systemsResult.error)
   }
   if (flagsResult.error) {
-    throw kitError(500, `Failed to load flags: ${flagsResult.error.message}`)
+    failLoad("app.processes.detail.load.flags", flagsResult.error)
   }
 
   const roles = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
@@ -181,11 +196,21 @@ export const load = async ({ params, locals, url }) => {
   const roleById = new Map(roles.map((role) => [role.id, role]))
   const systemById = new Map(systems.map((system) => [system.id, system]))
 
+  const actionRows = (actionsResult.data ?? []) as ProcessDetailActionRow[]
+  const actionDescriptionRichById = new Map(
+    actionRows.map((row) => [row.id, richToJsonString(row.description_rich)]),
+  )
   const actions = mapProcessDetailActions({
-    rows: (actionsResult.data ?? []) as ProcessDetailActionRow[],
+    rows: actionRows,
     roleById,
     systemById,
     richToHtml,
+  }).map((action) => {
+    return {
+      ...action,
+      descriptionRich:
+        actionDescriptionRichById.get(action.id) ?? richToJsonString(null),
+    }
   })
 
   return {
@@ -193,6 +218,7 @@ export const load = async ({ params, locals, url }) => {
       id: processRow.id,
       slug: processRow.slug,
       name: processRow.name,
+      descriptionRich: richToJsonString(processRow.description_rich),
       descriptionHtml: richToHtml(processRow.description_rich),
       trigger: processRow.trigger ?? "",
       endState: processRow.end_state ?? "",
@@ -228,6 +254,7 @@ export const actions = {
         updateProcessError,
         processNameDraft: draft.name,
         processDescriptionDraft: draft.description,
+        processDescriptionRichDraft: draft.descriptionRichRaw,
         processTriggerDraft: draft.trigger,
         processEndStateDraft: draft.endState,
         selectedProcessOwnerRoleIdDraft: draft.ownerRoleIdRaw,
@@ -256,7 +283,7 @@ export const actions = {
       .from("processes")
       .update({
         name: draft.name,
-        description_rich: plainToRich(draft.description),
+        description_rich: draft.descriptionRich,
         trigger: draft.trigger || null,
         end_state: draft.endState || null,
         owner_role_id: ownerRoleId,
@@ -318,7 +345,11 @@ export const actions = {
     const supabase = locals.supabase
     const formData = await request.formData()
 
-    const description = String(formData.get("description") ?? "").trim()
+    const descriptionDraft = readRichTextFormDraft({
+      formData,
+      richField: "description_rich",
+      textField: "description",
+    })
     const ownerRoleId = String(formData.get("owner_role_id") ?? "").trim()
     const systemId = String(formData.get("system_id") ?? "").trim()
     const actionId = String(formData.get("action_id") ?? "").trim()
@@ -327,13 +358,14 @@ export const actions = {
     const failAction = (status: number, createActionError: string) =>
       fail(status, {
         createActionError,
-        actionDescriptionDraft: description,
+        actionDescriptionDraft: descriptionDraft.text,
+        actionDescriptionRichDraft: descriptionDraft.richRaw,
         selectedOwnerRoleId: ownerRoleId,
         selectedSystemId: systemId,
         editingActionId: actionId || null,
       })
 
-    if (!description || !ownerRoleId || !systemId) {
+    if (!descriptionDraft.text || !ownerRoleId || !systemId) {
       return failAction(400, "Description, role, and system are required.")
     }
 
@@ -364,7 +396,7 @@ export const actions = {
       const { error: updateError } = await supabase
         .from("actions")
         .update({
-          description_rich: plainToRich(description),
+          description_rich: descriptionDraft.rich,
           owner_role_id: ownerRoleId,
           system_id: systemId,
         })
@@ -395,7 +427,7 @@ export const actions = {
       org_id: context.orgId,
       process_id: process.id,
       sequence,
-      description_rich: plainToRich(description),
+      description_rich: descriptionDraft.rich,
       owner_role_id: ownerRoleId,
       system_id: systemId,
     })
@@ -571,6 +603,9 @@ export const actions = {
     const actionDescriptionDraft = String(
       formData.get("action_description_draft") ?? "",
     )
+    const actionDescriptionRichDraft = String(
+      formData.get("action_description_rich_draft") ?? "",
+    )
     const result = await createRoleRecord({
       supabase,
       orgId: context.orgId,
@@ -581,6 +616,7 @@ export const actions = {
       return fail(result.status, {
         createRoleError: result.message,
         actionDescriptionDraft,
+        actionDescriptionRichDraft,
       })
     }
 
@@ -588,6 +624,7 @@ export const actions = {
       createRoleSuccess: true,
       createdRoleId: result.id,
       actionDescriptionDraft,
+      actionDescriptionRichDraft,
     }
   },
 
@@ -602,6 +639,9 @@ export const actions = {
     const actionDescriptionDraft = String(
       formData.get("action_description_draft") ?? "",
     )
+    const actionDescriptionRichDraft = String(
+      formData.get("action_description_rich_draft") ?? "",
+    )
     const result = await createSystemRecord({
       supabase,
       orgId: context.orgId,
@@ -612,6 +652,7 @@ export const actions = {
       return fail(result.status, {
         createSystemError: result.message,
         actionDescriptionDraft,
+        actionDescriptionRichDraft,
       })
     }
 
@@ -619,6 +660,7 @@ export const actions = {
       createSystemSuccess: true,
       createdSystemId: result.id,
       actionDescriptionDraft,
+      actionDescriptionRichDraft,
     }
   },
 

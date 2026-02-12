@@ -18,6 +18,7 @@
   type ActionEntry = {
     id: string
     sequence: number
+    descriptionRich: string
     descriptionHtml: string
     ownerRole: Role | null
     system: System | null

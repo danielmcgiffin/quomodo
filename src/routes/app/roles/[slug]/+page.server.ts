@@ -3,8 +3,10 @@ import {
   canManageDirectory,
   ensureOrgContext,
   makeInitials,
+  richToJsonString,
   richToHtml,
 } from "$lib/server/atlas"
+import { throwRuntime500 } from "$lib/server/runtime-errors"
 import {
   createFlagForEntity,
   deleteRoleRecord,
@@ -43,6 +45,13 @@ type RoleFlagRow = {
 export const load = async ({ params, locals, url }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
+  const failLoad = (contextName: string, error: unknown) =>
+    throwRuntime500({
+      context: contextName,
+      error,
+      requestId: locals.requestId,
+      route: `/app/roles/${params.slug}`,
+    })
 
   const { data: role, error: roleError } = await supabase
     .from("roles")
@@ -52,7 +61,7 @@ export const load = async ({ params, locals, url }) => {
     .maybeSingle()
 
   if (roleError) {
-    throw kitError(500, `Failed to load role: ${roleError.message}`)
+    failLoad("app.roles.detail.load.role", roleError)
   }
   if (!role) {
     throw kitError(404, "Role not found")
@@ -90,25 +99,16 @@ export const load = async ({ params, locals, url }) => {
     ])
 
   if (processesResult.error) {
-    throw kitError(
-      500,
-      `Failed to load processes: ${processesResult.error.message}`,
-    )
+    failLoad("app.roles.detail.load.processes", processesResult.error)
   }
   if (actionsResult.error) {
-    throw kitError(
-      500,
-      `Failed to load actions: ${actionsResult.error.message}`,
-    )
+    failLoad("app.roles.detail.load.actions", actionsResult.error)
   }
   if (systemsResult.error) {
-    throw kitError(
-      500,
-      `Failed to load systems: ${systemsResult.error.message}`,
-    )
+    failLoad("app.roles.detail.load.systems", systemsResult.error)
   }
   if (flagsResult.error) {
-    throw kitError(500, `Failed to load flags: ${flagsResult.error.message}`)
+    failLoad("app.roles.detail.load.flags", flagsResult.error)
   }
 
   const systems = mapSystemPortals((systemsResult.data ?? []) as SystemRow[])
@@ -152,6 +152,7 @@ export const load = async ({ params, locals, url }) => {
       slug: roleRow.slug,
       name: roleRow.name,
       initials: makeInitials(roleRow.name),
+      descriptionRich: richToJsonString(roleRow.description_rich),
       descriptionHtml: richToHtml(roleRow.description_rich),
       personName: roleRow.person_name ?? "",
       hoursPerWeek: roleRow.hours_per_week ?? null,
@@ -205,6 +206,7 @@ export const actions = {
         updateRoleError,
         roleNameDraft: draft.name,
         roleDescriptionDraft: draft.description,
+        roleDescriptionRichDraft: draft.descriptionRichRaw,
         rolePersonNameDraft: draft.personName,
         roleHoursPerWeekDraft: draft.hoursRaw,
       })

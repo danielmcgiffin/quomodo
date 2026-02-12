@@ -1,4 +1,6 @@
 import { canCreateFlagType, ensureUniqueSlug, isScFlagType, plainToRich } from "$lib/server/atlas"
+import { readRichTextFormDraft } from "$lib/server/rich-text"
+import type { RichTextDocument } from "$lib/rich-text/document"
 
 type SupabaseClient = App.Locals["supabase"]
 type OrgContext = {
@@ -10,16 +12,28 @@ type OrgContext = {
 export type RoleDraft = {
   name: string
   description: string
+  descriptionRich?: RichTextDocument
+  descriptionRichRaw?: string
   personName: string
   hoursRaw: string
 }
 
-export const readRoleDraft = (formData: FormData): RoleDraft => ({
-  name: String(formData.get("name") ?? "").trim(),
-  description: String(formData.get("description") ?? "").trim(),
-  personName: String(formData.get("person_name") ?? "").trim(),
-  hoursRaw: String(formData.get("hours_per_week") ?? "").trim(),
-})
+export const readRoleDraft = (formData: FormData): RoleDraft => {
+  const descriptionDraft = readRichTextFormDraft({
+    formData,
+    richField: "description_rich",
+    textField: "description",
+  })
+
+  return {
+    name: String(formData.get("name") ?? "").trim(),
+    description: descriptionDraft.text,
+    descriptionRich: descriptionDraft.rich,
+    descriptionRichRaw: descriptionDraft.richRaw,
+    personName: String(formData.get("person_name") ?? "").trim(),
+    hoursRaw: String(formData.get("hours_per_week") ?? "").trim(),
+  }
+}
 
 const parseHoursPerWeek = (
   hoursRaw: string,
@@ -62,7 +76,7 @@ export const createRoleRecord = async ({
       org_id: orgId,
       slug,
       name: draft.name,
-      description_rich: plainToRich(draft.description),
+      description_rich: draft.descriptionRich ?? plainToRich(draft.description),
       person_name: draft.personName || null,
       hours_per_week: parsedHours.value,
     })
@@ -120,7 +134,7 @@ export const updateRoleRecord = async ({
     .from("roles")
     .update({
       name: draft.name,
-      description_rich: plainToRich(draft.description),
+      description_rich: draft.descriptionRich ?? plainToRich(draft.description),
       person_name: draft.personName || null,
       hours_per_week: parsedHours.value,
     })
@@ -199,18 +213,30 @@ export const deleteRoleRecord = async ({
 export type SystemDraft = {
   name: string
   description: string
+  descriptionRich?: RichTextDocument
+  descriptionRichRaw?: string
   location: string
   url: string
   ownerRoleIdRaw: string
 }
 
-export const readSystemDraft = (formData: FormData): SystemDraft => ({
-  name: String(formData.get("name") ?? "").trim(),
-  description: String(formData.get("description") ?? "").trim(),
-  location: String(formData.get("location") ?? "").trim(),
-  url: String(formData.get("url") ?? "").trim(),
-  ownerRoleIdRaw: String(formData.get("owner_role_id") ?? "").trim(),
-})
+export const readSystemDraft = (formData: FormData): SystemDraft => {
+  const descriptionDraft = readRichTextFormDraft({
+    formData,
+    richField: "description_rich",
+    textField: "description",
+  })
+
+  return {
+    name: String(formData.get("name") ?? "").trim(),
+    description: descriptionDraft.text,
+    descriptionRich: descriptionDraft.rich,
+    descriptionRichRaw: descriptionDraft.richRaw,
+    location: String(formData.get("location") ?? "").trim(),
+    url: String(formData.get("url") ?? "").trim(),
+    ownerRoleIdRaw: String(formData.get("owner_role_id") ?? "").trim(),
+  }
+}
 
 export const createSystemRecord = async ({
   supabase,
@@ -237,7 +263,7 @@ export const createSystemRecord = async ({
       org_id: orgId,
       slug,
       name: draft.name,
-      description_rich: plainToRich(draft.description),
+      description_rich: draft.descriptionRich ?? plainToRich(draft.description),
       location: draft.location || null,
       url: draft.url || null,
       owner_role_id: ownerRoleId,
@@ -292,7 +318,7 @@ export const updateSystemRecord = async ({
     .from("systems")
     .update({
       name: draft.name,
-      description_rich: plainToRich(draft.description),
+      description_rich: draft.descriptionRich ?? plainToRich(draft.description),
       location: draft.location || null,
       url: draft.url || null,
       owner_role_id: ownerRoleId,

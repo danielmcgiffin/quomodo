@@ -267,39 +267,15 @@ If you find build, formatting or linting rules too tedious, you can disable enfo
 
 ## Deploy
 
-We document the process of deploying SaaS Starter on Cloudflare Pages. However, it can be hosted anywhere you can host a SvelteKit app.
+Cloudflare Workers is the supported hosting target for SystemsCraft V1.
 
-Our [official demo](https://saasstarter.work) is hosted on Cloudflare Pages, and deployed each time the main branch is updated.
+Use the runbook in `plans/CLOUDFLARE_DEPLOY_RUNBOOK.md` for the full release flow:
 
-### Deploy To Cloudflare
-
-Cloudflare Pages and Workers is one of the most popular options for deploying SvelteKit and we recommend it. [Follow Cloudflare’s instructions](https://developers.cloudflare.com/pages/get-started/git-integration/) to deploy in a few clicks. Be sure to select “SvelteKit” as framework, and the rest of the defaults will work.
-
-When prompted: add environment variables for your production environment (PUBLIC_SUPABASE_URL,
-PUBLIC_SUPABASE_ANON_KEY, PRIVATE_SUPABASE_SERVICE_ROLE, and PRIVATE_STRIPE_API_KEY).
-
-For worker deployments, the project keeps production (default Wrangler env) and preview (`env.preview`) in sync with:
-
-```bash
-# Requires CLOUDFLARE_API_TOKEN with Workers/Secrets permissions.
-npm run cf:secrets:sync
-```
-
-`cf:secrets:sync` reads values from your shell (and `.env.local` if present) and writes:
-`PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY`, `PRIVATE_SUPABASE_SERVICE_ROLE`, and `PRIVATE_STRIPE_API_KEY`
-to both production and preview.
-
-Optional: enable [Cloudflare Analytics](https://www.cloudflare.com/en-ca/application-services/products/analytics/) for usage metrics.
-
-### Deploy Alternatives
-
-If you prefer another host you can explore alternatives:
-
-- [SvelteKit official adapters](https://kit.svelte.dev/docs/adapters) including Netlify, Node, and more
-- [Community adapters](https://sveltesociety.dev/components#adapters) including Github pages, AppEngine, Azure, and more
-- [Supabase](https://supabase.com/docs/guides/getting-started/quickstarts/sveltekit) if you want one host for everything. Note: they do charge $10 a month for custom domains, unlike Cloudflare.
-
-Cloudflare is the supported hosting target for this project.
+- pre-deploy checks (`npm run check`, `npm run build`)
+- secret sync (`npm run cf:secrets:sync`)
+- preview deploy (`npx wrangler deploy --env preview`)
+- production deploy (`npx wrangler deploy`)
+- post-deploy verification and rollback strategy
 
 ## Setup Emailer -- Optional
 

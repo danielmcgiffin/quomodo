@@ -1,4 +1,16 @@
 import { error as kitError, redirect } from "@sveltejs/kit"
+import {
+  logRuntimeError,
+  USER_SAFE_REQUEST_ERROR_MESSAGE,
+  USER_SAFE_WORKSPACE_CREATE_ERROR_MESSAGE,
+  USER_SAFE_WORKSPACE_ERROR_MESSAGE,
+} from "$lib/server/runtime-errors"
+export {
+  plainToRich,
+  richToHtml,
+  richToJsonString,
+  readRichTextFormDraft,
+} from "$lib/server/rich-text"
 
 export type MembershipRole = "owner" | "admin" | "editor" | "member"
 export const SC_FLAG_TYPES = [
@@ -47,53 +59,6 @@ export const assertRole = (
   }
 }
 
-const escapeHtml = (value: string) =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;")
-
-const extractText = (value: unknown): string => {
-  if (!value) {
-    return ""
-  }
-  if (typeof value === "string") {
-    return value
-  }
-  if (Array.isArray(value)) {
-    return value.map((item) => extractText(item)).join("")
-  }
-  if (typeof value === "object") {
-    const node = value as Record<string, unknown>
-    const text = typeof node.text === "string" ? node.text : ""
-    const content = extractText(node.content)
-    return `${text}${content}`
-  }
-  return ""
-}
-
-export const richToHtml = (value: unknown): string => {
-  const text = extractText(value).trim()
-  if (!text) {
-    return "<p></p>"
-  }
-  return `<p>${escapeHtml(text).replaceAll("\n", "<br />")}</p>`
-}
-
-export const plainToRich = (value: string) => ({
-  type: "doc",
-  content: value.trim()
-    ? [
-        {
-          type: "paragraph",
-          content: [{ type: "text", text: value.trim() }],
-        },
-      ]
-    : [],
-})
-
 export const makeInitials = (name: string): string => {
   const parts = name.trim().split(/\s+/).filter(Boolean)
   if (parts.length === 0) {
@@ -124,6 +89,7 @@ const createOrgForUser = async (
   supabaseServiceRole: App.Locals["supabaseServiceRole"],
   userId: string,
   preferredName: string,
+  requestId?: string,
 ) => {
   const baseName = preferredName.trim() || "My Workspace"
   const baseSlug = slugify(baseName) || "workspace"
@@ -171,10 +137,13 @@ const createOrgForUser = async (
           )
 
         if (ownerMembershipError) {
-          throw kitError(
-            500,
-            `Failed to create owner membership: ${ownerMembershipError.message}`,
-          )
+          logRuntimeError({
+            context: "atlas.createOrgForUser.ownerMembership",
+            error: ownerMembershipError,
+            requestId,
+            details: { userId, orgId: adminData.id },
+          })
+          throw kitError(500, USER_SAFE_WORKSPACE_CREATE_ERROR_MESSAGE)
         }
 
         return adminData
@@ -182,17 +151,32 @@ const createOrgForUser = async (
     }
 
     if (error?.code === "42P01") {
-      throw kitError(500, TRIAD_TABLES_HINT)
+      logRuntimeError({
+        context: "atlas.createOrgForUser.schemaMissing",
+        error,
+        requestId,
+        details: { hint: TRIAD_TABLES_HINT },
+      })
+      throw kitError(500, USER_SAFE_WORKSPACE_CREATE_ERROR_MESSAGE)
     }
     if (error?.code !== "23505") {
-      throw kitError(
-        500,
-        `Failed to create workspace: ${error?.message ?? "unknown error"}`,
-      )
+      logRuntimeError({
+        context: "atlas.createOrgForUser.insert",
+        error,
+        requestId,
+        details: { userId, slug },
+      })
+      throw kitError(500, USER_SAFE_WORKSPACE_CREATE_ERROR_MESSAGE)
     }
   }
 
-  throw kitError(500, "Failed to create workspace slug")
+  logRuntimeError({
+    context: "atlas.createOrgForUser.slugExhausted",
+    error: new Error("Failed to generate unique org slug after retries."),
+    requestId,
+    details: { userId, preferredName },
+  })
+  throw kitError(500, USER_SAFE_WORKSPACE_CREATE_ERROR_MESSAGE)
 }
 
 export const ensureOrgContext = async (
@@ -213,12 +197,21 @@ export const ensureOrgContext = async (
 
   if (membershipError) {
     if (membershipError.code === "42P01") {
-      throw kitError(500, TRIAD_TABLES_HINT)
+      logRuntimeError({
+        context: "atlas.ensureOrgContext.schemaMissing",
+        error: membershipError,
+        requestId: locals.requestId,
+        details: { hint: TRIAD_TABLES_HINT, userId: user.id },
+      })
+      throw kitError(500, USER_SAFE_WORKSPACE_ERROR_MESSAGE)
     }
-    throw kitError(
-      500,
-      `Failed to load workspace membership: ${membershipError.message}`,
-    )
+    logRuntimeError({
+      context: "atlas.ensureOrgContext.membershipLookup",
+      error: membershipError,
+      requestId: locals.requestId,
+      details: { userId: user.id },
+    })
+    throw kitError(500, USER_SAFE_WORKSPACE_ERROR_MESSAGE)
   }
 
   const membership = memberships?.[0]
@@ -233,6 +226,7 @@ export const ensureOrgContext = async (
       locals.supabaseServiceRole,
       user.id,
       `${displayName}'s Workspace`,
+      locals.requestId,
     )
     return {
       orgId: org.id,
@@ -249,10 +243,13 @@ export const ensureOrgContext = async (
     .single()
 
   if (orgError || !org) {
-    throw kitError(
-      500,
-      `Failed to load workspace: ${orgError?.message ?? "not found"}`,
-    )
+    logRuntimeError({
+      context: "atlas.ensureOrgContext.orgLookup",
+      error: orgError ?? new Error("Workspace record not found."),
+      requestId: locals.requestId,
+      details: { userId: user.id, orgId: membership.org_id },
+    })
+    throw kitError(500, USER_SAFE_WORKSPACE_ERROR_MESSAGE)
   }
 
   return {
@@ -282,7 +279,13 @@ export const ensureUniqueSlug = async (
       .limit(1)
 
     if (error) {
-      throw kitError(500, `Failed to validate slug: ${error.message}`)
+      logRuntimeError({
+        context: "atlas.ensureUniqueSlug.validate",
+        error,
+        requestId: null,
+        details: { table, orgId, candidate },
+      })
+      throw kitError(500, USER_SAFE_REQUEST_ERROR_MESSAGE)
     }
     if (!data || data.length === 0) {
       return candidate
@@ -291,5 +294,11 @@ export const ensureUniqueSlug = async (
     candidate = `${base}-${suffix}`
   }
 
-  throw kitError(500, "Failed to generate unique slug")
+  logRuntimeError({
+    context: "atlas.ensureUniqueSlug.exhausted",
+    error: new Error("Failed to generate unique slug after retries."),
+    requestId: null,
+    details: { table, orgId, rawName },
+  })
+  throw kitError(500, USER_SAFE_REQUEST_ERROR_MESSAGE)
 }

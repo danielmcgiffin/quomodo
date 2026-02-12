@@ -3,6 +3,7 @@
   import RolePortal from "$lib/components/RolePortal.svelte"
   import ProcessPortal from "$lib/components/ProcessPortal.svelte"
   import RichText from "$lib/components/RichText.svelte"
+  import RichTextEditor from "$lib/components/RichTextEditor.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
   import FlagSidebar from "$lib/components/FlagSidebar.svelte"
@@ -14,6 +15,7 @@
         id: string
         slug: string
         name: string
+        descriptionRich: string
         descriptionHtml: string
         location: string
         url: string
@@ -49,6 +51,7 @@
       createFlagTargetPath?: string
       systemNameDraft?: string
       systemDescriptionDraft?: string
+      systemDescriptionRichDraft?: string
       systemLocationDraft?: string
       systemUrlDraft?: string
       selectedOwnerRoleIdDraft?: string
@@ -61,6 +64,7 @@
   let systemLocationDraft = $state("")
   let systemUrlDraft = $state("")
   let systemDescriptionDraft = $state("")
+  let systemDescriptionRichDraft = $state("")
   let selectedOwnerRoleId = $state("")
 
   const systemFieldTargets = [
@@ -95,6 +99,7 @@
     systemLocationDraft = data.system.location
     systemUrlDraft = data.system.url
     systemDescriptionDraft = htmlToDraftText(data.system.descriptionHtml)
+    systemDescriptionRichDraft = data.system.descriptionRich
     selectedOwnerRoleId = data.system.ownerRole?.id ?? ""
   }
 
@@ -124,6 +129,10 @@
       typeof form?.systemDescriptionDraft === "string"
         ? form.systemDescriptionDraft
         : htmlToDraftText(data.system.descriptionHtml)
+    systemDescriptionRichDraft =
+      typeof form?.systemDescriptionRichDraft === "string"
+        ? form.systemDescriptionRichDraft
+        : data.system.descriptionRich
     systemLocationDraft =
       typeof form?.systemLocationDraft === "string"
         ? form.systemLocationDraft
@@ -214,13 +223,13 @@
             </select>
           </div>
           <div class="sc-form-row">
-            <textarea
-              class="sc-search sc-field sc-textarea"
-              name="description"
-              placeholder="System description - what this system is used for"
-              bind:value={systemDescriptionDraft}
-              rows="4"
-            ></textarea>
+            <RichTextEditor
+              fieldName="description_rich"
+              textFieldName="description"
+              htmlValue={data.system.descriptionHtml}
+              bind:textValue={systemDescriptionDraft}
+              bind:richValue={systemDescriptionRichDraft}
+            />
           </div>
           <div class="sc-form-actions">
             <div class="sc-page-subtitle">

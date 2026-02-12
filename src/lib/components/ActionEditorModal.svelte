@@ -1,5 +1,6 @@
 <script lang="ts">
   import ScModal from "$lib/components/ScModal.svelte"
+  import RichTextEditor from "$lib/components/RichTextEditor.svelte"
 
   type Role = { id: string; name: string }
   type System = { id: string; name: string }
@@ -8,6 +9,7 @@
     open = $bindable(false),
     editingActionId = $bindable<string | null>(null),
     actionDescriptionDraft = $bindable(""),
+    actionDescriptionRichDraft = $bindable(""),
     selectedOwnerRoleId = $bindable(""),
     selectedSystemId = $bindable(""),
     allRoles,
@@ -22,6 +24,7 @@
     open?: boolean
     editingActionId?: string | null
     actionDescriptionDraft?: string
+    actionDescriptionRichDraft?: string
     selectedOwnerRoleId?: string
     selectedSystemId?: string
     allRoles: Role[]
@@ -65,14 +68,13 @@
       <input type="hidden" name="action_id" value={editingActionId} />
     {/if}
     <div class="sc-form-row sc-action-modal-description-row">
-      <textarea
-        class="sc-search sc-field sc-textarea sc-action-modal-description"
-        name="description"
-        bind:value={actionDescriptionDraft}
-        placeholder="Action description"
-        rows="4"
+      <RichTextEditor
+        fieldName="description_rich"
+        textFieldName="description"
+        bind:richValue={actionDescriptionRichDraft}
+        bind:textValue={actionDescriptionDraft}
         required
-      ></textarea>
+      />
     </div>
     <div class="sc-form-row sc-action-modal-controls-row">
       <select

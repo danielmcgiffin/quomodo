@@ -2,8 +2,10 @@ import { error as kitError, fail, redirect } from "@sveltejs/kit"
 import {
   canManageDirectory,
   ensureOrgContext,
+  richToJsonString,
   richToHtml,
 } from "$lib/server/atlas"
+import { throwRuntime500 } from "$lib/server/runtime-errors"
 import {
   createFlagForEntity,
   deleteSystemRecord,
@@ -42,6 +44,13 @@ type SystemFlagRow = {
 export const load = async ({ params, locals, url }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
+  const failLoad = (contextName: string, error: unknown) =>
+    throwRuntime500({
+      context: contextName,
+      error,
+      requestId: locals.requestId,
+      route: `/app/systems/${params.slug}`,
+    })
 
   const { data: system, error: systemError } = await supabase
     .from("systems")
@@ -51,7 +60,7 @@ export const load = async ({ params, locals, url }) => {
     .maybeSingle()
 
   if (systemError) {
-    throw kitError(500, `Failed to load system: ${systemError.message}`)
+    failLoad("app.systems.detail.load.system", systemError)
   }
   if (!system) {
     throw kitError(404, "System not found")
@@ -89,22 +98,16 @@ export const load = async ({ params, locals, url }) => {
     ])
 
   if (actionsResult.error) {
-    throw kitError(
-      500,
-      `Failed to load actions: ${actionsResult.error.message}`,
-    )
+    failLoad("app.systems.detail.load.actions", actionsResult.error)
   }
   if (rolesResult.error) {
-    throw kitError(500, `Failed to load roles: ${rolesResult.error.message}`)
+    failLoad("app.systems.detail.load.roles", rolesResult.error)
   }
   if (processesResult.error) {
-    throw kitError(
-      500,
-      `Failed to load processes: ${processesResult.error.message}`,
-    )
+    failLoad("app.systems.detail.load.processes", processesResult.error)
   }
   if (flagsResult.error) {
-    throw kitError(500, `Failed to load flags: ${flagsResult.error.message}`)
+    failLoad("app.systems.detail.load.flags", flagsResult.error)
   }
 
   const roles = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
@@ -142,6 +145,7 @@ export const load = async ({ params, locals, url }) => {
       id: systemRow.id,
       slug: systemRow.slug,
       name: systemRow.name,
+      descriptionRich: richToJsonString(systemRow.description_rich),
       descriptionHtml: richToHtml(systemRow.description_rich),
       location: systemRow.location ?? "",
       url: systemRow.url ?? "",
@@ -196,6 +200,7 @@ export const actions = {
         updateSystemError,
         systemNameDraft: draft.name,
         systemDescriptionDraft: draft.description,
+        systemDescriptionRichDraft: draft.descriptionRichRaw,
         systemLocationDraft: draft.location,
         systemUrlDraft: draft.url,
         selectedOwnerRoleIdDraft: draft.ownerRoleIdRaw,

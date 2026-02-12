@@ -9,6 +9,8 @@ const excludePaths = ["/search"]
 
 export async function buildSearchIndex() {
   const indexData = []
+  const virtualConsole = new JSDOM.VirtualConsole()
+  virtualConsole.on("jsdomError", () => {})
 
   // iterate all files with html extension in ./svelte-kit/output/prerendered/pages
   const fileRoot = path.resolve(".")
@@ -35,7 +37,7 @@ export async function buildSearchIndex() {
           { selector: "img", format: "skip" },
         ],
       })
-      const dom = new JSDOM.JSDOM(data)
+      const dom = new JSDOM.JSDOM(data, { virtualConsole })
       const title =
         dom.window.document.querySelector("title")?.textContent ||
         "Page " + webPath

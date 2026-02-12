@@ -1,5 +1,6 @@
 <script lang="ts">
   import ScModal from "$lib/components/ScModal.svelte"
+  import RichTextEditor from "$lib/components/RichTextEditor.svelte"
 
   type RoleOption = {
     id: string
@@ -16,6 +17,7 @@
     description = "Create a system.",
     helperText = "This system is immediately available.",
     actionDescriptionDraft = "",
+    actionDescriptionRichDraft = "",
     maxWidth = "760px",
   }: {
     open?: boolean
@@ -27,8 +29,12 @@
     description?: string
     helperText?: string
     actionDescriptionDraft?: string
+    actionDescriptionRichDraft?: string
     maxWidth?: string
   } = $props()
+
+  let systemDescriptionDraft = $state("")
+  let systemDescriptionRichDraft = $state("")
 </script>
 
 <ScModal bind:open {title} {description} {maxWidth}>
@@ -37,6 +43,11 @@
       type="hidden"
       name="action_description_draft"
       value={actionDescriptionDraft}
+    />
+    <input
+      type="hidden"
+      name="action_description_rich_draft"
+      value={actionDescriptionRichDraft}
     />
     {#if errorMessage}
       <div class="sc-form-error">{errorMessage}</div>
@@ -65,12 +76,12 @@
       </select>
     </div>
     <div class="sc-form-row">
-      <textarea
-        class="sc-search sc-field sc-textarea"
-        name="description"
-        placeholder="System description - what this system is used for"
-        rows="4"
-      ></textarea>
+      <RichTextEditor
+        fieldName="description_rich"
+        textFieldName="description"
+        bind:textValue={systemDescriptionDraft}
+        bind:richValue={systemDescriptionRichDraft}
+      />
     </div>
     <div class="sc-form-actions">
       <div class="sc-page-subtitle">{helperText}</div>

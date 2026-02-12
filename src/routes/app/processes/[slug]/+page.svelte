@@ -7,6 +7,7 @@
   import ProcessActionsSection from "$lib/components/ProcessActionsSection.svelte"
   import ProcessTraverseCard from "$lib/components/ProcessTraverseCard.svelte"
   import ActionEditorModal from "$lib/components/ActionEditorModal.svelte"
+  import RichTextEditor from "$lib/components/RichTextEditor.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
 
   type SidebarRole = {
@@ -23,6 +24,7 @@
   type ActionEntry = {
     id: string
     sequence: number
+    descriptionRich: string
     descriptionHtml: string
     ownerRole: SidebarRole | null
     system: SidebarSystem | null
@@ -41,10 +43,12 @@
     createdSystemId?: string
     processNameDraft?: string
     processDescriptionDraft?: string
+    processDescriptionRichDraft?: string
     processTriggerDraft?: string
     processEndStateDraft?: string
     selectedProcessOwnerRoleIdDraft?: string
     actionDescriptionDraft?: string
+    actionDescriptionRichDraft?: string
     selectedOwnerRoleId?: string
     selectedSystemId?: string
     editingActionId?: string
@@ -58,6 +62,7 @@
       id: string
       slug: string
       name: string
+      descriptionRich: string
       descriptionHtml: string
       trigger: string
       endState: string
@@ -115,10 +120,12 @@
   let isCreateSystemModalOpen = $state(false)
   let processNameDraft = $state("")
   let processDescriptionDraft = $state("")
+  let processDescriptionRichDraft = $state("")
   let processTriggerDraft = $state("")
   let processEndStateDraft = $state("")
   let selectedProcessOwnerRoleId = $state("")
   let actionDescriptionDraft = $state("")
+  let actionDescriptionRichDraft = $state("")
   let selectedOwnerRoleId = $state("")
   let selectedSystemId = $state("")
   let editingActionId = $state<string | null>(null)
@@ -136,6 +143,7 @@
   const openCreateActionModal = () => {
     editingActionId = null
     actionDescriptionDraft = ""
+    actionDescriptionRichDraft = ""
     selectedOwnerRoleId = form?.createdRoleId ?? ""
     selectedSystemId = form?.createdSystemId ?? ""
     isCreateActionModalOpen = true
@@ -146,6 +154,7 @@
   const setProcessDraftsFromData = () => {
     processNameDraft = data.process.name
     processDescriptionDraft = htmlToDraftText(data.process.descriptionHtml)
+    processDescriptionRichDraft = data.process.descriptionRich
     processTriggerDraft = data.process.trigger ?? ""
     processEndStateDraft = data.process.endState ?? ""
     selectedProcessOwnerRoleId = data.process.ownerRole?.id ?? ""
@@ -171,6 +180,7 @@
     }
     editingActionId = action.id
     actionDescriptionDraft = htmlToDraftText(action.descriptionHtml)
+    actionDescriptionRichDraft = action.descriptionRich
     selectedOwnerRoleId = action.ownerRole?.id ?? ""
     selectedSystemId = action.system?.id ?? ""
     isCreateActionModalOpen = true
@@ -186,6 +196,7 @@
     event.preventDefault()
     editingActionId = action.id
     actionDescriptionDraft = htmlToDraftText(action.descriptionHtml)
+    actionDescriptionRichDraft = action.descriptionRich
     selectedOwnerRoleId = action.ownerRole?.id ?? ""
     selectedSystemId = action.system?.id ?? ""
     isCreateActionModalOpen = true
@@ -203,6 +214,10 @@
       typeof form?.processDescriptionDraft === "string"
         ? form.processDescriptionDraft
         : htmlToDraftText(data.process.descriptionHtml)
+    processDescriptionRichDraft =
+      typeof form?.processDescriptionRichDraft === "string"
+        ? form.processDescriptionRichDraft
+        : data.process.descriptionRich
     processTriggerDraft =
       typeof form?.processTriggerDraft === "string"
         ? form.processTriggerDraft
@@ -218,6 +233,9 @@
 
     if (typeof form?.actionDescriptionDraft === "string") {
       actionDescriptionDraft = form.actionDescriptionDraft
+    }
+    if (typeof form?.actionDescriptionRichDraft === "string") {
+      actionDescriptionRichDraft = form.actionDescriptionRichDraft
     }
     if (typeof form?.selectedOwnerRoleId === "string") {
       selectedOwnerRoleId = form.selectedOwnerRoleId
@@ -320,13 +338,13 @@
             />
           </div>
           <div class="sc-form-row">
-            <textarea
-              class="sc-search sc-field sc-textarea"
-              name="description"
-              placeholder="Process description - an explanation about why you do the process"
-              bind:value={processDescriptionDraft}
-              rows="4"
-            ></textarea>
+            <RichTextEditor
+              fieldName="description_rich"
+              textFieldName="description"
+              htmlValue={data.process.descriptionHtml}
+              bind:textValue={processDescriptionDraft}
+              bind:richValue={processDescriptionRichDraft}
+            />
           </div>
           <div class="sc-form-row">
             <textarea
@@ -407,6 +425,7 @@
     bind:open={isCreateActionModalOpen}
     bind:editingActionId
     bind:actionDescriptionDraft
+    bind:actionDescriptionRichDraft
     bind:selectedOwnerRoleId
     bind:selectedSystemId
     allRoles={data.allRoles}
@@ -430,6 +449,7 @@
     description="Create a role without leaving action authoring."
     helperText="This role is immediately available for action ownership."
     {actionDescriptionDraft}
+    {actionDescriptionRichDraft}
   />
 
   <InlineCreateSystemModal
@@ -441,6 +461,7 @@
     description="Create a system without leaving action authoring."
     helperText="This system is immediately available for action linking."
     {actionDescriptionDraft}
+    {actionDescriptionRichDraft}
   />
 
   {#if actionToastMessage}

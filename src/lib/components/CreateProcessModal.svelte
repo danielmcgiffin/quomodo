@@ -1,5 +1,6 @@
 <script lang="ts">
   import ScModal from "$lib/components/ScModal.svelte"
+  import RichTextEditor from "$lib/components/RichTextEditor.svelte"
 
   let {
     open = $bindable(false),
@@ -16,6 +17,9 @@
     createdRoleId?: string
     onOpenRoleModal: () => void
   } = $props()
+
+  let processDescriptionDraft = $state("")
+  let processDescriptionRichDraft = $state("")
 </script>
 
 <ScModal
@@ -32,12 +36,12 @@
       <input class="sc-search sc-field" name="name" placeholder="Process name" required />
     </div>
     <div class="sc-form-row">
-      <textarea
-        class="sc-search sc-field sc-textarea"
-        name="description"
-        placeholder="Process description - an explanation about why you do the process"
-        rows="4"
-      ></textarea>
+      <RichTextEditor
+        fieldName="description_rich"
+        textFieldName="description"
+        bind:textValue={processDescriptionDraft}
+        bind:richValue={processDescriptionRichDraft}
+      />
     </div>
     <div class="sc-form-row">
       <textarea

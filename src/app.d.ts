@@ -6,6 +6,7 @@ import { Database } from "./DatabaseDefinitions"
 declare global {
   namespace App {
     interface Locals {
+      requestId?: string
       supabase: SupabaseClient<Database>
       supabaseServiceRole: SupabaseClient<Database>
       safeGetSession: () => Promise<{

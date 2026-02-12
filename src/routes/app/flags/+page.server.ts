@@ -1,4 +1,4 @@
-import { error as kitError, fail } from "@sveltejs/kit"
+import { fail } from "@sveltejs/kit"
 import {
   canCreateFlagType,
   canModerateFlags,
@@ -6,6 +6,7 @@ import {
   isScFlagType,
   type ScFlagType,
 } from "$lib/server/atlas"
+import { throwRuntime500 } from "$lib/server/runtime-errors"
 import {
   mapActionTargets,
   mapFlagsDashboard,
@@ -24,6 +25,13 @@ const isFlagTargetType = (value: string): value is FlagTargetType =>
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
+  const failLoad = (contextName: string, error: unknown) =>
+    throwRuntime500({
+      context: contextName,
+      error,
+      requestId: locals.requestId,
+      route: "/app/flags",
+    })
 
   const [
     processesResult,
@@ -62,28 +70,19 @@ export const load = async ({ locals }) => {
   ])
 
   if (processesResult.error) {
-    throw kitError(
-      500,
-      `Failed to load processes: ${processesResult.error.message}`,
-    )
+    failLoad("app.flags.load.processes", processesResult.error)
   }
   if (rolesResult.error) {
-    throw kitError(500, `Failed to load roles: ${rolesResult.error.message}`)
+    failLoad("app.flags.load.roles", rolesResult.error)
   }
   if (systemsResult.error) {
-    throw kitError(
-      500,
-      `Failed to load systems: ${systemsResult.error.message}`,
-    )
+    failLoad("app.flags.load.systems", systemsResult.error)
   }
   if (actionsResult.error) {
-    throw kitError(
-      500,
-      `Failed to load actions: ${actionsResult.error.message}`,
-    )
+    failLoad("app.flags.load.actions", actionsResult.error)
   }
   if (flagsResult.error) {
-    throw kitError(500, `Failed to load flags: ${flagsResult.error.message}`)
+    failLoad("app.flags.load.flags", flagsResult.error)
   }
 
   const processById = new Map(

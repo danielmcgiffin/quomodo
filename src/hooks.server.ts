@@ -4,10 +4,11 @@ import { env as privateEnv } from "$env/dynamic/private"
 import { env as publicEnv } from "$env/dynamic/public"
 import { createServerClient } from "@supabase/ssr"
 import { createClient, type AMREntry, type User } from "@supabase/supabase-js"
-import type { Handle } from "@sveltejs/kit"
+import type { Handle, HandleServerError } from "@sveltejs/kit"
 import { sequence } from "@sveltejs/kit/hooks"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "./DatabaseDefinitions"
+import { logRuntimeError } from "$lib/server/runtime-errors"
 
 const { PRIVATE_SUPABASE_SERVICE_ROLE } = privateEnv
 const { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } = publicEnv
@@ -30,6 +31,8 @@ const makeMissingClient = () =>
   ) as SupabaseClient<Database>
 
 export const supabase: Handle = async ({ event, resolve }) => {
+  event.locals.requestId = event.locals.requestId ?? crypto.randomUUID()
+
   if (
     !PUBLIC_SUPABASE_URL ||
     !PUBLIC_SUPABASE_ANON_KEY ||
@@ -177,3 +180,24 @@ const authGuard: Handle = async ({ event, resolve }) => {
 }
 
 export const handle: Handle = sequence(supabase, authGuard)
+
+export const handleError: HandleServerError = ({ error, event, status }) => {
+  const requestId = event.locals.requestId ?? crypto.randomUUID()
+  const path = event.url.pathname
+
+  logRuntimeError({
+    context: "hooks.handleError",
+    error,
+    requestId,
+    route: path,
+    details: {
+      status,
+      method: event.request.method,
+      userId: event.locals.user?.id ?? null,
+    },
+  })
+
+  return {
+    message: `Something went wrong. Please try again. (ref: ${requestId})`,
+  }
+}

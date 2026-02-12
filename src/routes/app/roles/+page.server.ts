@@ -1,10 +1,11 @@
-import { error as kitError, fail, redirect } from "@sveltejs/kit"
+import { fail, redirect } from "@sveltejs/kit"
 import {
   canManageDirectory,
   ensureOrgContext,
   makeInitials,
   richToHtml,
 } from "$lib/server/atlas"
+import { throwRuntime500 } from "$lib/server/runtime-errors"
 import {
   createFlagForEntity,
   createRoleRecord,
@@ -15,6 +16,13 @@ import { mapRoleDirectory, type RoleDirectoryRow } from "$lib/server/app/mappers
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
+  const failLoad = (contextName: string, error: unknown) =>
+    throwRuntime500({
+      context: contextName,
+      error,
+      requestId: locals.requestId,
+      route: "/app/roles",
+    })
   const [rolesResult, flagsResult] = await Promise.all([
     supabase
       .from("roles")
@@ -31,10 +39,10 @@ export const load = async ({ locals }) => {
   ])
 
   if (rolesResult.error) {
-    throw kitError(500, `Failed to load roles: ${rolesResult.error.message}`)
+    failLoad("app.roles.load.roles", rolesResult.error)
   }
   if (flagsResult.error) {
-    throw kitError(500, `Failed to load flags: ${flagsResult.error.message}`)
+    failLoad("app.roles.load.flags", flagsResult.error)
   }
 
   const roles = mapRoleDirectory({
@@ -92,6 +100,7 @@ export const actions = {
         createRoleError,
         roleNameDraft: draft.name,
         roleDescriptionDraft: draft.description,
+        roleDescriptionRichDraft: draft.descriptionRichRaw,
         rolePersonNameDraft: draft.personName,
         roleHoursPerWeekDraft: draft.hoursRaw,
       })
