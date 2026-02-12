@@ -1,14 +1,18 @@
 <script lang="ts">
+  import type { Snippet } from "svelte"
+
   let {
     open = $bindable(false),
     title,
     description = "",
     maxWidth = "680px",
+    children,
   }: {
     open?: boolean
     title: string
     description?: string
     maxWidth?: string
+    children?: Snippet
   } = $props()
 
   const close = () => {
@@ -74,7 +78,7 @@
         </button>
       </div>
       <div class="sc-modal-body">
-        <slot />
+        {@render children?.()}
       </div>
     </div>
   </div>

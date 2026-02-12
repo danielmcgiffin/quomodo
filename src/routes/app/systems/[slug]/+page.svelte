@@ -4,7 +4,29 @@
   import ProcessPortal from "$lib/components/ProcessPortal.svelte"
   import RichText from "$lib/components/RichText.svelte"
 
-  let { data } = $props()
+  type Props = {
+    data: {
+      system: {
+        slug: string
+        name: string
+        descriptionHtml: string
+        location: string
+        url: string
+      }
+      processesUsing: { id: string; slug: string; name: string }[]
+      actionsUsing: {
+        id: string
+        processId: string
+        sequence: number
+        descriptionHtml: string
+        ownerRole: { slug: string; name: string; initials: string } | null
+      }[]
+      rolesUsing: { slug: string; name: string; initials: string }[]
+      systemFlags: { id: string; flagType: string; message: string }[]
+    }
+  }
+
+  let { data }: Props = $props()
 </script>
 
 <div class="sc-page">
@@ -41,13 +63,7 @@
             <RichText html={action.descriptionHtml} />
             <div class="sc-byline" style="margin-top:6px;">
               {#if action.ownerRole}
-                <RolePortal
-                  role={action.ownerRole as {
-                    slug: string
-                    name: string
-                    initials: string
-                  }}
-                />
+                <RolePortal role={action.ownerRole} />
               {/if}
               <span>· in</span>
               <SystemPortal system={data.system} size="sm" />

@@ -1,13 +1,15 @@
 import { error as kitError, fail, redirect } from "@sveltejs/kit"
 import {
   canManageDirectory,
-  canCreateFlagType,
   ensureOrgContext,
-  ensureUniqueSlug,
   makeInitials,
-  plainToRich,
   richToHtml,
 } from "$lib/server/atlas"
+import {
+  createFlagForEntity,
+  createRoleRecord,
+  readRoleDraft,
+} from "$lib/server/app/actions/shared"
 
 type RoleRow = {
   id: string
@@ -17,7 +19,6 @@ type RoleRow = {
   person_name: string | null
   hours_per_week: number | null
 }
-
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
@@ -55,92 +56,43 @@ export const actions = {
     }
     const supabase = locals.supabase
     const formData = await request.formData()
+    const draft = readRoleDraft(formData)
 
-    const name = String(formData.get("name") ?? "").trim()
-    const description = String(formData.get("description") ?? "").trim()
-    const personName = String(formData.get("person_name") ?? "").trim()
-    const hoursRaw = String(formData.get("hours_per_week") ?? "").trim()
-
-    if (!name) {
-      return fail(400, { createRoleError: "Role name is required." })
-    }
-
-    const hours = hoursRaw ? Number(hoursRaw) : null
-    if (hoursRaw && Number.isNaN(hours)) {
-      return fail(400, { createRoleError: "Hours per week must be numeric." })
-    }
-
-    const slug = await ensureUniqueSlug(supabase, "roles", context.orgId, name)
-    const { data, error } = await supabase
-      .from("roles")
-      .insert({
-        org_id: context.orgId,
-        slug,
-        name,
-        description_rich: plainToRich(description),
-        person_name: personName || null,
-        hours_per_week: hours,
+    const failRole = (status: number, createRoleError: string) =>
+      fail(status, {
+        createRoleError,
+        roleNameDraft: draft.name,
+        roleDescriptionDraft: draft.description,
+        rolePersonNameDraft: draft.personName,
+        roleHoursPerWeekDraft: draft.hoursRaw,
       })
-      .select("slug")
-      .single()
+    const result = await createRoleRecord({
+      supabase,
+      orgId: context.orgId,
+      draft,
+    })
 
-    if (error) {
-      return fail(400, { createRoleError: error.message })
+    if (!result.ok) {
+      return failRole(result.status, result.message)
     }
 
-    redirect(303, `/app/roles/${data.slug}`)
+    redirect(303, `/app/roles/${result.slug}`)
   },
   createFlag: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
     const supabase = locals.supabase
     const formData = await request.formData()
-
-    const targetType = String(formData.get("target_type") ?? "").trim()
-    const targetId = String(formData.get("target_id") ?? "").trim()
-    const message = String(formData.get("message") ?? "").trim()
-    const flagType = String(formData.get("flag_type") ?? "comment").trim()
-    const targetPath = String(formData.get("target_path") ?? "").trim()
-
-    const failForTarget = (status: number, createFlagError: string) =>
-      fail(status, {
-        createFlagError,
-        createFlagTargetType: targetType,
-        createFlagTargetId: targetId,
-      })
-
-    if (targetType !== "role" || !targetId) {
-      return failForTarget(400, "Invalid flag target.")
-    }
-    if (!message) {
-      return failForTarget(400, "Flag message is required.")
-    }
-    if (!canCreateFlagType(context.membershipRole, flagType)) {
-      return failForTarget(403, "Members can only create comment flags.")
-    }
-
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .select("id")
-      .eq("org_id", context.orgId)
-      .eq("id", targetId)
-      .maybeSingle()
-
-    if (roleError || !role) {
-      return failForTarget(404, "Role not found.")
-    }
-
-    const { error } = await supabase.from("flags").insert({
-      org_id: context.orgId,
-      target_type: "role",
-      target_id: role.id,
-      target_path: targetPath || null,
-      flag_type: flagType,
-      message,
-      created_by: context.userId,
+    const result = await createFlagForEntity({
+      context,
+      supabase,
+      formData,
+      expectedTargetType: "role",
+      targetTable: "roles",
+      missingTargetMessage: "Role not found.",
     })
 
-    if (error) {
-      return failForTarget(400, error.message)
+    if (!result.ok) {
+      return fail(result.status, result.payload)
     }
 
     return { createFlagSuccess: true }

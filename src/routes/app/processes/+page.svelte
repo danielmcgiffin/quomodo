@@ -7,7 +7,43 @@
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
   import FlagSidebar from "$lib/components/FlagSidebar.svelte"
 
-  let { data, form } = $props()
+  type RoleBadge = { id: string; slug: string; name: string; initials: string }
+  type SystemBadge = { id: string; slug: string; name: string }
+  type ProcessCard = {
+    id: string
+    slug: string
+    name: string
+    descriptionHtml: string
+    roleBadges: RoleBadge[]
+    systemBadges: SystemBadge[]
+  }
+  type OpenFlag = {
+    id: string
+    flagType: string
+    createdAt: string
+    message: string
+    targetPath: string | null
+    process: { slug: string; name: string }
+  }
+  type Props = {
+    data: {
+      org: { membershipRole: "owner" | "admin" | "editor" | "member" }
+      roles: { id: string; name: string }[]
+      processes: ProcessCard[]
+      openFlags: OpenFlag[]
+    }
+    form?: {
+      createProcessError?: string
+      createRoleError?: string
+      createRoleSuccess?: boolean
+      createdRoleId?: string
+      createFlagError?: string
+      createFlagTargetType?: string
+      createFlagTargetId?: string
+    }
+  }
+
+  let { data, form }: Props = $props()
   let isCreateProcessModalOpen = $state(false)
   let isCreateRoleModalOpen = $state(false)
 
@@ -216,7 +252,7 @@
           createdAt: flag.createdAt,
           message: flag.message,
           context: flag.process.name,
-          targetPath: flag.targetPath,
+          targetPath: flag.targetPath ?? undefined,
         }))}
         highlightedFlagId={null}
       />

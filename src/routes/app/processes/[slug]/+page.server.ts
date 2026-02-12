@@ -4,11 +4,18 @@ import {
   canCreateFlagType,
   canEditAtlas,
   ensureOrgContext,
-  ensureUniqueSlug,
-  makeInitials,
+  isScFlagType,
   plainToRich,
   richToHtml,
+  type ScFlagType,
 } from "$lib/server/atlas"
+import {
+  createRoleRecord,
+  createSystemRecord,
+  readRoleDraft,
+  readSystemDraft,
+} from "$lib/server/app/actions/shared"
+import { mapRolePortals, mapSystemPortals } from "$lib/server/app/mappers/portals"
 
 type ProcessRow = {
   id: string
@@ -35,6 +42,7 @@ type FlagRow = {
   message: string
   created_at: string
 }
+type FlagTargetType = "process" | "action"
 
 export const load = async ({ params, locals, url }) => {
   const context = await ensureOrgContext(locals)
@@ -106,17 +114,8 @@ export const load = async ({ params, locals, url }) => {
     throw kitError(500, `Failed to load flags: ${flagsResult.error.message}`)
   }
 
-  const roles = ((rolesResult.data ?? []) as RoleRow[]).map((row) => ({
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-    initials: makeInitials(row.name),
-  }))
-  const systems = ((systemsResult.data ?? []) as SystemRow[]).map((row) => ({
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-  }))
+  const roles = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
+  const systems = mapSystemPortals((systemsResult.data ?? []) as SystemRow[])
   const roleById = new Map(roles.map((role: { id: string }) => [role.id, role]))
   const systemById = new Map(
     systems.map((system: { id: string }) => [system.id, system]),
@@ -131,18 +130,6 @@ export const load = async ({ params, locals, url }) => {
     system: systemById.get(row.system_id),
   }))
 
-  const linkedRoleIds = new Set<string>()
-  if (processRow.owner_role_id) {
-    linkedRoleIds.add(processRow.owner_role_id)
-  }
-  for (const action of (actionsResult.data ?? []) as ActionRow[]) {
-    linkedRoleIds.add(action.owner_role_id)
-  }
-  const linkedSystemIds = new Set<string>()
-  for (const action of (actionsResult.data ?? []) as ActionRow[]) {
-    linkedSystemIds.add(action.system_id)
-  }
-
   return {
     process: {
       id: processRow.id,
@@ -156,10 +143,6 @@ export const load = async ({ params, locals, url }) => {
         : null,
     },
     actions,
-    roles: roles.filter((role: { id: string }) => linkedRoleIds.has(role.id)),
-    systems: systems.filter((system: { id: string }) =>
-      linkedSystemIds.has(system.id),
-    ),
     allRoles: roles,
     allSystems: systems,
     processFlags: ((flagsResult.data ?? []) as FlagRow[]).map((flag) => ({
@@ -278,54 +261,26 @@ export const actions = {
     }
     const supabase = locals.supabase
     const formData = await request.formData()
-
-    const name = String(formData.get("name") ?? "").trim()
-    const description = String(formData.get("description") ?? "").trim()
+    const roleDraft = readRoleDraft(formData)
     const actionDescriptionDraft = String(
       formData.get("action_description_draft") ?? "",
     )
-    const personName = String(formData.get("person_name") ?? "").trim()
-    const hoursRaw = String(formData.get("hours_per_week") ?? "").trim()
+    const result = await createRoleRecord({
+      supabase,
+      orgId: context.orgId,
+      draft: roleDraft,
+    })
 
-    if (!name) {
-      return fail(400, {
-        createRoleError: "Role name is required.",
-        actionDescriptionDraft,
-      })
-    }
-
-    const hours = hoursRaw ? Number(hoursRaw) : null
-    if (hoursRaw && Number.isNaN(hours)) {
-      return fail(400, {
-        createRoleError: "Hours per week must be numeric.",
-        actionDescriptionDraft,
-      })
-    }
-
-    const slug = await ensureUniqueSlug(supabase, "roles", context.orgId, name)
-    const { data, error } = await supabase
-      .from("roles")
-      .insert({
-        org_id: context.orgId,
-        slug,
-        name,
-        description_rich: plainToRich(description),
-        person_name: personName || null,
-        hours_per_week: hours,
-      })
-      .select("id")
-      .single()
-
-    if (error) {
-      return fail(400, {
-        createRoleError: error.message,
+    if (!result.ok) {
+      return fail(result.status, {
+        createRoleError: result.message,
         actionDescriptionDraft,
       })
     }
 
     return {
       createRoleSuccess: true,
-      createdRoleId: data.id,
+      createdRoleId: result.id,
       actionDescriptionDraft,
     }
   },
@@ -337,55 +292,26 @@ export const actions = {
     }
     const supabase = locals.supabase
     const formData = await request.formData()
-
-    const name = String(formData.get("name") ?? "").trim()
-    const description = String(formData.get("description") ?? "").trim()
+    const systemDraft = readSystemDraft(formData)
     const actionDescriptionDraft = String(
       formData.get("action_description_draft") ?? "",
     )
-    const location = String(formData.get("location") ?? "").trim()
-    const url = String(formData.get("url") ?? "").trim()
-    const ownerRoleIdRaw = String(formData.get("owner_role_id") ?? "").trim()
-
-    if (!name) {
-      return fail(400, {
-        createSystemError: "System name is required.",
-        actionDescriptionDraft,
-      })
-    }
-
-    const slug = await ensureUniqueSlug(
+    const result = await createSystemRecord({
       supabase,
-      "systems",
-      context.orgId,
-      name,
-    )
-    const ownerRoleId = ownerRoleIdRaw || null
+      orgId: context.orgId,
+      draft: systemDraft,
+    })
 
-    const { data, error } = await supabase
-      .from("systems")
-      .insert({
-        org_id: context.orgId,
-        slug,
-        name,
-        description_rich: plainToRich(description),
-        location: location || null,
-        url: url || null,
-        owner_role_id: ownerRoleId,
-      })
-      .select("id")
-      .single()
-
-    if (error) {
-      return fail(400, {
-        createSystemError: error.message,
+    if (!result.ok) {
+      return fail(result.status, {
+        createSystemError: result.message,
         actionDescriptionDraft,
       })
     }
 
     return {
       createSystemSuccess: true,
-      createdSystemId: data.id,
+      createdSystemId: result.id,
       actionDescriptionDraft,
     }
   },
@@ -395,25 +321,32 @@ export const actions = {
     const supabase = locals.supabase
     const formData = await request.formData()
 
-    const targetType = String(formData.get("target_type") ?? "").trim()
+    const targetTypeRaw = String(formData.get("target_type") ?? "").trim()
     const targetId = String(formData.get("target_id") ?? "").trim()
     const message = String(formData.get("message") ?? "").trim()
-    const flagType = String(formData.get("flag_type") ?? "comment").trim()
+    const flagTypeRaw = String(formData.get("flag_type") ?? "comment").trim()
     const targetPath = String(formData.get("target_path") ?? "").trim()
 
     const failForTarget = (status: number, createFlagError: string) =>
       fail(status, {
         createFlagError,
-        createFlagTargetType: targetType,
+        createFlagTargetType: targetTypeRaw,
         createFlagTargetId: targetId,
       })
 
-    if (
-      (targetType !== "process" && targetType !== "action") ||
-      targetId.length === 0
-    ) {
+    if (!targetId) {
       return failForTarget(400, "Invalid flag target.")
     }
+    if (targetTypeRaw !== "process" && targetTypeRaw !== "action") {
+      return failForTarget(400, "Invalid flag target.")
+    }
+    if (!isScFlagType(flagTypeRaw)) {
+      return failForTarget(400, "Invalid flag type.")
+    }
+
+    const targetType: FlagTargetType = targetTypeRaw
+    const flagType: ScFlagType = flagTypeRaw
+
     if (!message) {
       return failForTarget(400, "Flag message is required.")
     }

@@ -268,7 +268,7 @@ LP-008 route isolation inventory:
 
 ### WS3: Data Access Layer and Types
 
-- [ ] `LP-020` Generate/update typed DB interfaces from Supabase schema.
+- [x] `LP-020` Generate/update typed DB interfaces from Supabase schema.
       Acceptance:
 - App code imports typed table definitions for triad entities.
 
@@ -282,7 +282,7 @@ LP-008 route isolation inventory:
 - Reusable mapping functions power all list/detail pages.
 - No duplicated mapping logic across route loaders.
 
-- [ ] `LP-023` Introduce repository tests for mapping and authorization assumptions.
+- [x] `LP-023` Introduce repository tests for mapping and authorization assumptions.
       Acceptance:
 - Unit tests cover row-to-view mapping and visibility rules for at least one positive/negative role case.
 

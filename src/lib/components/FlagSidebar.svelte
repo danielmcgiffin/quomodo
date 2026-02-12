@@ -1,5 +1,5 @@
 <script lang="ts">
-  export type FlagSidebarItem = {
+  type FlagSidebarItem = {
     id: string
     href: string
     flagType?: string

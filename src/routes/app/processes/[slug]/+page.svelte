@@ -2,7 +2,6 @@
   import RolePortal from "$lib/components/RolePortal.svelte"
   import SystemPortal from "$lib/components/SystemPortal.svelte"
   import ProcessPortal from "$lib/components/ProcessPortal.svelte"
-  import ProcessDetailSidebar from "$lib/components/ProcessDetailSidebar.svelte"
   import RichText from "$lib/components/RichText.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
   import InlineCreateRoleModal from "$lib/components/InlineCreateRoleModal.svelte"
@@ -10,13 +9,63 @@
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
   import FlagSidebar from "$lib/components/FlagSidebar.svelte"
 
-  let { data, form } = $props()
-
+  type SidebarRole = {
+    id: string
+    slug: string
+    name: string
+    initials: string
+  }
+  type SidebarSystem = {
+    id: string
+    slug: string
+    name: string
+  }
   type ActionEntry = {
     id: string
     sequence: number
     descriptionHtml: string
+    ownerRole: SidebarRole | null
+    system: SidebarSystem | null
   }
+  type ProcessForm = {
+    createActionError?: string
+    createRoleError?: string
+    createRoleSuccess?: boolean
+    createSystemError?: string
+    createSystemSuccess?: boolean
+    createdRoleId?: string
+    createdSystemId?: string
+    actionDescriptionDraft?: string
+    selectedOwnerRoleId?: string
+    selectedSystemId?: string
+    editingActionId?: string
+    createFlagError?: string
+    createFlagTargetType?: string
+    createFlagTargetId?: string
+  }
+  type ProcessData = {
+    process: {
+      id: string
+      slug: string
+      name: string
+      descriptionHtml: string
+      trigger: string
+      endState: string
+    }
+    actions: ActionEntry[]
+    allRoles: SidebarRole[]
+    allSystems: SidebarSystem[]
+    processFlags: {
+      id: string
+      flagType: string
+      createdAt: string
+      message: string
+    }[]
+    viewerRole: "owner" | "admin" | "editor" | "member"
+    highlightedFlagId: string | null
+  }
+
+  let { data, form }: { data: ProcessData; form?: ProcessForm } = $props()
 
   const htmlToDraftText = (html: string): string =>
     html
@@ -39,78 +88,13 @@
     return result
   }
 
-  const normalizeMentionHandle = (value: string): string =>
-    value
-      .toLowerCase()
-      .trim()
-      .replace(/^@+/, "")
-      .replace(/[^a-z0-9_-]+/g, "")
-
-  const mentionPattern = /@([a-z0-9][a-z0-9_-]*)/gi
-
-  const extractMentionHandles = (html: string): string[] => {
-    const text = html.replace(/<[^>]*>/g, " ")
-    const mentions = new Set<string>()
-    for (const match of text.matchAll(mentionPattern)) {
-      const mention = normalizeMentionHandle(match[1] ?? "")
-      if (mention) {
-        mentions.add(mention)
-      }
-    }
-    return Array.from(mentions)
-  }
-
-  const roleMatchesHandle = (role: SidebarRole, handle: string): boolean => {
-    const normalized = normalizeMentionHandle(handle)
-    if (!normalized) {
-      return false
-    }
-    const roleKeys = [
-      role.slug,
-      role.name,
-      role.name.replace(/\s+/g, "-"),
-      role.name.replace(/\s+/g, "_"),
-    ].map((value) => normalizeMentionHandle(value))
-    return roleKeys.includes(normalized)
-  }
-
-  const actions = $derived.by(() => data.actions as unknown as ActionEntry[])
-  const allRoles = $derived.by(() => data.allRoles as unknown as SidebarRole[])
+  const actions = $derived.by(() => (data.actions ?? []) as ActionEntry[])
 
   const actionRoles = $derived.by(() =>
     uniqueById(actions.map((action: ActionEntry) => action.ownerRole ?? null)),
   )
   const actionSystems = $derived.by(() =>
     uniqueById(actions.map((action: ActionEntry) => action.system ?? null)),
-  )
-
-  const mentionHandles = $derived.by(() =>
-    Array.from(
-      new Set(
-        actions.flatMap((action: ActionEntry) =>
-          extractMentionHandles(action.descriptionHtml),
-        ),
-      ),
-    ),
-  )
-
-  const relatedRoles = $derived.by(() =>
-    uniqueById(
-      mentionHandles
-        .map((handle) =>
-          allRoles.find((role: SidebarRole) => roleMatchesHandle(role, handle)),
-        )
-        .filter((role): role is SidebarRole => Boolean(role)),
-    ),
-  )
-
-  const relatedHandlesWithoutRole = $derived.by(() =>
-    mentionHandles.filter(
-      (handle) =>
-        !relatedRoles.some((role: SidebarRole) =>
-          roleMatchesHandle(role, handle),
-        ),
-    ),
   )
 
   let isCreateActionModalOpen = $state(false)

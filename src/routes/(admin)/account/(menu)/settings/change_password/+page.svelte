@@ -12,14 +12,22 @@
   // True if definitely has a password, but can be false if they
   // logged in with oAuth or email link
 
-  // @ts-expect-error: we ignore because Supabase does not maintain an AMR typedef
   const hasPassword = $derived(
-    data.user?.amr?.find((x) => x.method === "password") ? true : false,
+    data.amr?.find(
+      (x: string | { method?: string }) =>
+        typeof x !== "string" && x.method === "password",
+    )
+      ? true
+      : false,
   )
 
-  // @ts-expect-error: we ignore because Supabase does not maintain an AMR typedef
   const usingOAuth = $derived(
-    data.user?.amr?.find((x) => x.method === "oauth") ? true : false,
+    data.amr?.find(
+      (x: string | { method?: string }) =>
+        typeof x !== "string" && x.method === "oauth",
+    )
+      ? true
+      : false,
   )
 
   let sendBtnDisabled = $state(false)

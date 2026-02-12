@@ -31,6 +31,8 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [x] `/app` routes now load from Supabase (no static atlas dependency)
 - [x] Create flows exist in app for roles, systems, processes, actions, and flags
 - [x] Dev seed command creates sample org + triad data without manual SQL
+- [x] Supabase app typings updated to triad schema (`LP-020`)
+- [x] App mapper/action unit tests cover mapping + role-based auth assumptions (`LP-023`)
 - [ ] CRUD for roles, systems, processes, actions, flags
 - [x] Nav counts from live data
 - [x] Portals wired to live IDs

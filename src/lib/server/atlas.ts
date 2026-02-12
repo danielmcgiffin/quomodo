@@ -1,6 +1,14 @@
 import { error as kitError, redirect } from "@sveltejs/kit"
 
 export type MembershipRole = "owner" | "admin" | "editor" | "member"
+export const SC_FLAG_TYPES = [
+  "comment",
+  "question",
+  "needs_review",
+  "stale",
+  "incorrect",
+] as const
+export type ScFlagType = (typeof SC_FLAG_TYPES)[number]
 
 export type OrgContext = {
   orgId: string
@@ -26,6 +34,9 @@ export const canCreateFlagType = (
   role: MembershipRole,
   flagType: string,
 ): boolean => role !== "member" || flagType === "comment"
+
+export const isScFlagType = (value: string): value is ScFlagType =>
+  SC_FLAG_TYPES.includes(value as ScFlagType)
 
 export const assertRole = (
   context: OrgContext,

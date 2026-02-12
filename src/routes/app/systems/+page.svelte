@@ -6,9 +6,53 @@
   import InlineCreateRoleModal from "$lib/components/InlineCreateRoleModal.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
 
-  let { data, form } = $props()
+  type Props = {
+    data: {
+      org: { membershipRole: "owner" | "admin" | "editor" | "member" }
+      roles: { id: string; name: string }[]
+      systems: {
+        id: string
+        slug: string
+        name: string
+        descriptionHtml: string
+        location: string
+        url: string
+        ownerRole: { id: string; slug: string; name: string; initials: string } | null
+      }[]
+    }
+    form?: {
+      createSystemError?: string
+      createRoleError?: string
+      createRoleSuccess?: boolean
+      createdRoleId?: string
+      createFlagError?: string
+      createFlagTargetType?: string
+      createFlagTargetId?: string
+      systemNameDraft?: string
+      systemDescriptionDraft?: string
+      systemLocationDraft?: string
+      systemUrlDraft?: string
+      selectedOwnerRoleIdDraft?: string
+    }
+  }
+
+  let { data, form }: Props = $props()
   let isCreateSystemModalOpen = $state(false)
   let isCreateRoleModalOpen = $state(false)
+  let systemNameDraft = $state("")
+  let systemLocationDraft = $state("")
+  let systemUrlDraft = $state("")
+  let systemDescriptionDraft = $state("")
+  let selectedOwnerRoleId = $state("")
+
+  const openCreateSystemModal = () => {
+    systemNameDraft = ""
+    systemLocationDraft = ""
+    systemUrlDraft = ""
+    systemDescriptionDraft = ""
+    selectedOwnerRoleId = form?.createdRoleId ?? ""
+    isCreateSystemModalOpen = true
+  }
 
   $effect(() => {
     if (
@@ -20,6 +64,24 @@
     }
     if (form?.createRoleError) {
       isCreateRoleModalOpen = true
+    }
+    if (typeof form?.systemNameDraft === "string") {
+      systemNameDraft = form.systemNameDraft
+    }
+    if (typeof form?.systemDescriptionDraft === "string") {
+      systemDescriptionDraft = form.systemDescriptionDraft
+    }
+    if (typeof form?.systemLocationDraft === "string") {
+      systemLocationDraft = form.systemLocationDraft
+    }
+    if (typeof form?.systemUrlDraft === "string") {
+      systemUrlDraft = form.systemUrlDraft
+    }
+    if (typeof form?.selectedOwnerRoleIdDraft === "string") {
+      selectedOwnerRoleId = form.selectedOwnerRoleIdDraft
+    }
+    if (form?.createdRoleId) {
+      selectedOwnerRoleId = form.createdRoleId
     }
   })
 </script>
@@ -37,9 +99,7 @@
       <button
         class="sc-btn"
         type="button"
-        onclick={() => {
-          isCreateSystemModalOpen = true
-        }}
+        onclick={openCreateSystemModal}
       >
         Record a System
       </button>
@@ -61,17 +121,28 @@
           class="sc-search sc-field"
           name="name"
           placeholder="System name"
+          bind:value={systemNameDraft}
           required
         />
         <input
           class="sc-search sc-field"
           name="location"
           placeholder="Location (URL or app section)"
+          bind:value={systemLocationDraft}
         />
       </div>
       <div class="sc-form-row">
-        <input class="sc-search sc-field" name="url" placeholder="Public URL" />
-        <select class="sc-search sc-field" name="owner_role_id">
+        <input
+          class="sc-search sc-field"
+          name="url"
+          placeholder="Public URL"
+          bind:value={systemUrlDraft}
+        />
+        <select
+          class="sc-search sc-field"
+          name="owner_role_id"
+          bind:value={selectedOwnerRoleId}
+        >
           <option value="">Owner role (optional)</option>
           {#each data.roles as role}
             <option value={role.id} selected={form?.createdRoleId === role.id}
@@ -94,6 +165,7 @@
           class="sc-search sc-field sc-textarea"
           name="description"
           placeholder="System description - what this system is used for"
+          bind:value={systemDescriptionDraft}
           rows="4"
         ></textarea>
       </div>
@@ -132,26 +204,25 @@
           errorTargetType={form?.createFlagTargetType}
           errorTargetId={form?.createFlagTargetId}
         />
-        <div class="sc-byline">
-          <SystemPortal {system} size="lg" />
-          {#if system.ownerRole}
-            <span>Owner</span>
-            <RolePortal
-              role={system.ownerRole as {
-                slug: string
-                name: string
-                initials: string
-              }}
-              size="sm"
-            />
-          {/if}
-          {#if system.location}
-            <span class="sc-pill">{system.location}</span>
-          {/if}
-        </div>
-        <div style="margin-top:10px; font-size: var(--sc-font-md);">
-          <RichText html={system.descriptionHtml} />
-        </div>
+        <a
+          href={`/app/systems/${system.slug}`}
+          class="block"
+          aria-label={`Open system ${system.name}`}
+        >
+          <div class="sc-byline">
+            <SystemPortal {system} size="lg" />
+            {#if system.ownerRole}
+              <span>Owner</span>
+              <RolePortal role={system.ownerRole} size="sm" />
+            {/if}
+            {#if system.location}
+              <span class="sc-pill">{system.location}</span>
+            {/if}
+          </div>
+          <div style="margin-top:10px; font-size: var(--sc-font-md);">
+            <RichText html={system.descriptionHtml} />
+          </div>
+        </a>
       </div>
     {/each}
   </div>

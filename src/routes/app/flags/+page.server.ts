@@ -3,8 +3,10 @@ import {
   canCreateFlagType,
   canModerateFlags,
   ensureOrgContext,
-  makeInitials,
+  isScFlagType,
+  type ScFlagType,
 } from "$lib/server/atlas"
+import { mapRolePortals } from "$lib/server/app/mappers/portals"
 
 type ProcessRow = { id: string; slug: string; name: string }
 type RoleRow = { id: string; slug: string; name: string }
@@ -21,6 +23,10 @@ type FlagRow = {
   status: string
 }
 type ActionTarget = { id: string; label: string }
+type FlagTargetType = "process" | "role" | "system" | "action"
+
+const isFlagTargetType = (value: string): value is FlagTargetType =>
+  ["process", "role", "system", "action"].includes(value)
 
 const toTargetLabel = (type: string, name: string) => `${type}: ${name}`
 
@@ -93,10 +99,7 @@ export const load = async ({ locals }) => {
     ((processesResult.data ?? []) as ProcessRow[]).map((x) => [x.id, x]),
   )
   const roleById = new Map(
-    ((rolesResult.data ?? []) as RoleRow[]).map((x) => [
-      x.id,
-      { ...x, initials: makeInitials(x.name) },
-    ]),
+    mapRolePortals((rolesResult.data ?? []) as RoleRow[]).map((x) => [x.id, x]),
   )
   const systemById = new Map(
     ((systemsResult.data ?? []) as SystemRow[]).map((x) => [x.id, x]),
@@ -172,14 +175,24 @@ export const actions = {
     const formData = await request.formData()
 
     const targetToken = String(formData.get("target") ?? "").trim()
-    const [targetType, targetId] = targetToken.split(":")
-    const flagType = String(formData.get("flag_type") ?? "comment").trim()
+    const [targetTypeRaw, targetId] = targetToken.split(":")
+    const flagTypeRaw = String(formData.get("flag_type") ?? "comment").trim()
     const message = String(formData.get("message") ?? "").trim()
     const targetPathRaw = String(formData.get("target_path") ?? "").trim()
 
-    if (!targetType || !targetId) {
+    if (!targetTypeRaw || !targetId) {
       return fail(400, { createFlagError: "Target is required." })
     }
+    if (!isFlagTargetType(targetTypeRaw)) {
+      return fail(400, { createFlagError: "Target type is invalid." })
+    }
+    if (!isScFlagType(flagTypeRaw)) {
+      return fail(400, { createFlagError: "Flag type is invalid." })
+    }
+
+    const targetType: FlagTargetType = targetTypeRaw
+    const flagType: ScFlagType = flagTypeRaw
+
     if (!message) {
       return fail(400, { createFlagError: "Message is required." })
     }

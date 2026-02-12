@@ -3,7 +3,57 @@
   import ProcessPortal from "$lib/components/ProcessPortal.svelte"
   import SystemPortal from "$lib/components/SystemPortal.svelte"
 
-  let { data, form } = $props()
+  type FlagEntry =
+    | {
+        id: string
+        targetType: "process"
+        targetPath: string | null
+        flagType: string
+        message: string
+        createdAt: string
+        status: string
+        target: { slug: string; name: string } | null
+      }
+    | {
+        id: string
+        targetType: "system"
+        targetPath: string | null
+        flagType: string
+        message: string
+        createdAt: string
+        status: string
+        target: { slug: string; name: string } | null
+      }
+    | {
+        id: string
+        targetType: "role"
+        targetPath: string | null
+        flagType: string
+        message: string
+        createdAt: string
+        status: string
+        target: { slug: string; name: string; initials: string } | null
+      }
+    | {
+        id: string
+        targetType: "action"
+        targetPath: string | null
+        flagType: string
+        message: string
+        createdAt: string
+        status: string
+        target: { label: string } | null
+      }
+  type Props = {
+    data: {
+      viewerRole: "owner" | "admin" | "editor" | "member"
+      targetOptions: { value: string; label: string }[]
+      flags: FlagEntry[]
+    }
+    form?: { createFlagError?: string }
+  }
+
+  let { data, form }: Props = $props()
 
   const canModerate = $derived.by(() =>
     ["owner", "admin", "editor"].includes(data.viewerRole),
@@ -81,13 +131,7 @@
               system={flag.target as { slug: string; name: string }}
             />
           {:else if flag.targetType === "role" && flag.target}
-            <RolePortal
-              role={flag.target as {
-                slug: string
-                name: string
-                initials: string
-              }}
-            />
+            <RolePortal role={flag.target} />
           {:else if flag.targetType === "action" && flag.target}
             <span>{(flag.target as { label: string }).label}</span>
           {/if}

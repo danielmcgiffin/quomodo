@@ -1,14 +1,23 @@
 import { error as kitError, fail, redirect } from "@sveltejs/kit"
 import {
   canManageDirectory,
-  canCreateFlagType,
   canEditAtlas,
   ensureOrgContext,
   ensureUniqueSlug,
-  makeInitials,
   plainToRich,
   richToHtml,
 } from "$lib/server/atlas"
+import {
+  createFlagForEntity,
+  createRoleRecord,
+  readRoleDraft,
+} from "$lib/server/app/actions/shared"
+import {
+  mapRolePortals,
+  mapSystemPortals,
+  type RolePortalModel,
+  type SystemPortalModel,
+} from "$lib/server/app/mappers/portals"
 
 type RoleRow = { id: string; slug: string; name: string }
 type SystemRow = { id: string; slug: string; name: string }
@@ -34,20 +43,6 @@ type FlagRow = {
   message: string
   created_at: string
 }
-
-const toRole = (row: RoleRow) => ({
-  id: row.id,
-  slug: row.slug,
-  name: row.name,
-  initials: makeInitials(row.name),
-})
-
-const toSystem = (row: SystemRow) => ({
-  id: row.id,
-  slug: row.slug,
-  name: row.name,
-})
-
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
@@ -115,14 +110,14 @@ export const load = async ({ locals }) => {
     throw kitError(500, `Failed to load flags: ${flagsResult.error.message}`)
   }
 
-  const roles = ((rolesResult.data ?? []) as RoleRow[]).map(toRole)
-  const systems = ((systemsResult.data ?? []) as SystemRow[]).map(toSystem)
+  const roles = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
+  const systems = mapSystemPortals((systemsResult.data ?? []) as SystemRow[])
   const processRows = (processesResult.data ?? []) as ProcessRow[]
   const roleById = new Map(
-    roles.map((role: ReturnType<typeof toRole>) => [role.id, role]),
+    roles.map((role: RolePortalModel) => [role.id, role]),
   )
   const systemById = new Map(
-    systems.map((system: ReturnType<typeof toSystem>) => [system.id, system]),
+    systems.map((system: SystemPortalModel) => [system.id, system]),
   )
   const processById = new Map(
     processRows.map((row) => [
@@ -293,92 +288,34 @@ export const actions = {
     }
     const supabase = locals.supabase
     const formData = await request.formData()
+    const draft = readRoleDraft(formData)
+    const result = await createRoleRecord({
+      supabase,
+      orgId: context.orgId,
+      draft,
+    })
 
-    const name = String(formData.get("name") ?? "").trim()
-    const description = String(formData.get("description") ?? "").trim()
-    const personName = String(formData.get("person_name") ?? "").trim()
-    const hoursRaw = String(formData.get("hours_per_week") ?? "").trim()
-
-    if (!name) {
-      return fail(400, { createRoleError: "Role name is required." })
+    if (!result.ok) {
+      return fail(result.status, { createRoleError: result.message })
     }
 
-    const hours = hoursRaw ? Number(hoursRaw) : null
-    if (hoursRaw && Number.isNaN(hours)) {
-      return fail(400, { createRoleError: "Hours per week must be numeric." })
-    }
-
-    const slug = await ensureUniqueSlug(supabase, "roles", context.orgId, name)
-    const { data, error } = await supabase
-      .from("roles")
-      .insert({
-        org_id: context.orgId,
-        slug,
-        name,
-        description_rich: plainToRich(description),
-        person_name: personName || null,
-        hours_per_week: hours,
-      })
-      .select("id")
-      .single()
-
-    if (error) {
-      return fail(400, { createRoleError: error.message })
-    }
-
-    return { createRoleSuccess: true, createdRoleId: data.id }
+    return { createRoleSuccess: true, createdRoleId: result.id }
   },
   createFlag: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
     const supabase = locals.supabase
     const formData = await request.formData()
-
-    const targetType = String(formData.get("target_type") ?? "").trim()
-    const targetId = String(formData.get("target_id") ?? "").trim()
-    const message = String(formData.get("message") ?? "").trim()
-    const flagType = String(formData.get("flag_type") ?? "comment").trim()
-    const targetPath = String(formData.get("target_path") ?? "").trim()
-
-    const failForTarget = (status: number, createFlagError: string) =>
-      fail(status, {
-        createFlagError,
-        createFlagTargetType: targetType,
-        createFlagTargetId: targetId,
-      })
-
-    if (targetType !== "process" || !targetId) {
-      return failForTarget(400, "Invalid flag target.")
-    }
-    if (!message) {
-      return failForTarget(400, "Flag message is required.")
-    }
-    if (!canCreateFlagType(context.membershipRole, flagType)) {
-      return failForTarget(403, "Members can only create comment flags.")
-    }
-
-    const { data: process, error: processError } = await supabase
-      .from("processes")
-      .select("id")
-      .eq("org_id", context.orgId)
-      .eq("id", targetId)
-      .maybeSingle()
-
-    if (processError || !process) {
-      return failForTarget(404, "Process not found.")
-    }
-
-    const { error } = await supabase.from("flags").insert({
-      org_id: context.orgId,
-      target_type: "process",
-      target_id: process.id,
-      target_path: targetPath || null,
-      flag_type: flagType,
-      message,
-      created_by: context.userId,
+    const result = await createFlagForEntity({
+      context,
+      supabase,
+      formData,
+      expectedTargetType: "process",
+      targetTable: "processes",
+      missingTargetMessage: "Process not found.",
     })
 
-    if (error) {
-      return failForTarget(400, error.message)
+    if (!result.ok) {
+      return fail(result.status, result.payload)
     }
 
     return { createFlagSuccess: true }

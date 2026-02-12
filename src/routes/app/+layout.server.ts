@@ -2,7 +2,7 @@ import { ensureOrgContext, makeInitials } from "$lib/server/atlas"
 
 const countTable = async (
   supabase: App.Locals["supabase"],
-  table: string,
+  table: "processes" | "roles" | "systems" | "flags",
   orgId: string,
 ) => {
   const { count, error } = await supabase

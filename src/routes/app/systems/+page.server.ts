@@ -1,13 +1,17 @@
 import { error as kitError, fail, redirect } from "@sveltejs/kit"
 import {
   canManageDirectory,
-  canCreateFlagType,
   ensureOrgContext,
-  ensureUniqueSlug,
-  makeInitials,
-  plainToRich,
   richToHtml,
 } from "$lib/server/atlas"
+import {
+  createFlagForEntity,
+  createRoleRecord,
+  createSystemRecord,
+  readRoleDraft,
+  readSystemDraft,
+} from "$lib/server/app/actions/shared"
+import { mapRolePortals } from "$lib/server/app/mappers/portals"
 
 type RoleRow = { id: string; slug: string; name: string }
 type SystemRow = {
@@ -19,7 +23,6 @@ type SystemRow = {
   url: string | null
   owner_role_id: string | null
 }
-
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
@@ -47,12 +50,7 @@ export const load = async ({ locals }) => {
     )
   }
 
-  const roles = ((rolesResult.data ?? []) as RoleRow[]).map((row) => ({
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-    initials: makeInitials(row.name),
-  }))
+  const roles = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
   const roleById = new Map(roles.map((role: { id: string }) => [role.id, role]))
 
   const systems = ((systemsResult.data ?? []) as SystemRow[]).map((row) => ({
@@ -82,44 +80,28 @@ export const actions = {
     }
     const supabase = locals.supabase
     const formData = await request.formData()
+    const draft = readSystemDraft(formData)
 
-    const name = String(formData.get("name") ?? "").trim()
-    const description = String(formData.get("description") ?? "").trim()
-    const location = String(formData.get("location") ?? "").trim()
-    const url = String(formData.get("url") ?? "").trim()
-    const ownerRoleIdRaw = String(formData.get("owner_role_id") ?? "").trim()
-
-    if (!name) {
-      return fail(400, { createSystemError: "System name is required." })
-    }
-
-    const slug = await ensureUniqueSlug(
-      supabase,
-      "systems",
-      context.orgId,
-      name,
-    )
-    const ownerRoleId = ownerRoleIdRaw || null
-
-    const { data, error } = await supabase
-      .from("systems")
-      .insert({
-        org_id: context.orgId,
-        slug,
-        name,
-        description_rich: plainToRich(description),
-        location: location || null,
-        url: url || null,
-        owner_role_id: ownerRoleId,
+    const failSystem = (status: number, createSystemError: string) =>
+      fail(status, {
+        createSystemError,
+        systemNameDraft: draft.name,
+        systemDescriptionDraft: draft.description,
+        systemLocationDraft: draft.location,
+        systemUrlDraft: draft.url,
+        selectedOwnerRoleIdDraft: draft.ownerRoleIdRaw,
       })
-      .select("slug")
-      .single()
+    const result = await createSystemRecord({
+      supabase,
+      orgId: context.orgId,
+      draft,
+    })
 
-    if (error) {
-      return fail(400, { createSystemError: error.message })
+    if (!result.ok) {
+      return failSystem(result.status, result.message)
     }
 
-    redirect(303, `/app/systems/${data.slug}`)
+    redirect(303, `/app/systems/${result.slug}`)
   },
   createRole: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
@@ -128,92 +110,34 @@ export const actions = {
     }
     const supabase = locals.supabase
     const formData = await request.formData()
+    const draft = readRoleDraft(formData)
+    const result = await createRoleRecord({
+      supabase,
+      orgId: context.orgId,
+      draft,
+    })
 
-    const name = String(formData.get("name") ?? "").trim()
-    const description = String(formData.get("description") ?? "").trim()
-    const personName = String(formData.get("person_name") ?? "").trim()
-    const hoursRaw = String(formData.get("hours_per_week") ?? "").trim()
-
-    if (!name) {
-      return fail(400, { createRoleError: "Role name is required." })
+    if (!result.ok) {
+      return fail(result.status, { createRoleError: result.message })
     }
 
-    const hours = hoursRaw ? Number(hoursRaw) : null
-    if (hoursRaw && Number.isNaN(hours)) {
-      return fail(400, { createRoleError: "Hours per week must be numeric." })
-    }
-
-    const slug = await ensureUniqueSlug(supabase, "roles", context.orgId, name)
-    const { data, error } = await supabase
-      .from("roles")
-      .insert({
-        org_id: context.orgId,
-        slug,
-        name,
-        description_rich: plainToRich(description),
-        person_name: personName || null,
-        hours_per_week: hours,
-      })
-      .select("id")
-      .single()
-
-    if (error) {
-      return fail(400, { createRoleError: error.message })
-    }
-
-    return { createRoleSuccess: true, createdRoleId: data.id }
+    return { createRoleSuccess: true, createdRoleId: result.id }
   },
   createFlag: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
     const supabase = locals.supabase
     const formData = await request.formData()
-
-    const targetType = String(formData.get("target_type") ?? "").trim()
-    const targetId = String(formData.get("target_id") ?? "").trim()
-    const message = String(formData.get("message") ?? "").trim()
-    const flagType = String(formData.get("flag_type") ?? "comment").trim()
-    const targetPath = String(formData.get("target_path") ?? "").trim()
-
-    const failForTarget = (status: number, createFlagError: string) =>
-      fail(status, {
-        createFlagError,
-        createFlagTargetType: targetType,
-        createFlagTargetId: targetId,
-      })
-
-    if (targetType !== "system" || !targetId) {
-      return failForTarget(400, "Invalid flag target.")
-    }
-    if (!message) {
-      return failForTarget(400, "Flag message is required.")
-    }
-    if (!canCreateFlagType(context.membershipRole, flagType)) {
-      return failForTarget(403, "Members can only create comment flags.")
-    }
-
-    const { data: system, error: systemError } = await supabase
-      .from("systems")
-      .select("id")
-      .eq("org_id", context.orgId)
-      .eq("id", targetId)
-      .maybeSingle()
-
-    if (systemError || !system) {
-      return failForTarget(404, "System not found.")
-    }
-
-    const { error } = await supabase.from("flags").insert({
-      org_id: context.orgId,
-      target_type: "system",
-      target_id: system.id,
-      target_path: targetPath || null,
-      flag_type: flagType,
-      message,
-      created_by: context.userId,
+    const result = await createFlagForEntity({
+      context,
+      supabase,
+      formData,
+      expectedTargetType: "system",
+      targetTable: "systems",
+      missingTargetMessage: "System not found.",
     })
 
-    if (error) {
-      return failForTarget(400, error.message)
+    if (!result.ok) {
+      return fail(result.status, result.payload)
     }
 
     return { createFlagSuccess: true }
