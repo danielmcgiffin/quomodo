@@ -57,7 +57,7 @@
     </div>
   </div>
 
-  <div class="drawer-side">
+  <aside class="drawer-side">
     <label for="admin-drawer" class="drawer-overlay"></label>
     <ul
       class="menu menu-lg p-4 w-80 min-h-full bg-base-100 lg:border-r text-primary"
@@ -145,5 +145,5 @@
         <a href="/account/sign_out" class="mt-auto text-base">Sign Out</a>
       </li>
     </ul>
-  </div>
+  </aside>
 </div>

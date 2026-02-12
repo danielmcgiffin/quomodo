@@ -200,6 +200,14 @@ button[disabled].authBtn::before {
   padding: 24px 16px 80px;
 }
 
+.sc-page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .sc-process-page {
   max-width: 1120px;
   margin: 0 auto;
@@ -292,7 +300,10 @@ button[disabled].authBtn::before {
   opacity: 0;
   pointer-events: none;
   transform: translateY(-2px);
-  transition: opacity 120ms ease, transform 120ms ease, border-color 120ms ease;
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease,
+    border-color 120ms ease;
   z-index: 1;
 }
 
@@ -323,6 +334,56 @@ button[disabled].authBtn::before {
 
 .sc-card + .sc-card {
   margin-top: 12px;
+}
+
+.sc-process-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sc-process-card .sc-section-title {
+  margin-bottom: 0;
+}
+
+.sc-process-badge-rows {
+  display: grid;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.sc-process-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sc-process-badge-label {
+  min-width: 64px;
+  color: var(--sc-text-light);
+  font-size: var(--sc-font-xs, 0.75rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sc-process-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sc-process-badge {
+  display: inline-flex;
+}
+
+.sc-process-badge .sc-portal {
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-full);
+  background: var(--sc-bg-inset);
+  padding: 2px;
 }
 
 .sc-card-flag {

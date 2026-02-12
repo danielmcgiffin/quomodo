@@ -21,7 +21,11 @@ type ProcessRow = {
   end_state: string | null
   owner_role_id: string | null
 }
-type ActionRow = { process_id: string; system_id: string; sequence: number }
+type ActionRow = {
+  process_id: string
+  system_id: string | null
+  owner_role_id: string | null
+}
 
 const toRole = (row: RoleRow) => ({
   id: row.id,
@@ -58,12 +62,12 @@ export const load = async ({ locals }) => {
           "id, slug, name, description_rich, trigger, end_state, owner_role_id",
         )
         .eq("org_id", context.orgId)
-        .order("created_at", { ascending: false }),
+        .order("name"),
       supabase
         .from("actions")
-        .select("process_id, system_id, sequence")
+        .select("process_id, system_id, owner_role_id")
         .eq("org_id", context.orgId)
-        .order("sequence", { ascending: true }),
+        .order("process_id"),
     ])
 
   if (rolesResult.error) {
@@ -97,29 +101,64 @@ export const load = async ({ locals }) => {
     systems.map((system: ReturnType<typeof toSystem>) => [system.id, system]),
   )
 
-  const firstSystemByProcess = new Map<string, string>()
+  const roleIdsByProcess = new Map<string, Set<string>>()
+  const systemIdsByProcess = new Map<string, Set<string>>()
   for (const action of (actionsResult.data ?? []) as ActionRow[]) {
-    if (!firstSystemByProcess.has(action.process_id)) {
-      firstSystemByProcess.set(action.process_id, action.system_id)
+    if (action.owner_role_id) {
+      const roleSet =
+        roleIdsByProcess.get(action.process_id) ?? new Set<string>()
+      roleSet.add(action.owner_role_id)
+      roleIdsByProcess.set(action.process_id, roleSet)
+    }
+    if (action.system_id) {
+      const systemSet =
+        systemIdsByProcess.get(action.process_id) ?? new Set<string>()
+      systemSet.add(action.system_id)
+      systemIdsByProcess.set(action.process_id, systemSet)
     }
   }
 
-  const processes = ((processesResult.data ?? []) as ProcessRow[]).map(
-    (row) => ({
-      id: row.id,
-      slug: row.slug,
-      name: row.name,
-      descriptionHtml: richToHtml(row.description_rich),
-      trigger: row.trigger ?? "",
-      endState: row.end_state ?? "",
-      ownerRole: row.owner_role_id
+  const processes = ((processesResult.data ?? []) as ProcessRow[])
+    .map((row) => {
+      const ownerRole = row.owner_role_id
         ? (roleById.get(row.owner_role_id) ?? null)
-        : null,
-      primarySystem: firstSystemByProcess.get(row.id)
-        ? (systemById.get(firstSystemByProcess.get(row.id)!) ?? null)
-        : null,
-    }),
-  )
+        : null
+      const actionRoles = Array.from(roleIdsByProcess.get(row.id) ?? [])
+        .map((roleId) => roleById.get(roleId) ?? null)
+        .filter(
+          (
+            role,
+          ): role is {
+            id: string
+            slug: string
+            name: string
+            initials: string
+          } => Boolean(role),
+        )
+      const roleBadges = ownerRole
+        ? [ownerRole, ...actionRoles.filter((role) => role.id !== ownerRole.id)]
+        : actionRoles
+      const systemBadges = Array.from(systemIdsByProcess.get(row.id) ?? [])
+        .map((systemId) => systemById.get(systemId) ?? null)
+        .filter(
+          (system): system is { id: string; slug: string; name: string } =>
+            Boolean(system),
+        )
+
+      return {
+        id: row.id,
+        slug: row.slug,
+        name: row.name,
+        descriptionHtml: richToHtml(row.description_rich),
+        trigger: row.trigger ?? "",
+        endState: row.end_state ?? "",
+        roleBadges,
+        systemBadges,
+      }
+    })
+    .sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    )
 
   return {
     org: context,
