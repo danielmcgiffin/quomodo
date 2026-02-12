@@ -8,11 +8,34 @@ export type SearchAllRow = {
   body: string
 }
 
+export type SearchPortalProcess = {
+  slug: string
+  name: string
+}
+
+export type SearchPortalRole = {
+  slug: string
+  name: string
+  initials: string
+}
+
+export type SearchPortalSystem = {
+  slug: string
+  name: string
+}
+
 export type SearchActionRoute = {
   actionId: string
   sequence: number
-  processSlug: string
-  processName: string
+  process: SearchPortalProcess
+  role: SearchPortalRole | null
+  system: SearchPortalSystem | null
+}
+
+export type SearchResultContext = {
+  process: SearchPortalProcess | null
+  role: SearchPortalRole | null
+  system: SearchPortalSystem | null
 }
 
 export type SearchResult = {
@@ -21,6 +44,13 @@ export type SearchResult = {
   title: string
   snippet: string
   href: string
+  actionSequence: number | null
+  portalProcess: SearchPortalProcess | null
+  portalRole: SearchPortalRole | null
+  portalSystem: SearchPortalSystem | null
+  contextProcess: SearchPortalProcess | null
+  contextRole: SearchPortalRole | null
+  contextSystem: SearchPortalSystem | null
 }
 
 const normalizeWhitespace = (value: string): string =>
@@ -74,11 +104,15 @@ const buildSnippet = ({
 
   const normalizedQuery = normalizeWhitespace(query).toLowerCase()
   if (!normalizedQuery) {
-    return text.length <= maxLength ? text : `${text.slice(0, maxLength - 3)}...`
+    return text.length <= maxLength
+      ? text
+      : `${text.slice(0, maxLength - 3)}...`
   }
 
   const loweredText = text.toLowerCase()
-  const tokens = [normalizedQuery, ...normalizedQuery.split(" ")].filter(Boolean)
+  const tokens = [normalizedQuery, ...normalizedQuery.split(" ")].filter(
+    Boolean,
+  )
   let matchToken = ""
   let matchIndex = -1
   for (const token of tokens) {
@@ -91,7 +125,9 @@ const buildSnippet = ({
   }
 
   if (matchIndex === -1) {
-    return text.length <= maxLength ? text : `${text.slice(0, maxLength - 3)}...`
+    return text.length <= maxLength
+      ? text
+      : `${text.slice(0, maxLength - 3)}...`
   }
 
   const start = Math.max(0, matchIndex - 55)
@@ -104,11 +140,41 @@ const buildSnippet = ({
   return `${prefix}${snippet}${suffix}`
 }
 
-const scoreTitle = (title: string, query: string) => {
+const makeInitials = (value: string): string => {
+  const letters = normalizeWhitespace(value)
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("")
+  return letters || "?"
+}
+
+const buildTokens = (query: string): string[] => {
+  const normalized = normalizeWhitespace(query).toLowerCase()
+  if (!normalized) {
+    return []
+  }
+  return Array.from(
+    new Set([normalized, ...normalized.split(" ").filter(Boolean)]),
+  )
+}
+
+const tokenCoverage = (text: string, tokens: string[]): number => {
+  if (!text || tokens.length === 0) {
+    return 0
+  }
+  return tokens.reduce(
+    (count, token) => count + (text.includes(token) ? 1 : 0),
+    0,
+  )
+}
+
+const scoreTitleRank = (title: string, query: string, tokens: string[]) => {
   const normalizedTitle = normalizeWhitespace(title).toLowerCase()
   const normalizedQuery = normalizeWhitespace(query).toLowerCase()
   if (!normalizedQuery) {
-    return 4
+    return 5
   }
   if (normalizedTitle === normalizedQuery) {
     return 0
@@ -119,7 +185,19 @@ const scoreTitle = (title: string, query: string) => {
   if (normalizedTitle.includes(normalizedQuery)) {
     return 2
   }
-  return 3
+  if (
+    tokens.length > 0 &&
+    tokens.every((token) => normalizedTitle.includes(token))
+  ) {
+    return 3
+  }
+  if (
+    tokens.length > 0 &&
+    tokens.some((token) => normalizedTitle.includes(token))
+  ) {
+    return 4
+  }
+  return 5
 }
 
 const buildHref = ({
@@ -141,54 +219,135 @@ const buildHref = ({
     return `/app/processes/${slug}`
   }
   if (type === "action" && actionRoute) {
-    return `/app/processes/${actionRoute.processSlug}?actionId=${actionRoute.actionId}`
+    return `/app/processes/${actionRoute.process.slug}?actionId=${actionRoute.actionId}`
   }
   return "/app/processes"
+}
+
+const entityTypePriority: Record<SearchEntityType, number> = {
+  process: 0,
+  role: 1,
+  system: 2,
+  action: 3,
 }
 
 export const mapSearchResults = ({
   rows,
   query,
   actionRouteById,
+  entityContextByKey,
   limit,
 }: {
   rows: SearchAllRow[]
   query: string
   actionRouteById: Map<string, SearchActionRoute>
+  entityContextByKey: Map<string, SearchResultContext>
   limit: number
-}): SearchResult[] =>
-  rows
+}): SearchResult[] => {
+  const queryTokens = buildTokens(query)
+  return rows
     .map((row) => {
       const actionRoute =
-        row.entity_type === "action"
-          ? actionRouteById.get(row.id)
-          : undefined
+        row.entity_type === "action" ? actionRouteById.get(row.id) : undefined
+      const context = entityContextByKey.get(
+        `${row.entity_type}:${row.id}`,
+      ) ?? {
+        process: null,
+        role: null,
+        system: null,
+      }
       const fallbackSnippet = buildSnippet({
         body: row.body,
         query,
       })
+      const snippet = fallbackSnippet || row.title
       const title =
         row.entity_type === "action" && actionRoute
-          ? `Action ${actionRoute.sequence} in ${actionRoute.processName}`
+          ? `Action ${actionRoute.sequence} in ${actionRoute.process.name}`
           : row.title
+
+      let actionSequence: number | null = null
+      let portalProcess: SearchPortalProcess | null = null
+      let portalRole: SearchPortalRole | null = null
+      let portalSystem: SearchPortalSystem | null = null
+      let contextProcess: SearchPortalProcess | null = context.process
+      let contextRole: SearchPortalRole | null = context.role
+      let contextSystem: SearchPortalSystem | null = context.system
+
+      if (row.entity_type === "process" && row.slug) {
+        portalProcess = { slug: row.slug, name: row.title }
+        contextProcess = null
+      }
+      if (row.entity_type === "role" && row.slug) {
+        portalRole = {
+          slug: row.slug,
+          name: row.title,
+          initials: makeInitials(row.title),
+        }
+        contextRole = null
+      }
+      if (row.entity_type === "system" && row.slug) {
+        portalSystem = { slug: row.slug, name: row.title }
+        contextSystem = null
+      }
+      if (row.entity_type === "action" && actionRoute) {
+        actionSequence = actionRoute.sequence
+        portalProcess = actionRoute.process
+        contextProcess = null
+        contextRole = actionRoute.role
+        contextSystem = actionRoute.system
+      }
+
+      const normalizedTitle = normalizeWhitespace(title).toLowerCase()
+      const normalizedSnippet = normalizeWhitespace(snippet).toLowerCase()
+      const titleRank = scoreTitleRank(title, query, queryTokens)
+      const titleCoverage = tokenCoverage(normalizedTitle, queryTokens)
+      const snippetCoverage = tokenCoverage(normalizedSnippet, queryTokens)
+
       return {
         id: row.id,
         type: row.entity_type,
         title,
-        snippet: fallbackSnippet || title,
+        snippet,
         href: buildHref({
           type: row.entity_type,
           slug: row.slug,
           actionRoute,
         }),
-        score: scoreTitle(title, query),
+        actionSequence,
+        portalProcess,
+        portalRole,
+        portalSystem,
+        contextProcess,
+        contextRole,
+        contextSystem,
+        score: {
+          titleRank,
+          titleCoverage,
+          snippetCoverage,
+          typePriority: entityTypePriority[row.entity_type],
+        },
       }
     })
     .sort((a, b) => {
-      if (a.score !== b.score) {
-        return a.score - b.score
+      if (a.score.titleRank !== b.score.titleRank) {
+        return a.score.titleRank - b.score.titleRank
+      }
+      if (a.score.titleCoverage !== b.score.titleCoverage) {
+        return b.score.titleCoverage - a.score.titleCoverage
+      }
+      if (a.score.snippetCoverage !== b.score.snippetCoverage) {
+        return b.score.snippetCoverage - a.score.snippetCoverage
+      }
+      if (a.score.typePriority !== b.score.typePriority) {
+        return a.score.typePriority - b.score.typePriority
       }
       return a.title.localeCompare(b.title, undefined, { sensitivity: "base" })
     })
     .slice(0, limit)
-    .map(({ score: _score, ...result }) => result)
+    .map((result) => {
+      const { score, ...mapped } = result
+      void score
+      return mapped
+    })
+}

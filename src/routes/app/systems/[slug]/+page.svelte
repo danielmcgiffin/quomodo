@@ -19,7 +19,12 @@
         descriptionHtml: string
         location: string
         url: string
-        ownerRole: { id: string; slug: string; name: string; initials: string } | null
+        ownerRole: {
+          id: string
+          slug: string
+          name: string
+          initials: string
+        } | null
       }
       allRoles: { id: string; slug: string; name: string; initials: string }[]
       processesUsing: { id: string; slug: string; name: string }[]
@@ -66,6 +71,8 @@
   let systemDescriptionDraft = $state("")
   let systemDescriptionRichDraft = $state("")
   let selectedOwnerRoleId = $state("")
+  let selectedUsageProcessId = $state("")
+  let selectedUsageRoleSlug = $state("")
 
   const systemFieldTargets = [
     { path: "name", label: "Name" },
@@ -93,6 +100,60 @@
 
   const canManageSystem = () =>
     data.org.membershipRole === "owner" || data.org.membershipRole === "admin"
+
+  const filteredActionsUsing = $derived.by(() =>
+    data.actionsUsing.filter((action) => {
+      if (
+        selectedUsageProcessId &&
+        action.processId !== selectedUsageProcessId
+      ) {
+        return false
+      }
+      if (
+        selectedUsageRoleSlug &&
+        action.ownerRole?.slug !== selectedUsageRoleSlug
+      ) {
+        return false
+      }
+      return true
+    }),
+  )
+  const actionsByProcess = $derived.by(() => {
+    const processById = new Map(
+      data.processesUsing.map((process) => [process.id, process]),
+    )
+    const grouped = new Map<
+      string,
+      {
+        process: (typeof data.processesUsing)[number]
+        actions: (typeof data.actionsUsing)[number][]
+      }
+    >()
+
+    for (const action of filteredActionsUsing) {
+      const process = processById.get(action.processId)
+      if (!process) {
+        continue
+      }
+      const existing = grouped.get(process.id) ?? { process, actions: [] }
+      existing.actions.push(action)
+      grouped.set(process.id, existing)
+    }
+
+    if (selectedUsageProcessId && !grouped.has(selectedUsageProcessId)) {
+      const selectedProcess = processById.get(selectedUsageProcessId)
+      if (selectedProcess) {
+        grouped.set(selectedUsageProcessId, {
+          process: selectedProcess,
+          actions: [],
+        })
+      }
+    }
+
+    return Array.from(grouped.values())
+  })
+  const totalUsageCount = $derived.by(() => data.actionsUsing.length)
+  const filteredUsageCount = $derived.by(() => filteredActionsUsing.length)
 
   const setSystemDraftsFromData = () => {
     systemNameDraft = data.system.name
@@ -138,7 +199,9 @@
         ? form.systemLocationDraft
         : data.system.location
     systemUrlDraft =
-      typeof form?.systemUrlDraft === "string" ? form.systemUrlDraft : data.system.url
+      typeof form?.systemUrlDraft === "string"
+        ? form.systemUrlDraft
+        : data.system.url
     selectedOwnerRoleId =
       typeof form?.selectedOwnerRoleIdDraft === "string"
         ? form.selectedOwnerRoleIdDraft
@@ -166,16 +229,24 @@
             >
               Edit System
             </button>
-            <form method="POST" action="?/deleteSystem" onsubmit={confirmDeleteSystem}>
+            <form
+              method="POST"
+              action="?/deleteSystem"
+              onsubmit={confirmDeleteSystem}
+            >
               <input type="hidden" name="system_id" value={data.system.id} />
-              <button class="sc-btn secondary" type="submit">Delete System</button>
+              <button class="sc-btn secondary" type="submit"
+                >Delete System</button
+              >
             </form>
           </div>
         {/if}
       </div>
 
       {#if form?.deleteSystemError}
-        <div class="sc-form-error sc-stack-top-10">{form.deleteSystemError}</div>
+        <div class="sc-form-error sc-stack-top-10">
+          {form.deleteSystemError}
+        </div>
       {/if}
 
       <ScModal
@@ -233,7 +304,8 @@
           </div>
           <div class="sc-form-actions">
             <div class="sc-page-subtitle">
-              Owner linkage updates immediately for system detail and traversals.
+              Owner linkage updates immediately for system detail and
+              traversals.
             </div>
             <button class="sc-btn" type="submit">Save System</button>
           </div>
@@ -262,7 +334,11 @@
               <RolePortal role={data.system.ownerRole} size="sm" />
             {/if}
             {#if data.system.url}
-              <a class="sc-portal-process" href={data.system.url} target="_blank">
+              <a
+                class="sc-portal-process"
+                href={data.system.url}
+                target="_blank"
+              >
                 {data.system.url.replace("https://", "")}
               </a>
             {/if}
@@ -275,24 +351,59 @@
 
       <div class="sc-section">
         <div class="sc-section-title">What Uses This?</div>
-        {#each data.processesUsing as process}
-          <div class="sc-card">
-            <ProcessPortal {process} />
-            {#each data.actionsUsing.filter((action: { processId: string }) => action.processId === process.id) as action}
-              <div class="sc-stack-top-8">
-                <div class="sc-meta">Action {action.sequence}</div>
-                <RichText html={action.descriptionHtml} />
-                <div class="sc-byline sc-stack-top-6">
-                  {#if action.ownerRole}
-                    <RolePortal role={action.ownerRole} />
-                  {/if}
-                  <span>· in</span>
-                  <SystemPortal system={data.system} size="sm" />
-                </div>
-              </div>
+        <div class="sc-form-row">
+          <select
+            class="sc-search sc-field"
+            bind:value={selectedUsageProcessId}
+          >
+            <option value="">All processes</option>
+            {#each data.processesUsing as process}
+              <option value={process.id}>{process.name}</option>
             {/each}
+          </select>
+          <select class="sc-search sc-field" bind:value={selectedUsageRoleSlug}>
+            <option value="">All roles</option>
+            {#each data.rolesUsing as role}
+              <option value={role.slug}>{role.name}</option>
+            {/each}
+          </select>
+        </div>
+        <div class="sc-page-subtitle sc-stack-top-8">
+          Showing {filteredUsageCount} of {totalUsageCount} actions.
+        </div>
+
+        {#if actionsByProcess.length === 0}
+          <div class="sc-card sc-stack-top-8">
+            <div class="sc-page-subtitle">
+              No actions match the selected filters.
+            </div>
           </div>
-        {/each}
+        {:else}
+          {#each actionsByProcess as entry}
+            <div class="sc-card">
+              <ProcessPortal process={entry.process} />
+              {#if entry.actions.length === 0}
+                <div class="sc-stack-top-8 sc-muted-line">
+                  No actions match the selected filters.
+                </div>
+              {:else}
+                {#each entry.actions as action}
+                  <div class="sc-stack-top-8">
+                    <div class="sc-meta">Action {action.sequence}</div>
+                    <RichText html={action.descriptionHtml} />
+                    <div class="sc-byline sc-stack-top-6">
+                      {#if action.ownerRole}
+                        <RolePortal role={action.ownerRole} />
+                      {/if}
+                      <span>· in</span>
+                      <SystemPortal system={data.system} size="sm" />
+                    </div>
+                  </div>
+                {/each}
+              {/if}
+            </div>
+          {/each}
+        {/if}
       </div>
 
       <div class="sc-section">
@@ -311,7 +422,9 @@
           <div class="sc-section-title">What's Broken?</div>
           {#each data.systemFlags as flag}
             <div class="sc-card sc-card-flag">
-              <div class="sc-flag-banner">⚑ {flag.flagType.replace("_", " ")}</div>
+              <div class="sc-flag-banner">
+                ⚑ {flag.flagType.replace("_", " ")}
+              </div>
               <div class="sc-stack-top-10">{flag.message}</div>
             </div>
           {/each}

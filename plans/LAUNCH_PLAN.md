@@ -32,16 +32,14 @@ It is detailed enough for founder decision-making and for any agent to execute w
 
 ### What is not implemented
 
-- Full CRUD is incomplete (edit/delete and reorder UX still pending).
-- No production-grade rich-text pipeline (currently rendering raw HTML).
-- Supabase generated app typings are not updated to the triad schema yet.
+- No remaining unchecked V1 launch tasks in `WS0` through `WS7`.
+- Data-gated `WS8` work (`LP-070` through `LP-074`) remains intentionally out of V1 scope.
 
 ### Technical risks to address before launch
 
-- `RichText.svelte` uses raw `{@html}` and is unsafe for untrusted content.
-- Build has recurring Svelte warnings in legacy template account/login pages (`state_referenced_locally`); non-blocking but noisy.
-- Hooks currently log missing Supabase env warnings repeatedly in environments without vars configured.
-- Product exists in `/app` while starter template dashboard still lives in `/account`, which can confuse users and future agents.
+- Re-run deployed smoke checks on the exact launch commit to reconfirm `/app/*` route access and traversal in production.
+- Lint baseline still flags `RichText.svelte` for `svelte/no-at-html-tags`; keep sanitizer guarantees and lint policy aligned before release.
+- Retrieval still relies on lexical matching; monitor zero-result behavior until WS8 telemetry gates are active.
 
 ## PRD Alignment Summary
 
@@ -290,26 +288,26 @@ LP-008 route isolation inventory:
 - [x] `LP-030` Implement Roles CRUD (list/create/edit/delete).
       Acceptance:
 - Role changes immediately appear in connected process/system views.
-      Status:
+  Status:
 - Completed 2026-02-12 (role detail edit/delete + linked view propagation via live role loaders).
 
 - [x] `LP-031` Implement Systems CRUD with owner role linkage.
       Acceptance:
 - System detail shows owning/admin role and related actions.
-      Status:
+  Status:
 - Completed 2026-02-12 (system detail edit/delete + owner role linkage persisted and rendered).
 
 - [x] `LP-032` Implement Processes CRUD with ordered Actions editor.
       Acceptance:
 - Process edit supports action ordering and single role/system assignment per action.
 - Reordering preserves deterministic sequence values.
-      Status:
+  Status:
 - Completed 2026-02-12 (process detail edit/delete added; ordered action editor includes deterministic up/down resequencing).
 
 - [x] `LP-033` Implement Action CRUD inside Process context.
       Acceptance:
 - Add/update/delete actions updates role and system traversals correctly.
-      Status:
+  Status:
 - Completed 2026-02-12 (process-context delete action flow added; role/system traversals remain loader-derived from actions).
 
 - [x] `LP-034` Implement Flags CRUD from entity pages.
@@ -326,7 +324,7 @@ LP-008 route isolation inventory:
       Acceptance:
 - From Process/Action/Role/System pages, user can flag either whole entity or specific field target.
 - `target_path` is populated when field-level option is used.
-      Status:
+  Status:
 - Completed 2026-02-12 (whole-entity vs field target selection added across process/action/role/system pages, including role/system detail; create-flag failures now preserve `createFlagTargetPath` for modal recovery).
 
 - [x] `LP-037` Add right-rail open flags sidebar on `/app/*` pages.
@@ -335,7 +333,7 @@ LP-008 route isolation inventory:
 - When no open flags exist, the sidebar remains in-position so main content width does not shift.
 - On pages with multiple sidebar sections, flags appears as the top section.
 - `/app/processes` is implemented first as the reference pattern.
-      Status:
+  Status:
 - Completed 2026-02-12 (roles, systems, and flags pages now use the desktop right-rail pattern with flags as the first sidebar section; empty sidebars keep stable layout width).
 
 ### WS5: Retrieval and Search
@@ -343,24 +341,28 @@ LP-008 route isolation inventory:
 - [x] `LP-040` Implement search backend endpoint for entity lookup.
       Acceptance:
 - Query returns roles/systems/processes/actions with type and snippet.
-      Status:
+  Status:
 - Completed 2026-02-12 (`/app/search` GET endpoint now returns typed role/system/process/action matches with snippets and route hrefs, including action-to-process deep-link mapping).
 
 - [x] `LP-041` Implement UI search overlay (`Ctrl-?` + click result).
       Acceptance:
 - Keyboard shortcut opens search.
 - Selecting result navigates to the correct detail route.
-      Status:
+  Status:
 - Completed 2026-02-12 (`Ctrl-?` app-level overlay wired in `/app` layout; result click deep-links to role/system/process detail and action process routes).
 
-- [ ] `LP-042` Add role/system/process scoped filters for actions.
+- [x] `LP-042` Add role/system/process scoped filters for actions.
       Acceptance:
 - User can answer "what does this role do?" and "what uses this system?" with one interaction.
+  Status:
+- Completed 2026-02-12 (action lists now expose scoped filters directly in role/system/process entry views, with live counts and filtered traversal cards).
 
-- [ ] `LP-043` Search relevance tuning and result grouping.
+- [x] `LP-043` Search relevance tuning and result grouping.
       Acceptance:
 - Search results group by entity type and prioritize exact name/title matches.
 - Result item includes portal context snippet (role/system/process linkage).
+  Status:
+- Completed 2026-02-12 (search overlay now groups results by entity type, ranks exact/prefix/token title matches ahead of weaker matches, and renders portal-linked context for process/role/system/action relationships).
 
 ### WS6: Rich Text Safety and Rendering
 
@@ -372,19 +374,19 @@ LP-008 route isolation inventory:
       Acceptance:
 - No direct unsanitized `{@html}` from user input.
 - XSS smoke tests added for malicious payloads.
-      Status:
+  Status:
 - Completed 2026-02-12 (server rich-text pipeline now renders TipTap JSON via `generateHTML` and sanitizes output with `sanitize-html` before `RichText` render; XSS-focused tests added in `src/lib/server/rich-text.test.ts`).
 
 - [x] `LP-052` Add minimal rich text authoring UI for descriptions.
       Acceptance:
 - Role/System/Process/Action descriptions can be formatted and persisted.
-      Status:
+  Status:
 - Completed 2026-02-12 (shared `RichTextEditor` toolbar wired into role/system/process/action create/edit flows, persisting canonical `description_rich` TipTap JSON while retaining plain-text form fallback).
 
 - [x] `LP-053` Add migration fallback for existing HTML seed content.
       Acceptance:
 - Existing static HTML description content is either converted to TipTap JSON or safely rendered through a compatibility adapter.
-      Status:
+  Status:
 - Completed 2026-02-12 (`normalizeRichTextDocument` now accepts legacy HTML/string payloads, converts through TipTap JSON compatibility parsing when possible, and safely falls back to sanitized text conversion).
 
 ### WS7: Launch Hardening and Operations
@@ -392,15 +394,16 @@ LP-008 route isolation inventory:
 - [x] `LP-060` Set required Cloudflare env vars in production and preview.
       Acceptance:
 - `PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY`, `PRIVATE_SUPABASE_SERVICE_ROLE`, `PRIVATE_STRIPE_API_KEY` are configured.
-      Status:
+  Status:
 - Completed 2026-02-12 (`npm run cf:secrets:sync` applied secrets to production + preview and `wrangler secret list` verified all four required keys in both environments).
 
 - [x] `LP-061` Add smoke test checklist for deployed app.
       Acceptance:
 - Documented pass/fail for login, CRUD, portals, search, flags, billing route access.
-      Status:
+  Status:
 - Completed 2026-02-12 (run via `npm run smoke:deployed` against `https://quomodo.danielmcgiffin.workers.dev`).
 - Result 2026-02-12T19:52:04Z:
+
   - PASS: Login (owner/admin/editor/member).
   - PASS: CRUD (roles/systems/processes/actions).
   - PASS: Portals traversal.
@@ -412,20 +415,20 @@ LP-008 route isolation inventory:
       Acceptance:
 - Runtime errors are captured (Cloudflare logs minimum).
 - Common failure states return user-safe messages.
-      Status:
+  Status:
 - Completed 2026-02-12 (global `handleError` with per-request reference id + structured server logs, and `/app` loaders/search/workspace helpers now log internals while returning user-safe 500 messages).
 
 - [x] `LP-063` Resolve or explicitly defer noisy Svelte warnings from legacy routes.
       Acceptance:
 - Either warnings fixed or documented as accepted technical debt with owners/date.
-      Status:
+  Status:
 - Completed 2026-02-12 (`npm run build` completes with no noisy legacy-route Svelte warnings; previously observed `listen EPERM 127.0.0.1` was a restricted local sandbox networking artifact and not route warning debt).
 
 - [x] `LP-064` Deployment playbook for Cloudflare-only release.
       Acceptance:
 - Single runbook covers `npm run build`, `npx wrangler deploy`, required vars/secrets, and rollback strategy.
 - No Vercel deployment instructions remain in active docs.
-      Status:
+  Status:
 - Completed 2026-02-12 (`plans/CLOUDFLARE_DEPLOY_RUNBOOK.md` is now the canonical Cloudflare release runbook; `README.md` deploy docs were reduced to Cloudflare-only instructions that point to the runbook).
 
 ### WS8: Post-V1 Intelligence and Documentation (Data-Gated)

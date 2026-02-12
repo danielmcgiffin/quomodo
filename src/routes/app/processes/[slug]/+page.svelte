@@ -113,6 +113,25 @@
   const actionSystems = $derived.by(() =>
     uniqueById(actions.map((action: ActionEntry) => action.system ?? null)),
   )
+  let selectedActionRoleId = $state("")
+  let selectedActionSystemId = $state("")
+  const filteredActions = $derived.by(() =>
+    actions.filter((action: ActionEntry) => {
+      if (
+        selectedActionRoleId &&
+        action.ownerRole?.id !== selectedActionRoleId
+      ) {
+        return false
+      }
+      if (
+        selectedActionSystemId &&
+        action.system?.id !== selectedActionSystemId
+      ) {
+        return false
+      }
+      return true
+    }),
+  )
 
   let isCreateActionModalOpen = $state(false)
   let isEditProcessModalOpen = $state(false)
@@ -166,9 +185,7 @@
   }
 
   const confirmDeleteProcess = (event: SubmitEvent) => {
-    const shouldDelete = confirm(
-      "Delete this process and all of its actions?",
-    )
+    const shouldDelete = confirm("Delete this process and all of its actions?")
     if (!shouldDelete) {
       event.preventDefault()
     }
@@ -305,16 +322,24 @@
             >
               Edit Process
             </button>
-            <form method="POST" action="?/deleteProcess" onsubmit={confirmDeleteProcess}>
+            <form
+              method="POST"
+              action="?/deleteProcess"
+              onsubmit={confirmDeleteProcess}
+            >
               <input type="hidden" name="process_id" value={data.process.id} />
-              <button class="sc-btn secondary" type="submit">Delete Process</button>
+              <button class="sc-btn secondary" type="submit"
+                >Delete Process</button
+              >
             </form>
           </div>
         {/if}
       </div>
 
       {#if form?.deleteProcessError}
-        <div class="sc-form-error sc-stack-top-10">{form.deleteProcessError}</div>
+        <div class="sc-form-error sc-stack-top-10">
+          {form.deleteProcessError}
+        </div>
       {/if}
 
       <ScModal
@@ -390,7 +415,12 @@
       />
 
       <ProcessActionsSection
-        {actions}
+        actions={filteredActions}
+        {actionRoles}
+        {actionSystems}
+        bind:selectedRoleId={selectedActionRoleId}
+        bind:selectedSystemId={selectedActionSystemId}
+        totalActions={actions.length}
         viewerRole={data.viewerRole}
         highlightedActionId={data.highlightedActionId}
         reorderActionError={form?.reorderActionError}

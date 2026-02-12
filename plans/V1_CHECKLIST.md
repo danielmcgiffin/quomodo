@@ -14,7 +14,7 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [x] Flags view shows rot across the atlas
 - [x] Parchment + phthalo green tokens applied
 - [x] Top nav with Processes/Roles/Systems/Flags + counts
-- [ ] Search entry stub (button only) finalized and placed consistently
+- [x] Search entry stub (button only) finalized and placed consistently
 
 ## Marketing Surface
 
@@ -38,7 +38,7 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [x] Systems support list/create/edit/delete with owner-role linkage (`LP-031`)
 - [x] Processes support list/create/edit/delete with ordered action editor (`LP-032`)
 - [x] Actions support add/update/delete in process context (`LP-033`)
-- [ ] CRUD for roles, systems, processes, actions, flags
+- [x] CRUD for roles, systems, processes, actions, flags
 - [x] Nav counts from live data
 - [x] Portals wired to live IDs
 
@@ -46,8 +46,8 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 
 - [x] Search backend endpoint returns roles/systems/processes/actions with type + snippet (`LP-040`)
 - [x] Ctrl-? search for roles/systems/processes/actions (`LP-041`)
-- [ ] Search results rendered as portals
-- [ ] Action lists filterable by entry point (role/system/process)
+- [x] Search results rendered as portals
+- [x] Action lists filterable by entry point (role/system/process)
 
 ## Phase 3: Flags
 
@@ -70,7 +70,7 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [x] Cloudflare env vars set (Supabase + Stripe)
 - [x] Deployed smoke checklist documented and run (`LP-061`)
 - [x] Runtime logging + user-safe 500 baseline implemented (`LP-062`)
-- [ ] Production route access verified for `/app/*`
+- [x] Production route access verified for `/app/*`
 - [x] Cloudflare-only runbook present; no active Vercel deployment docs in launch flow (`LP-064`)
 
 ## Route Isolation
