@@ -200,6 +200,12 @@ button[disabled].authBtn::before {
   padding: 24px 16px 80px;
 }
 
+.sc-process-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+}
+
 .sc-page-title {
   font-size: var(--sc-font-2xl);
   font-weight: 700;

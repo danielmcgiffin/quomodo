@@ -2,6 +2,7 @@
   import RolePortal from "$lib/components/RolePortal.svelte"
   import SystemPortal from "$lib/components/SystemPortal.svelte"
   import ProcessPortal from "$lib/components/ProcessPortal.svelte"
+  import ProcessDetailSidebar from "$lib/components/ProcessDetailSidebar.svelte"
   import RichText from "$lib/components/RichText.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
   import InlineCreateRoleModal from "$lib/components/InlineCreateRoleModal.svelte"
@@ -141,7 +142,7 @@
   })
 </script>
 
-<div class="sc-page">
+<div class="sc-process-page">
   <div class="sc-page-title">{data.process.name}</div>
   <div class="sc-page-subtitle">
     <RichText html={data.process.descriptionHtml} />
@@ -230,53 +231,12 @@
       {/if}
     </div>
 
-    <aside class="sc-process-sidebar">
-      <div class="sc-section">
-        <div class="sc-section-title sc-sidebar-title">Who Does It</div>
-        <div class="sc-card">
-          <div class="sc-byline">
-            {#if actionRoles.length === 0}
-              <span class="sc-page-subtitle">No action owners yet.</span>
-            {:else}
-              {#each actionRoles as role}
-                <RolePortal {role} />
-              {/each}
-            {/if}
-          </div>
-        </div>
-      </div>
-
-      <div class="sc-section">
-        <div class="sc-section-title sc-sidebar-title">What Systems</div>
-        <div class="sc-card">
-          <div class="sc-byline">
-            {#if actionSystems.length === 0}
-              <span class="sc-page-subtitle">No systems linked yet.</span>
-            {:else}
-              {#each actionSystems as system}
-                <SystemPortal {system} />
-              {/each}
-            {/if}
-          </div>
-        </div>
-      </div>
-
-      {#if mentionHandles.length > 0}
-        <div class="sc-section">
-          <div class="sc-section-title sc-sidebar-title">Related Roles</div>
-          <div class="sc-card">
-            <div class="sc-byline">
-              {#each relatedRoles as role}
-                <RolePortal {role} />
-              {/each}
-              {#each relatedHandlesWithoutRole as handle}
-                <span class="sc-pill">@{handle}</span>
-              {/each}
-            </div>
-          </div>
-        </div>
-      {/if}
-    </aside>
+    <ProcessDetailSidebar
+      {actionRoles}
+      {actionSystems}
+      {relatedRoles}
+      {relatedHandlesWithoutRole}
+    />
   </div>
 
   <div class="sc-section">
