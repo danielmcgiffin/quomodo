@@ -1,6 +1,7 @@
 <script lang="ts">
   import "../../app.css"
   import { page } from "$app/stores"
+  import AppSearchOverlay from "$lib/components/AppSearchOverlay.svelte"
 
   interface Props {
     data: {
@@ -21,6 +22,7 @@
   }
 
   let { data, children }: Props = $props()
+  let isSearchOpen = $state(false)
 
   const navItems = $derived.by(() => [
     {
@@ -32,7 +34,24 @@
     { label: "Systems", href: "/app/systems", count: data.navCounts.systems },
     { label: "Flags", href: "/app/flags", count: data.navCounts.flags },
   ])
+
+  const onWindowKeydown = (event: KeyboardEvent) => {
+    if (event.defaultPrevented || !event.ctrlKey || event.metaKey || event.altKey) {
+      return
+    }
+
+    const isCtrlQuestionShortcut =
+      event.key === "?" || (event.key === "/" && event.shiftKey)
+    if (!isCtrlQuestionShortcut) {
+      return
+    }
+
+    event.preventDefault()
+    isSearchOpen = true
+  }
 </script>
+
+<svelte:window onkeydown={onWindowKeydown} />
 
 <div class="sc-app">
   <nav class="sc-nav width-full mx-64">
@@ -62,13 +81,18 @@
       </div>
       <div class="sc-nav-edge sc-nav-edge--end">
         <div class="sc-actions">
-          <button class="sc-search" type="button">
+          <button
+            class="sc-search"
+            type="button"
+            onclick={() => {
+              isSearchOpen = true
+            }}
+          >
             <span>Search</span>
             <span>(Ctrl-?)</span>
           </button>
           <span
-            class="sc-avatar"
-            style="--avatar-size:36px;--avatar-font:14px;"
+            class="sc-avatar sc-avatar-nav"
           >
             {data.viewerInitials}
           </span>
@@ -77,4 +101,5 @@
     </div>
   </nav>
   {@render children?.()}
+  <AppSearchOverlay bind:open={isSearchOpen} />
 </div>

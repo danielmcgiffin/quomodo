@@ -23,6 +23,7 @@
     createFlagError,
     createFlagTargetType,
     createFlagTargetId,
+    createFlagTargetPath,
   }: {
     process: { id: string; name: string; trigger: string; endState: string }
     actionRoles: Role[]
@@ -31,7 +32,16 @@
     createFlagError?: string
     createFlagTargetType?: string
     createFlagTargetId?: string
+    createFlagTargetPath?: string
   } = $props()
+
+  const processFieldTargets = [
+    { path: "name", label: "Name" },
+    { path: "description", label: "Description" },
+    { path: "trigger", label: "Trigger" },
+    { path: "end_state", label: "End state" },
+    { path: "owner_role_id", label: "Owner role" },
+  ]
 </script>
 
 <div class="sc-section sc-entity-card">
@@ -41,9 +51,11 @@
     targetId={process.id}
     entityLabel={process.name}
     {viewerRole}
+    fieldTargets={processFieldTargets}
     errorMessage={createFlagError}
     errorTargetType={createFlagTargetType}
     errorTargetId={createFlagTargetId}
+    errorTargetPath={createFlagTargetPath}
   />
   <div class="sc-process-details-grid">
     <div class="sc-process-facts sc-process-facts--stack">

@@ -380,7 +380,17 @@ export interface Database {
       }
     }
     Views: {
-      [_ in never]: never
+      search_all: {
+        Row: {
+          entity_type: Database["public"]["Enums"]["sc_entity_type"]
+          id: string
+          org_id: string
+          slug: string | null
+          title: string
+          body: string
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

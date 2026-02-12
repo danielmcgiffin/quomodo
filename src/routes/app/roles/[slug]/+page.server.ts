@@ -1,5 +1,27 @@
-import { error as kitError } from "@sveltejs/kit"
-import { ensureOrgContext, makeInitials, richToHtml } from "$lib/server/atlas"
+import { error as kitError, fail, redirect } from "@sveltejs/kit"
+import {
+  canManageDirectory,
+  ensureOrgContext,
+  makeInitials,
+  richToHtml,
+} from "$lib/server/atlas"
+import {
+  createFlagForEntity,
+  deleteRoleRecord,
+  readRoleDraft,
+  updateRoleRecord,
+} from "$lib/server/app/actions/shared"
+import { mapSystemPortals } from "$lib/server/app/mappers/portals"
+import {
+  mapActionsByProcess,
+  mapOpenFlags,
+  mapRoleActionsPerformed,
+  mapRoleOwnedProcesses,
+  mapSystemsAccessed,
+  type OpenFlagRow,
+  type RoleDetailActionRow,
+  type RoleDetailProcessRow,
+} from "$lib/server/app/mappers/detail-relations"
 
 type RoleRow = {
   id: string
@@ -9,24 +31,16 @@ type RoleRow = {
   person_name: string | null
   hours_per_week: number | null
 }
-type ProcessRow = {
-  id: string
-  slug: string
-  name: string
-  owner_role_id: string | null
-}
-type ActionRow = {
-  id: string
-  process_id: string
-  sequence: number
-  description_rich: unknown
-  owner_role_id: string
-  system_id: string
-}
 type SystemRow = { id: string; slug: string; name: string }
-type FlagRow = { id: string; flag_type: string; message: string }
+type RoleFlagRow = {
+  id: string
+  flag_type: string
+  message: string
+  target_path: string | null
+  created_at: string
+}
 
-export const load = async ({ params, locals }) => {
+export const load = async ({ params, locals, url }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
 
@@ -67,7 +81,7 @@ export const load = async ({ params, locals }) => {
         .order("name"),
       supabase
         .from("flags")
-        .select("id, flag_type, message")
+        .select("id, flag_type, message, target_path, created_at")
         .eq("org_id", context.orgId)
         .eq("target_type", "role")
         .eq("target_id", roleRow.id)
@@ -97,70 +111,40 @@ export const load = async ({ params, locals }) => {
     throw kitError(500, `Failed to load flags: ${flagsResult.error.message}`)
   }
 
-  const systems = ((systemsResult.data ?? []) as SystemRow[]).map((row) => ({
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-  }))
-  const systemById = new Map(
-    systems.map((system: { id: string }) => [system.id, system]),
+  const systems = mapSystemPortals((systemsResult.data ?? []) as SystemRow[])
+  const systemById = new Map(systems.map((system) => [system.id, system]))
+  const processes = mapRoleOwnedProcesses(
+    (processesResult.data ?? []) as RoleDetailProcessRow[],
   )
-  const processes = ((processesResult.data ?? []) as ProcessRow[]).map(
-    (row) => ({
-      id: row.id,
-      slug: row.slug,
-      name: row.name,
-      ownerRoleId: row.owner_role_id,
-    }),
-  )
-  const processById = new Map(
-    processes.map((process: { id: string }) => [process.id, process]),
-  )
-
   const ownedProcesses = processes.filter(
-    (process: { ownerRoleId: string | null }) =>
-      process.ownerRoleId === roleRow.id,
+    (process) => process.ownerRoleId === roleRow.id,
   )
-  const actionsPerformed = ((actionsResult.data ?? []) as ActionRow[]).map(
-    (action) => ({
-      id: action.id,
-      processId: action.process_id,
-      sequence: action.sequence,
-      descriptionHtml: richToHtml(action.description_rich),
-      system: systemById.get(action.system_id) ?? null,
-    }),
-  )
-  const systemsAccessed = systems.filter((system: { id: string }) =>
-    actionsPerformed.some(
-      (action: { system: { id: string } | null }) =>
-        action.system?.id === system.id,
-    ),
-  )
-  const actionsByProcess = ownedProcesses.map((process: { id: string }) => ({
-    process,
-    actions: actionsPerformed.filter(
-      (action: { processId: string }) => action.processId === process.id,
-    ),
+  const actionsPerformed = mapRoleActionsPerformed({
+    rows: (actionsResult.data ?? []) as RoleDetailActionRow[],
+    systemById,
+    richToHtml,
+  })
+  const systemsAccessed = mapSystemsAccessed({
+    systems,
+    actionsPerformed,
+  })
+  const actionsByProcess = mapActionsByProcess({
+    processes,
+    actionsPerformed,
+    roleId: roleRow.id,
+  })
+  const roleFlagRows = (flagsResult.data ?? []) as RoleFlagRow[]
+  const openFlags = roleFlagRows.map((flag) => ({
+    id: flag.id,
+    flagType: flag.flag_type,
+    message: flag.message,
+    targetPath: flag.target_path,
+    createdAt: new Date(flag.created_at).toLocaleString(),
+    role: {
+      slug: roleRow.slug,
+      name: roleRow.name,
+    },
   }))
-
-  for (const action of actionsPerformed) {
-    const process = processById.get(action.processId)
-    if (!process) {
-      continue
-    }
-    if (
-      !actionsByProcess.some(
-        (entry: { process: { id: string } }) => entry.process.id === process.id,
-      )
-    ) {
-      actionsByProcess.push({
-        process,
-        actions: actionsPerformed.filter(
-          (entry: { processId: string }) => entry.processId === process.id,
-        ),
-      })
-    }
-  }
 
   return {
     role: {
@@ -176,11 +160,88 @@ export const load = async ({ params, locals }) => {
     actionsPerformed,
     systemsAccessed,
     actionsByProcess,
-    roleFlags: ((flagsResult.data ?? []) as FlagRow[]).map((flag) => ({
-      id: flag.id,
-      flagType: flag.flag_type,
-      message: flag.message,
-    })),
+    roleFlags: mapOpenFlags(roleFlagRows as OpenFlagRow[]),
+    openFlags,
+    highlightedFlagId: url.searchParams.get("flagId") ?? null,
     reportsTo: null,
+    org: context,
   }
+}
+
+export const actions = {
+  createFlag: async ({ request, locals }) => {
+    const context = await ensureOrgContext(locals)
+    const supabase = locals.supabase
+    const formData = await request.formData()
+    const result = await createFlagForEntity({
+      context,
+      supabase,
+      formData,
+      expectedTargetType: "role",
+      targetTable: "roles",
+      missingTargetMessage: "Role not found.",
+    })
+
+    if (!result.ok) {
+      return fail(result.status, result.payload)
+    }
+
+    return { createFlagSuccess: true }
+  },
+
+  updateRole: async ({ request, locals }) => {
+    const context = await ensureOrgContext(locals)
+    if (!canManageDirectory(context.membershipRole)) {
+      return fail(403, { updateRoleError: "Insufficient permissions." })
+    }
+
+    const supabase = locals.supabase
+    const formData = await request.formData()
+    const roleId = String(formData.get("role_id") ?? "").trim()
+    const draft = readRoleDraft(formData)
+
+    const failUpdate = (status: number, updateRoleError: string) =>
+      fail(status, {
+        updateRoleError,
+        roleNameDraft: draft.name,
+        roleDescriptionDraft: draft.description,
+        rolePersonNameDraft: draft.personName,
+        roleHoursPerWeekDraft: draft.hoursRaw,
+      })
+
+    const result = await updateRoleRecord({
+      supabase,
+      orgId: context.orgId,
+      roleId,
+      draft,
+    })
+
+    if (!result.ok) {
+      return failUpdate(result.status, result.message)
+    }
+
+    redirect(303, `/app/roles/${result.slug}`)
+  },
+
+  deleteRole: async ({ request, locals }) => {
+    const context = await ensureOrgContext(locals)
+    if (!canManageDirectory(context.membershipRole)) {
+      return fail(403, { deleteRoleError: "Insufficient permissions." })
+    }
+
+    const supabase = locals.supabase
+    const formData = await request.formData()
+    const roleId = String(formData.get("role_id") ?? "").trim()
+    const result = await deleteRoleRecord({
+      supabase,
+      orgId: context.orgId,
+      roleId,
+    })
+
+    if (!result.ok) {
+      return fail(result.status, { deleteRoleError: result.message })
+    }
+
+    redirect(303, "/app/roles")
+  },
 }

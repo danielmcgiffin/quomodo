@@ -15,6 +15,7 @@
     createdRoleId,
     createdSystemId,
     createActionError,
+    deleteActionError,
     onOpenRoleModal,
     onOpenSystemModal,
   }: {
@@ -28,9 +29,17 @@
     createdRoleId?: string
     createdSystemId?: string
     createActionError?: string
+    deleteActionError?: string
     onOpenRoleModal: () => void
     onOpenSystemModal: () => void
   } = $props()
+
+  const confirmDeleteAction = (event: SubmitEvent) => {
+    const shouldDelete = confirm("Delete this action from this process?")
+    if (!shouldDelete) {
+      event.preventDefault()
+    }
+  }
 </script>
 
 <ScModal
@@ -48,6 +57,9 @@
   >
     {#if createActionError}
       <div class="sc-form-error">{createActionError}</div>
+    {/if}
+    {#if deleteActionError}
+      <div class="sc-form-error">{deleteActionError}</div>
     {/if}
     {#if editingActionId}
       <input type="hidden" name="action_id" value={editingActionId} />
@@ -110,4 +122,17 @@
       </button>
     </div>
   </form>
+  {#if editingActionId}
+    <form
+      class="sc-form sc-action-modal-form"
+      method="POST"
+      action="?/deleteAction"
+      onsubmit={confirmDeleteAction}
+    >
+      <input type="hidden" name="action_id" value={editingActionId} />
+      <div class="sc-form-row sc-action-modal-submit-row">
+        <button class="sc-btn secondary" type="submit">Delete Action</button>
+      </div>
+    </form>
+  {/if}
 </ScModal>

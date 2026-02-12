@@ -12,22 +12,14 @@ import {
   readSystemDraft,
 } from "$lib/server/app/actions/shared"
 import { mapRolePortals } from "$lib/server/app/mappers/portals"
+import { mapSystemDirectory, type SystemDirectoryRow } from "$lib/server/app/mappers/directory"
 
 type RoleRow = { id: string; slug: string; name: string }
-type SystemRow = {
-  id: string
-  slug: string
-  name: string
-  description_rich: unknown
-  location: string | null
-  url: string | null
-  owner_role_id: string | null
-}
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
 
-  const [rolesResult, systemsResult] = await Promise.all([
+  const [rolesResult, systemsResult, flagsResult] = await Promise.all([
     supabase
       .from("roles")
       .select("id, slug, name")
@@ -38,6 +30,13 @@ export const load = async ({ locals }) => {
       .select("id, slug, name, description_rich, location, url, owner_role_id")
       .eq("org_id", context.orgId)
       .order("name"),
+    supabase
+      .from("flags")
+      .select("id, target_id, target_path, flag_type, message, created_at")
+      .eq("org_id", context.orgId)
+      .eq("target_type", "system")
+      .eq("status", "open")
+      .order("created_at", { ascending: false }),
   ])
 
   if (rolesResult.error) {
@@ -49,26 +48,51 @@ export const load = async ({ locals }) => {
       `Failed to load systems: ${systemsResult.error.message}`,
     )
   }
+  if (flagsResult.error) {
+    throw kitError(500, `Failed to load flags: ${flagsResult.error.message}`)
+  }
 
   const roles = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
-  const roleById = new Map(roles.map((role: { id: string }) => [role.id, role]))
+  const roleById = new Map(roles.map((role) => [role.id, role]))
 
-  const systems = ((systemsResult.data ?? []) as SystemRow[]).map((row) => ({
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-    descriptionHtml: richToHtml(row.description_rich),
-    location: row.location ?? "",
-    url: row.url ?? "",
-    ownerRole: row.owner_role_id
-      ? (roleById.get(row.owner_role_id) ?? null)
-      : null,
-  }))
+  const systems = mapSystemDirectory({
+    rows: (systemsResult.data ?? []) as SystemDirectoryRow[],
+    roleById,
+    richToHtml,
+  })
+  const systemById = new Map(systems.map((system) => [system.id, system]))
+  const openFlags = ((flagsResult.data ?? []) as {
+    id: string
+    target_id: string
+    target_path: string | null
+    flag_type: string
+    message: string
+    created_at: string
+  }[])
+    .map((flag) => {
+      const system = systemById.get(flag.target_id)
+      if (!system) {
+        return null
+      }
+      return {
+        id: flag.id,
+        flagType: flag.flag_type,
+        message: flag.message,
+        targetPath: flag.target_path,
+        createdAt: new Date(flag.created_at).toLocaleString(),
+        system: {
+          slug: system.slug,
+          name: system.name,
+        },
+      }
+    })
+    .filter((flag): flag is NonNullable<typeof flag> => flag !== null)
 
   return {
     org: context,
     roles,
     systems,
+    openFlags,
   }
 }
 

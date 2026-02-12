@@ -32,14 +32,20 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [x] Create flows exist in app for roles, systems, processes, actions, and flags
 - [x] Dev seed command creates sample org + triad data without manual SQL
 - [x] Supabase app typings updated to triad schema (`LP-020`)
+- [x] Row-to-view mapper layer centralized for app list/detail loaders (`LP-022`)
 - [x] App mapper/action unit tests cover mapping + role-based auth assumptions (`LP-023`)
+- [x] Roles support list/create/edit/delete (`LP-030`)
+- [x] Systems support list/create/edit/delete with owner-role linkage (`LP-031`)
+- [x] Processes support list/create/edit/delete with ordered action editor (`LP-032`)
+- [x] Actions support add/update/delete in process context (`LP-033`)
 - [ ] CRUD for roles, systems, processes, actions, flags
 - [x] Nav counts from live data
 - [x] Portals wired to live IDs
 
 ## Phase 2: Retrieval
 
-- [ ] ⌘K search for roles/systems/processes/actions
+- [x] Search backend endpoint returns roles/systems/processes/actions with type + snippet (`LP-040`)
+- [x] Ctrl-? search for roles/systems/processes/actions (`LP-041`)
 - [ ] Search results rendered as portals
 - [ ] Action lists filterable by entry point (role/system/process)
 
@@ -48,13 +54,14 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [x] Flag creation from any entity
 - [x] Member alert/comment creation flow (`comment` as `flag_type`)
 - [x] Sub-entity flag targeting (`target_path`) support
+- [x] Process/action/role/system pages support whole-entity vs field-level flag targeting (`LP-036`)
 - [x] Flags dashboard (global)
 - [x] Resolve/Dismiss flow
-- [ ] Right-side flags sidebar on all `/app/*` pages with stable main-content width (started on `/app/processes`)
+- [x] Right-side flags sidebar on all `/app/*` pages with stable main-content width (`LP-037`)
 
 ## Deployment
 
-- [ ] Cloudflare env vars set (Supabase + Stripe)
+- [x] Cloudflare env vars set (Supabase + Stripe)
 - [ ] Production route access verified for `/app/*`
 - [ ] Cloudflare-only runbook present; no active Vercel deployment docs in launch flow
 

@@ -35,6 +35,76 @@ type ProcessRow = {
 type RoleRow = { id: string; slug: string; name: string }
 type SystemRow = { id: string; slug: string; name: string }
 type FlagTargetType = "process" | "action"
+type ActionSequenceRow = { id: string; sequence: number }
+type ProcessDraft = {
+  name: string
+  description: string
+  trigger: string
+  endState: string
+  ownerRoleIdRaw: string
+}
+
+const readProcessDraft = (formData: FormData): ProcessDraft => ({
+  name: String(formData.get("name") ?? "").trim(),
+  description: String(formData.get("description") ?? "").trim(),
+  trigger: String(formData.get("trigger") ?? "").trim(),
+  endState: String(
+    formData.get("end_state") ?? formData.get("endstate") ?? "",
+  ).trim(),
+  ownerRoleIdRaw: String(formData.get("owner_role_id") ?? "").trim(),
+})
+
+const resequenceProcessActions = async ({
+  supabase,
+  orgId,
+  processId,
+  orderedActions,
+}: {
+  supabase: App.Locals["supabase"]
+  orgId: string
+  processId: string
+  orderedActions: ActionSequenceRow[]
+}): Promise<string | null> => {
+  if (orderedActions.length === 0) {
+    return null
+  }
+
+  const maxCurrentSequence = orderedActions.reduce(
+    (max, action) => Math.max(max, action.sequence),
+    0,
+  )
+  const stageBase = maxCurrentSequence + orderedActions.length + 50
+
+  for (const [index, action] of orderedActions.entries()) {
+    const stagedSequence = stageBase + index
+    const { error: stageError } = await supabase
+      .from("actions")
+      .update({ sequence: stagedSequence })
+      .eq("org_id", orgId)
+      .eq("process_id", processId)
+      .eq("id", action.id)
+
+    if (stageError) {
+      return stageError.message
+    }
+  }
+
+  for (const [index, action] of orderedActions.entries()) {
+    const finalSequence = index + 1
+    const { error: finalError } = await supabase
+      .from("actions")
+      .update({ sequence: finalSequence })
+      .eq("org_id", orgId)
+      .eq("process_id", processId)
+      .eq("id", action.id)
+
+    if (finalError) {
+      return finalError.message
+    }
+  }
+
+  return null
+}
 
 export const load = async ({ params, locals, url }) => {
   const context = await ensureOrgContext(locals)
@@ -137,11 +207,109 @@ export const load = async ({ params, locals, url }) => {
       (flagsResult.data ?? []) as ProcessDetailFlagRow[],
     ),
     viewerRole: context.membershipRole,
+    highlightedActionId: url.searchParams.get("actionId") ?? null,
     highlightedFlagId: url.searchParams.get("flagId") ?? null,
   }
 }
 
 export const actions = {
+  updateProcess: async ({ request, params, locals }) => {
+    const context = await ensureOrgContext(locals)
+    if (!canEditAtlas(context.membershipRole)) {
+      return fail(403, { updateProcessError: "Insufficient permissions." })
+    }
+    const supabase = locals.supabase
+    const formData = await request.formData()
+    const processId = String(formData.get("process_id") ?? "").trim()
+    const draft = readProcessDraft(formData)
+
+    const failProcess = (status: number, updateProcessError: string) =>
+      fail(status, {
+        updateProcessError,
+        processNameDraft: draft.name,
+        processDescriptionDraft: draft.description,
+        processTriggerDraft: draft.trigger,
+        processEndStateDraft: draft.endState,
+        selectedProcessOwnerRoleIdDraft: draft.ownerRoleIdRaw,
+      })
+
+    if (!draft.name) {
+      return failProcess(400, "Process name is required.")
+    }
+
+    const { data: process, error: processError } = await supabase
+      .from("processes")
+      .select("id, slug")
+      .eq("org_id", context.orgId)
+      .eq("slug", params.slug)
+      .maybeSingle()
+
+    if (processError || !process) {
+      return failProcess(404, "Process not found.")
+    }
+    if (processId && process.id !== processId) {
+      return failProcess(400, "Invalid process target.")
+    }
+
+    const ownerRoleId = draft.ownerRoleIdRaw || null
+    const { error: updateError } = await supabase
+      .from("processes")
+      .update({
+        name: draft.name,
+        description_rich: plainToRich(draft.description),
+        trigger: draft.trigger || null,
+        end_state: draft.endState || null,
+        owner_role_id: ownerRoleId,
+      })
+      .eq("org_id", context.orgId)
+      .eq("id", process.id)
+
+    if (updateError) {
+      return failProcess(400, updateError.message)
+    }
+
+    redirect(303, `/app/processes/${process.slug}`)
+  },
+
+  deleteProcess: async ({ request, params, locals }) => {
+    const context = await ensureOrgContext(locals)
+    if (!canEditAtlas(context.membershipRole)) {
+      return fail(403, { deleteProcessError: "Insufficient permissions." })
+    }
+    const supabase = locals.supabase
+    const formData = await request.formData()
+    const processId = String(formData.get("process_id") ?? "").trim()
+
+    const failDelete = (status: number, deleteProcessError: string) =>
+      fail(status, { deleteProcessError })
+
+    const { data: process, error: processError } = await supabase
+      .from("processes")
+      .select("id")
+      .eq("org_id", context.orgId)
+      .eq("slug", params.slug)
+      .maybeSingle()
+
+    if (processError || !process) {
+      return failDelete(404, "Process not found.")
+    }
+    if (processId && process.id !== processId) {
+      return failDelete(400, "Invalid process target.")
+    }
+
+    const { error: deleteError } = await supabase
+      .from("processes")
+      .delete()
+      .eq("org_id", context.orgId)
+      .eq("id", process.id)
+
+    if (deleteError) {
+      return failDelete(400, deleteError.message)
+    }
+
+    redirect(303, "/app/processes")
+  },
+
   createAction: async ({ request, params, locals }) => {
     const context = await ensureOrgContext(locals)
     if (!canEditAtlas(context.membershipRole)) {
@@ -239,6 +407,159 @@ export const actions = {
     redirect(303, `/app/processes/${params.slug}`)
   },
 
+  deleteAction: async ({ request, params, locals }) => {
+    const context = await ensureOrgContext(locals)
+    if (!canEditAtlas(context.membershipRole)) {
+      return fail(403, { deleteActionError: "Insufficient permissions." })
+    }
+    const supabase = locals.supabase
+    const formData = await request.formData()
+    const actionId = String(formData.get("action_id") ?? "").trim()
+
+    const failDelete = (status: number, deleteActionError: string) =>
+      fail(status, {
+        deleteActionError,
+        editingActionId: actionId || null,
+      })
+
+    if (!actionId) {
+      return failDelete(400, "Action id is required.")
+    }
+
+    const { data: process, error: processError } = await supabase
+      .from("processes")
+      .select("id")
+      .eq("org_id", context.orgId)
+      .eq("slug", params.slug)
+      .maybeSingle()
+
+    if (processError || !process) {
+      return failDelete(404, "Process not found.")
+    }
+
+    const { data: actionTarget, error: actionTargetError } = await supabase
+      .from("actions")
+      .select("id")
+      .eq("org_id", context.orgId)
+      .eq("process_id", process.id)
+      .eq("id", actionId)
+      .maybeSingle()
+
+    if (actionTargetError || !actionTarget) {
+      return failDelete(404, "Action not found.")
+    }
+
+    const { error: deleteError } = await supabase
+      .from("actions")
+      .delete()
+      .eq("org_id", context.orgId)
+      .eq("id", actionId)
+
+    if (deleteError) {
+      return failDelete(400, deleteError.message)
+    }
+
+    const { data: remainingActions, error: remainingActionsError } =
+      await supabase
+        .from("actions")
+        .select("id, sequence")
+        .eq("org_id", context.orgId)
+        .eq("process_id", process.id)
+        .order("sequence")
+        .order("id")
+
+    if (remainingActionsError) {
+      return failDelete(400, remainingActionsError.message)
+    }
+
+    const resequenceError = await resequenceProcessActions({
+      supabase,
+      orgId: context.orgId,
+      processId: process.id,
+      orderedActions: (remainingActions ?? []) as ActionSequenceRow[],
+    })
+
+    if (resequenceError) {
+      return failDelete(400, resequenceError)
+    }
+
+    redirect(303, `/app/processes/${params.slug}`)
+  },
+
+  reorderAction: async ({ request, params, locals }) => {
+    const context = await ensureOrgContext(locals)
+    if (!canEditAtlas(context.membershipRole)) {
+      return fail(403, { reorderActionError: "Insufficient permissions." })
+    }
+    const supabase = locals.supabase
+    const formData = await request.formData()
+    const actionId = String(formData.get("action_id") ?? "").trim()
+    const direction = String(formData.get("direction") ?? "").trim()
+
+    const failReorder = (status: number, reorderActionError: string) =>
+      fail(status, { reorderActionError })
+
+    if (!actionId) {
+      return failReorder(400, "Action id is required.")
+    }
+    if (direction !== "up" && direction !== "down") {
+      return failReorder(400, "Invalid reorder direction.")
+    }
+
+    const { data: process, error: processError } = await supabase
+      .from("processes")
+      .select("id")
+      .eq("org_id", context.orgId)
+      .eq("slug", params.slug)
+      .maybeSingle()
+
+    if (processError || !process) {
+      return failReorder(404, "Process not found.")
+    }
+
+    const { data: actionRows, error: actionRowsError } = await supabase
+      .from("actions")
+      .select("id, sequence")
+      .eq("org_id", context.orgId)
+      .eq("process_id", process.id)
+      .order("sequence")
+      .order("id")
+
+    if (actionRowsError) {
+      return failReorder(400, actionRowsError.message)
+    }
+
+    const actionsInOrder = (actionRows ?? []) as ActionSequenceRow[]
+    const currentIndex = actionsInOrder.findIndex(
+      (action) => action.id === actionId,
+    )
+    if (currentIndex === -1) {
+      return failReorder(404, "Action not found.")
+    }
+
+    const nextIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1
+    if (nextIndex < 0 || nextIndex >= actionsInOrder.length) {
+      redirect(303, `/app/processes/${params.slug}`)
+    }
+
+    const reordered = [...actionsInOrder]
+    const [movedAction] = reordered.splice(currentIndex, 1)
+    reordered.splice(nextIndex, 0, movedAction)
+
+    const resequenceError = await resequenceProcessActions({
+      supabase,
+      orgId: context.orgId,
+      processId: process.id,
+      orderedActions: reordered,
+    })
+
+    if (resequenceError) {
+      return failReorder(400, resequenceError)
+    }
+
+    redirect(303, `/app/processes/${params.slug}`)
+  },
+
   createRole: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
     if (!canManageDirectory(context.membershipRole)) {
@@ -317,6 +638,7 @@ export const actions = {
         createFlagError,
         createFlagTargetType: targetTypeRaw,
         createFlagTargetId: targetId,
+        createFlagTargetPath: targetPath,
       })
 
     if (!targetId) {

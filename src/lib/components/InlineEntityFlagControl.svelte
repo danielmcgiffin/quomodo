@@ -10,27 +10,61 @@
     targetId,
     entityLabel = "entity",
     viewerRole = "member",
+    fieldTargets = [],
     errorMessage = "",
     errorTargetType = "",
     errorTargetId = "",
+    errorTargetPath = "",
   }: {
     action?: string
     targetType: EntityType
     targetId: string
     entityLabel?: string
     viewerRole?: MembershipRole
+    fieldTargets?: { path: string; label: string }[]
     errorMessage?: string
     errorTargetType?: string
     errorTargetId?: string
+    errorTargetPath?: string
   } = $props()
 
   let open = $state(false)
+  let targetScope = $state<"entity" | "field">("entity")
+  let selectedFieldPath = $state("")
+  const hasFieldTargets = $derived(fieldTargets.length > 0)
+  const resolvedTargetPath = $derived(
+    targetScope === "field" ? selectedFieldPath : "",
+  )
 
   const showError = $derived(
     Boolean(errorMessage) &&
       errorTargetType === targetType &&
       errorTargetId === targetId,
   )
+
+  $effect(() => {
+    if (!hasFieldTargets) {
+      targetScope = "entity"
+      selectedFieldPath = ""
+      return
+    }
+
+    const matchedTargetPath = fieldTargets.some(
+      (fieldTarget) => fieldTarget.path === errorTargetPath,
+    )
+    if (showError && matchedTargetPath) {
+      targetScope = "field"
+      selectedFieldPath = errorTargetPath
+      return
+    }
+
+    if (
+      targetScope === "field" &&
+      !fieldTargets.some((fieldTarget) => fieldTarget.path === selectedFieldPath)
+    ) {
+      selectedFieldPath = fieldTargets[0]?.path ?? ""
+    }
+  })
 
   $effect(() => {
     if (showError) {
@@ -68,6 +102,7 @@
     {/if}
     <input type="hidden" name="target_type" value={targetType} />
     <input type="hidden" name="target_id" value={targetId} />
+    <input type="hidden" name="target_path" value={resolvedTargetPath} />
     <div class="sc-form-row">
       <select class="sc-search sc-field" name="flag_type">
         <option value="comment">comment</option>
@@ -78,12 +113,23 @@
           <option value="incorrect">incorrect</option>
         {/if}
       </select>
-      <input
-        class="sc-search sc-field"
-        name="target_path"
-        placeholder="Target path (optional)"
-      />
+      <select class="sc-search sc-field" bind:value={targetScope}>
+        <option value="entity">Whole {entityLabel}</option>
+        {#if hasFieldTargets}
+          <option value="field">Specific field</option>
+        {/if}
+      </select>
     </div>
+    {#if targetScope === "field" && hasFieldTargets}
+      <div class="sc-form-row">
+        <select class="sc-search sc-field" bind:value={selectedFieldPath} required>
+          <option value="">Select field target</option>
+          {#each fieldTargets as fieldTarget}
+            <option value={fieldTarget.path}>{fieldTarget.label}</option>
+          {/each}
+        </select>
+      </div>
+    {/if}
     <div class="sc-form-row">
       <textarea
         class="sc-search sc-field sc-textarea"

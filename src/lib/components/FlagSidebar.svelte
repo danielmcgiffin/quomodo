@@ -31,10 +31,10 @@
             ⚑ {flag.context}
           </div>
         </div>
-        <div style="margin-top:12px; font-size: var(--sc-font-md);">
+        <div class="sc-copy-md">
           {flag.message}
         </div>
-        <div class="sc-byline" style="margin-top:12px;">
+        <div class="sc-byline sc-byline-stack">
           <slot name="flag-context" {flag}>
             {#if flag.context}
               <span class="sc-portal-name">{flag.context}</span>

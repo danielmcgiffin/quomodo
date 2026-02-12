@@ -33,7 +33,6 @@ It is detailed enough for founder decision-making and for any agent to execute w
 ### What is not implemented
 
 - Full CRUD is incomplete (edit/delete and reorder UX still pending).
-- No command/search surface (`Cmd+K` is visual only).
 - No production-grade rich-text pipeline (currently rendering raw HTML).
 - Supabase generated app typings are not updated to the triad schema yet.
 
@@ -62,7 +61,7 @@ V1 is launch-ready when all of the following are true:
    - Enter via System: see all actions, processes, and roles using it.
    - Enter via Process: see ordered action chain with role and system context.
    - Enter via Flags: see open issues, owner, and target portal.
-3. `Cmd+K` (or search input) returns entities and deep-links to their detail views.
+3. `Ctrl-?` (or search input) returns entities and deep-links to their detail views.
 4. Deploy pipeline is stable on Cloudflare with required env vars and no blocking runtime errors.
 5. Basic quality gates pass: build, typecheck, lint, smoke tests for core flows.
 
@@ -277,7 +276,7 @@ LP-008 route isolation inventory:
 - All `/app` loaders read from Supabase.
 - No production route depends on hardcoded atlas arrays.
 
-- [ ] `LP-022` Centralize mapping from DB rows to UI view-models.
+- [x] `LP-022` Centralize mapping from DB rows to UI view-models.
       Acceptance:
 - Reusable mapping functions power all list/detail pages.
 - No duplicated mapping logic across route loaders.
@@ -288,22 +287,30 @@ LP-008 route isolation inventory:
 
 ### WS4: CRUD and Authoring Flows
 
-- [ ] `LP-030` Implement Roles CRUD (list/create/edit/delete).
+- [x] `LP-030` Implement Roles CRUD (list/create/edit/delete).
       Acceptance:
 - Role changes immediately appear in connected process/system views.
+      Status:
+- Completed 2026-02-12 (role detail edit/delete + linked view propagation via live role loaders).
 
-- [ ] `LP-031` Implement Systems CRUD with owner role linkage.
+- [x] `LP-031` Implement Systems CRUD with owner role linkage.
       Acceptance:
 - System detail shows owning/admin role and related actions.
+      Status:
+- Completed 2026-02-12 (system detail edit/delete + owner role linkage persisted and rendered).
 
-- [ ] `LP-032` Implement Processes CRUD with ordered Actions editor.
+- [x] `LP-032` Implement Processes CRUD with ordered Actions editor.
       Acceptance:
 - Process edit supports action ordering and single role/system assignment per action.
 - Reordering preserves deterministic sequence values.
+      Status:
+- Completed 2026-02-12 (process detail edit/delete added; ordered action editor includes deterministic up/down resequencing).
 
-- [ ] `LP-033` Implement Action CRUD inside Process context.
+- [x] `LP-033` Implement Action CRUD inside Process context.
       Acceptance:
 - Add/update/delete actions updates role and system traversals correctly.
+      Status:
+- Completed 2026-02-12 (process-context delete action flow added; role/system traversals remain loader-derived from actions).
 
 - [x] `LP-034` Implement Flags CRUD from entity pages.
       Acceptance:
@@ -315,28 +322,36 @@ LP-008 route isolation inventory:
 - Member comments create `flags` rows with `flag_type = comment`.
 - Owner/Admin/Editor can moderate comment flags according to policy.
 
-- [ ] `LP-036` Implement field-level flag creation UI.
+- [x] `LP-036` Implement field-level flag creation UI.
       Acceptance:
 - From Process/Action/Role/System pages, user can flag either whole entity or specific field target.
 - `target_path` is populated when field-level option is used.
+      Status:
+- Completed 2026-02-12 (whole-entity vs field target selection added across process/action/role/system pages, including role/system detail; create-flag failures now preserve `createFlagTargetPath` for modal recovery).
 
-- [ ] `LP-037` Add right-rail open flags sidebar on `/app/*` pages.
+- [x] `LP-037` Add right-rail open flags sidebar on `/app/*` pages.
       Acceptance:
 - Each `/app` page renders an open-flags sidebar on the right in desktop layouts.
 - When no open flags exist, the sidebar remains in-position so main content width does not shift.
 - On pages with multiple sidebar sections, flags appears as the top section.
 - `/app/processes` is implemented first as the reference pattern.
+      Status:
+- Completed 2026-02-12 (roles, systems, and flags pages now use the desktop right-rail pattern with flags as the first sidebar section; empty sidebars keep stable layout width).
 
 ### WS5: Retrieval and Search
 
-- [ ] `LP-040` Implement search backend endpoint for entity lookup.
+- [x] `LP-040` Implement search backend endpoint for entity lookup.
       Acceptance:
 - Query returns roles/systems/processes/actions with type and snippet.
+      Status:
+- Completed 2026-02-12 (`/app/search` GET endpoint now returns typed role/system/process/action matches with snippets and route hrefs, including action-to-process deep-link mapping).
 
-- [ ] `LP-041` Implement UI search overlay (`Cmd+K` + click result).
+- [x] `LP-041` Implement UI search overlay (`Ctrl-?` + click result).
       Acceptance:
 - Keyboard shortcut opens search.
 - Selecting result navigates to the correct detail route.
+      Status:
+- Completed 2026-02-12 (`Ctrl-?` app-level overlay wired in `/app` layout; result click deep-links to role/system/process detail and action process routes).
 
 - [ ] `LP-042` Add role/system/process scoped filters for actions.
       Acceptance:
@@ -368,9 +383,11 @@ LP-008 route isolation inventory:
 
 ### WS7: Launch Hardening and Operations
 
-- [ ] `LP-060` Set required Cloudflare env vars in production and preview.
+- [x] `LP-060` Set required Cloudflare env vars in production and preview.
       Acceptance:
 - `PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY`, `PRIVATE_SUPABASE_SERVICE_ROLE`, `PRIVATE_STRIPE_API_KEY` are configured.
+      Status:
+- Completed 2026-02-12 (`npm run cf:secrets:sync` applied secrets to production + preview and `wrangler secret list` verified all four required keys in both environments).
 
 - [ ] `LP-061` Add smoke test checklist for deployed app.
       Acceptance:
@@ -442,16 +459,27 @@ Gate policy for WS8:
 1. `LP-010`, `LP-011`, `LP-012`, `LP-014`, `LP-015`, `LP-016`.
 2. `LP-013` seed script after schema stabilizes.
 
-### Stage C: App wiring
+### Stage C: App wiring and core launch execution (priority override)
 
 1. `LP-020`, `LP-021`, `LP-022`, `LP-023`.
-2. `LP-030` to `LP-036` CRUD and flag/comment flows.
+2. `LP-030` Roles CRUD.
+3. `LP-031` Systems CRUD.
+4. `LP-033` Action CRUD.
+5. `LP-032` Processes CRUD + ordered action editor.
+6. `LP-036` Field-level flag UI.
+7. `LP-037` Right-rail flags on all `/app/*`.
+8. `LP-040` Search backend endpoint.
+9. `LP-041` Search overlay (`Ctrl-?`).
+10. `LP-060` Cloudflare env setup (prod + preview).
+11. `LP-061` Deployed smoke checklist + run.
 
-### Stage D: Retrieval and quality
+### Stage D: Immediate closeout and rich-text decision path
 
-1. `LP-040`, `LP-041`, `LP-042`, `LP-043`.
-2. `LP-051`, `LP-052`, `LP-053`.
-3. `LP-060` to `LP-064`.
+1. `LP-062` Logging/error baseline.
+2. `LP-064` Cloudflare deployment playbook.
+3. `LP-063` Resolve or defer noisy legacy-route warnings.
+4. Resolve rich-text path: complete `LP-051`/`LP-052`/`LP-053` or record explicit V1 de-scope decision in `V1_CHECKLIST.md` and this plan.
+5. `LP-042` and `LP-043` retrieval polish follow after the rich-text decision unless explicitly re-scoped.
 
 ### Stage E: Post-V1 intelligence (data-gated)
 
@@ -464,6 +492,23 @@ Gate policy for WS8:
 ## Delivery Cadence (Suggested)
 
 Use this as a planning baseline, not a hard date commitment.
+
+Current founder-priority execution queue (as of 2026-02-12) supersedes the generic week buckets below until completed:
+
+1. `LP-030`
+2. `LP-031`
+3. `LP-033`
+4. `LP-032`
+5. `LP-036`
+6. `LP-037`
+7. `LP-040`
+8. `LP-041`
+9. `LP-060`
+10. `LP-061`
+11. `LP-062`
+12. `LP-064`
+13. `LP-063`
+14. Resolve `LP-051`/`LP-052`/`LP-053` path (ship or explicit V1 de-scope).
 
 - Week 1:
   - Finalize marketing IA/theme migration (`LP-004` to `LP-007`).
@@ -489,9 +534,9 @@ Use this as a planning baseline, not a hard date commitment.
 
 1. `WS0` + `WS1` + `WS2` first (market-facing clarity, route clarity, schema truth).
 2. `WS3` + `WS4` next (live data and CRUD).
-3. `WS6` parallel with `WS4` (rich text safety before broad editing).
-4. `WS5` after stable CRUD and indexes.
-5. `WS7` final hardening before production announcement.
+3. Execute priority block in this order: `LP-030`, `LP-031`, `LP-033`, `LP-032`, `LP-036`, `LP-037`, `LP-040`, `LP-041`, `LP-060`, `LP-061`.
+4. Immediate closeout order: `LP-062`, `LP-064`, `LP-063`.
+5. Resolve rich-text path (`LP-051` to `LP-053`) or explicitly de-scope for V1 before launch sign-off.
 6. `WS8` only after launch and only with real customer data gates satisfied between each layer.
 
 ## Quality Gates
@@ -514,7 +559,7 @@ Before launch tag:
 4. Log in as `Member`; verify read access and comment flag creation only.
 5. From process detail, click role portal then system portal; verify one-click traversal.
 6. Create field-level flag (`target_path`) and verify it appears in flags dashboard.
-7. Use search (`Cmd+K`) to find one process, one role, one system; verify deep-link navigation.
+7. Use search (`Ctrl-?`) to find one process, one role, one system; verify deep-link navigation.
 8. Run `npx wrangler deploy` in target environment and confirm app boot + no blocking runtime errors.
 
 ## Agent Execution Protocol

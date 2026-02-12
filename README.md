@@ -278,6 +278,17 @@ Cloudflare Pages and Workers is one of the most popular options for deploying Sv
 When prompted: add environment variables for your production environment (PUBLIC_SUPABASE_URL,
 PUBLIC_SUPABASE_ANON_KEY, PRIVATE_SUPABASE_SERVICE_ROLE, and PRIVATE_STRIPE_API_KEY).
 
+For worker deployments, the project keeps production (default Wrangler env) and preview (`env.preview`) in sync with:
+
+```bash
+# Requires CLOUDFLARE_API_TOKEN with Workers/Secrets permissions.
+npm run cf:secrets:sync
+```
+
+`cf:secrets:sync` reads values from your shell (and `.env.local` if present) and writes:
+`PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY`, `PRIVATE_SUPABASE_SERVICE_ROLE`, and `PRIVATE_STRIPE_API_KEY`
+to both production and preview.
+
 Optional: enable [Cloudflare Analytics](https://www.cloudflare.com/en-ca/application-services/products/analytics/) for usage metrics.
 
 ### Deploy Alternatives

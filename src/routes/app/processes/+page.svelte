@@ -1,10 +1,7 @@
 <script lang="ts">
-  import RolePortal from "$lib/components/RolePortal.svelte"
-  import SystemPortal from "$lib/components/SystemPortal.svelte"
-  import RichText from "$lib/components/RichText.svelte"
-  import ScModal from "$lib/components/ScModal.svelte"
+  import CreateProcessModal from "$lib/components/CreateProcessModal.svelte"
   import InlineCreateRoleModal from "$lib/components/InlineCreateRoleModal.svelte"
-  import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
+  import ProcessCardList from "$lib/components/ProcessCardList.svelte"
   import FlagSidebar from "$lib/components/FlagSidebar.svelte"
 
   type RoleBadge = { id: string; slug: string; name: string; initials: string }
@@ -40,6 +37,7 @@
       createFlagError?: string
       createFlagTargetType?: string
       createFlagTargetId?: string
+      createFlagTargetPath?: string
     }
   }
 
@@ -62,73 +60,16 @@
 </script>
 
 <div class="sc-process-page">
-  <ScModal
+  <CreateProcessModal
     bind:open={isCreateProcessModalOpen}
-    title="Add Process"
-    description="Capture key info about the process. All fields required."
-    maxWidth="760px"
-  >
-    <form class="sc-form" method="POST" action="?/createProcess">
-      {#if form?.createProcessError}
-        <div class="sc-form-error">{form.createProcessError}</div>
-      {/if}
-      <div class="sc-form-row">
-        <input
-          class="sc-search sc-field"
-          name="name"
-          placeholder="Process name"
-          required
-        />
-      </div>
-      <div class="sc-form-row">
-        <textarea
-          class="sc-search sc-field sc-textarea"
-          name="description"
-          placeholder="Process description - an explanation about why you do the process"
-          rows="4"
-        ></textarea>
-      </div>
-      <div class="sc-form-row">
-        <textarea
-          class="sc-search sc-field sc-textarea"
-          name="trigger"
-          placeholder="Trigger - What event or schedule kicks off the process?"
-          rows="3"
-        ></textarea>
-        <textarea
-          class="sc-search sc-field sc-textarea"
-          name="end_state"
-          placeholder="Outcome - What should be different at the end of the process?"
-          rows="3"
-        ></textarea>
-      </div>
-      <div class="sc-form-actions">
-        <select class="sc-search sc-field" name="owner_role_id">
-          <option value="">Owner role (optional)</option>
-          {#each data.roles as role}
-            <option value={role.id} selected={form?.createdRoleId === role.id}
-              >{role.name}</option
-            >
-          {/each}
-        </select>
-        <button
-          class="sc-btn secondary"
-          type="button"
-          onclick={() => {
-            isCreateRoleModalOpen = true
-          }}
-        >
-          Create Role
-        </button>
-        <button class="sc-btn" type="submit">Create Process</button>
-      </div>
-      {#if form?.createRoleSuccess}
-        <div class="sc-page-subtitle">
-          Role created. Select it as owner and continue creating your process.
-        </div>
-      {/if}
-    </form>
-  </ScModal>
+    roles={data.roles}
+    createProcessError={form?.createProcessError}
+    createRoleSuccess={form?.createRoleSuccess}
+    createdRoleId={form?.createdRoleId}
+    onOpenRoleModal={() => {
+      isCreateRoleModalOpen = true
+    }}
+  />
 
   <InlineCreateRoleModal
     bind:open={isCreateRoleModalOpen}
@@ -161,85 +102,14 @@
           </button>
         </div>
       </div>
-      <div class="sc-section">
-        {#if data.processes.length === 0}
-          <div class="sc-card">
-            <div class="sc-page-subtitle">
-              No processes yet. Start by writing your first process.
-            </div>
-          </div>
-        {:else}
-          {#each data.processes as process}
-            <article
-              class="sc-card sc-entity-card sc-process-card sc-card-interactive"
-            >
-              <InlineEntityFlagControl
-                action="?/createFlag"
-                targetType="process"
-                targetId={process.id}
-                entityLabel={process.name}
-                viewerRole={data.org.membershipRole}
-                errorMessage={form?.createFlagError}
-                errorTargetType={form?.createFlagTargetType}
-                errorTargetId={form?.createFlagTargetId}
-              />
-              <a
-                class="sc-process-card-link"
-                href={`/app/processes/${process.slug}`}
-              >
-                <div class="sc-process-card-content">
-                  <div class="sc-process-card-info">
-                    <div class="sc-section-title">
-                      <span class="sc-portal sc-portal-process">
-                        {process.name}
-                      </span>
-                    </div>
-                    <div class="sc-page-subtitle">
-                      <RichText html={process.descriptionHtml} />
-                    </div>
-                  </div>
-
-                  <div class="sc-process-badge-rows">
-                    <div class="sc-process-badge-row">
-                      <span class="sc-process-badge-label">Roles</span>
-                      <div class="sc-process-badges">
-                        {#if process.roleBadges.length === 0}
-                          <span class="sc-page-subtitle">None</span>
-                        {:else}
-                          {#each process.roleBadges as role}
-                            <span class="sc-process-badge" title={role.name}>
-                              <RolePortal {role} size="sm" showName={false} />
-                            </span>
-                          {/each}
-                        {/if}
-                      </div>
-                    </div>
-
-                    <div class="sc-process-badge-row">
-                      <span class="sc-process-badge-label">Systems</span>
-                      <div class="sc-process-badges">
-                        {#if process.systemBadges.length === 0}
-                          <span class="sc-page-subtitle">None</span>
-                        {:else}
-                          {#each process.systemBadges as system}
-                            <span class="sc-process-badge" title={system.name}>
-                              <SystemPortal
-                                {system}
-                                size="sm"
-                                showName={false}
-                              />
-                            </span>
-                          {/each}
-                        {/if}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </a>
-            </article>
-          {/each}
-        {/if}
-      </div>
+      <ProcessCardList
+        processes={data.processes}
+        viewerRole={data.org.membershipRole}
+        createFlagError={form?.createFlagError}
+        createFlagTargetType={form?.createFlagTargetType}
+        createFlagTargetId={form?.createFlagTargetId}
+        createFlagTargetPath={form?.createFlagTargetPath}
+      />
     </div>
 
     <aside class="sc-process-sidebar">

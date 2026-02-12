@@ -6,29 +6,20 @@ import {
   isScFlagType,
   type ScFlagType,
 } from "$lib/server/atlas"
-import { mapRolePortals } from "$lib/server/app/mappers/portals"
-
-type ProcessRow = { id: string; slug: string; name: string }
-type RoleRow = { id: string; slug: string; name: string }
-type SystemRow = { id: string; slug: string; name: string }
-type ActionRow = { id: string; process_id: string; sequence: number }
-type FlagRow = {
-  id: string
-  target_type: "process" | "role" | "system" | "action"
-  target_id: string
-  target_path: string | null
-  flag_type: string
-  message: string
-  created_at: string
-  status: string
-}
-type ActionTarget = { id: string; label: string }
-type FlagTargetType = "process" | "role" | "system" | "action"
+import {
+  mapActionTargets,
+  mapFlagsDashboard,
+  mapFlagTargetOptions,
+  type FlagsActionRow,
+  type FlagsProcessRow,
+  type FlagsRoleRow,
+  type FlagsRow,
+  type FlagsSystemRow,
+  type FlagTargetType,
+} from "$lib/server/app/mappers/flags"
 
 const isFlagTargetType = (value: string): value is FlagTargetType =>
   ["process", "role", "system", "action"].includes(value)
-
-const toTargetLabel = (type: string, name: string) => `${type}: ${name}`
 
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
@@ -96,68 +87,29 @@ export const load = async ({ locals }) => {
   }
 
   const processById = new Map(
-    ((processesResult.data ?? []) as ProcessRow[]).map((x) => [x.id, x]),
-  )
-  const roleById = new Map(
-    mapRolePortals((rolesResult.data ?? []) as RoleRow[]).map((x) => [x.id, x]),
+    ((processesResult.data ?? []) as FlagsProcessRow[]).map((x) => [x.id, x]),
   )
   const systemById = new Map(
-    ((systemsResult.data ?? []) as SystemRow[]).map((x) => [x.id, x]),
+    ((systemsResult.data ?? []) as FlagsSystemRow[]).map((x) => [x.id, x]),
   )
 
-  const actionTargets: ActionTarget[] = (
-    (actionsResult.data ?? []) as ActionRow[]
-  ).map((action) => {
-    const process = processById.get(action.process_id)
-    const label = process
-      ? `Action ${action.sequence} in ${process.name}`
-      : `Action ${action.sequence}`
-    return {
-      id: action.id,
-      label,
-    }
+  const actionTargets = mapActionTargets({
+    actionRows: (actionsResult.data ?? []) as FlagsActionRow[],
+    processById,
   })
 
-  const targetOptions = [
-    ...((processesResult.data ?? []) as ProcessRow[]).map((process) => ({
-      value: `process:${process.id}`,
-      label: toTargetLabel("Process", process.name),
-    })),
-    ...((rolesResult.data ?? []) as RoleRow[]).map((role) => ({
-      value: `role:${role.id}`,
-      label: toTargetLabel("Role", role.name),
-    })),
-    ...((systemsResult.data ?? []) as SystemRow[]).map((system) => ({
-      value: `system:${system.id}`,
-      label: toTargetLabel("System", system.name),
-    })),
-    ...actionTargets.map((action) => ({
-      value: `action:${action.id}`,
-      label: toTargetLabel("Action", action.label),
-    })),
-  ]
-
-  const flags = ((flagsResult.data ?? []) as FlagRow[]).map((flag) => {
-    const target =
-      flag.target_type === "process"
-        ? processById.get(flag.target_id)
-        : flag.target_type === "role"
-          ? roleById.get(flag.target_id)
-          : flag.target_type === "system"
-            ? systemById.get(flag.target_id)
-            : actionTargets.find((action) => action.id === flag.target_id)
-
-    return {
-      id: flag.id,
-      targetType: flag.target_type,
-      targetId: flag.target_id,
-      targetPath: flag.target_path,
-      flagType: flag.flag_type,
-      message: flag.message,
-      createdAt: new Date(flag.created_at).toLocaleString(),
-      status: flag.status,
-      target,
-    }
+  const targetOptions = mapFlagTargetOptions({
+    processRows: (processesResult.data ?? []) as FlagsProcessRow[],
+    roleRows: (rolesResult.data ?? []) as FlagsRoleRow[],
+    systemRows: (systemsResult.data ?? []) as FlagsSystemRow[],
+    actionTargets,
+  })
+  const flags = mapFlagsDashboard({
+    flagsRows: (flagsResult.data ?? []) as FlagsRow[],
+    processById,
+    roleRows: (rolesResult.data ?? []) as FlagsRoleRow[],
+    systemById,
+    actionTargets,
   })
 
   return {

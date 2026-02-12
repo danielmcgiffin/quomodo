@@ -10,41 +10,70 @@ import {
   createRoleRecord,
   readRoleDraft,
 } from "$lib/server/app/actions/shared"
+import { mapRoleDirectory, type RoleDirectoryRow } from "$lib/server/app/mappers/directory"
 
-type RoleRow = {
-  id: string
-  slug: string
-  name: string
-  description_rich: unknown
-  person_name: string | null
-  hours_per_week: number | null
-}
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
-  const { data, error } = await supabase
-    .from("roles")
-    .select("id, slug, name, description_rich, person_name, hours_per_week")
-    .eq("org_id", context.orgId)
-    .order("name")
+  const [rolesResult, flagsResult] = await Promise.all([
+    supabase
+      .from("roles")
+      .select("id, slug, name, description_rich, person_name, hours_per_week")
+      .eq("org_id", context.orgId)
+      .order("name"),
+    supabase
+      .from("flags")
+      .select("id, target_id, target_path, flag_type, message, created_at")
+      .eq("org_id", context.orgId)
+      .eq("target_type", "role")
+      .eq("status", "open")
+      .order("created_at", { ascending: false }),
+  ])
 
-  if (error) {
-    throw kitError(500, `Failed to load roles: ${error.message}`)
+  if (rolesResult.error) {
+    throw kitError(500, `Failed to load roles: ${rolesResult.error.message}`)
+  }
+  if (flagsResult.error) {
+    throw kitError(500, `Failed to load flags: ${flagsResult.error.message}`)
   }
 
-  const roles = ((data ?? []) as RoleRow[]).map((row) => ({
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-    initials: makeInitials(row.name),
-    descriptionHtml: richToHtml(row.description_rich),
-    personName: row.person_name ?? "",
-    hoursPerWeek: row.hours_per_week ?? null,
-  }))
+  const roles = mapRoleDirectory({
+    rows: (rolesResult.data ?? []) as RoleDirectoryRow[],
+    makeInitials,
+    richToHtml,
+  })
+  const roleById = new Map(roles.map((role) => [role.id, role]))
+  const openFlags = ((flagsResult.data ?? []) as {
+    id: string
+    target_id: string
+    target_path: string | null
+    flag_type: string
+    message: string
+    created_at: string
+  }[])
+    .map((flag) => {
+      const role = roleById.get(flag.target_id)
+      if (!role) {
+        return null
+      }
+      return {
+        id: flag.id,
+        flagType: flag.flag_type,
+        message: flag.message,
+        targetPath: flag.target_path,
+        createdAt: new Date(flag.created_at).toLocaleString(),
+        role: {
+          slug: role.slug,
+          name: role.name,
+        },
+      }
+    })
+    .filter((flag): flag is NonNullable<typeof flag> => flag !== null)
 
   return {
     org: context,
     roles,
+    openFlags,
   }
 }
 

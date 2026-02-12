@@ -21,6 +21,19 @@ export const readRoleDraft = (formData: FormData): RoleDraft => ({
   hoursRaw: String(formData.get("hours_per_week") ?? "").trim(),
 })
 
+const parseHoursPerWeek = (
+  hoursRaw: string,
+): { ok: true; value: number | null } | { ok: false; message: string } => {
+  const hours = hoursRaw ? Number(hoursRaw) : null
+  if (hoursRaw && Number.isNaN(hours)) {
+    return {
+      ok: false,
+      message: "Hours per week must be numeric.",
+    }
+  }
+  return { ok: true, value: hours }
+}
+
 export const createRoleRecord = async ({
   supabase,
   orgId,
@@ -37,13 +50,9 @@ export const createRoleRecord = async ({
     return { ok: false, status: 400, message: "Role name is required." }
   }
 
-  const hours = draft.hoursRaw ? Number(draft.hoursRaw) : null
-  if (draft.hoursRaw && Number.isNaN(hours)) {
-    return {
-      ok: false,
-      status: 400,
-      message: "Hours per week must be numeric.",
-    }
+  const parsedHours = parseHoursPerWeek(draft.hoursRaw)
+  if (!parsedHours.ok) {
+    return { ok: false, status: 400, message: parsedHours.message }
   }
 
   const slug = await ensureUniqueSlug(supabase, "roles", orgId, draft.name)
@@ -55,7 +64,7 @@ export const createRoleRecord = async ({
       name: draft.name,
       description_rich: plainToRich(draft.description),
       person_name: draft.personName || null,
-      hours_per_week: hours,
+      hours_per_week: parsedHours.value,
     })
     .select("id, slug")
     .single()
@@ -65,6 +74,126 @@ export const createRoleRecord = async ({
   }
 
   return { ok: true, id: data.id, slug: data.slug }
+}
+
+export const updateRoleRecord = async ({
+  supabase,
+  orgId,
+  roleId,
+  draft,
+}: {
+  supabase: SupabaseClient
+  orgId: string
+  roleId: string
+  draft: RoleDraft
+}): Promise<
+  | { ok: true; id: string; slug: string }
+  | { ok: false; status: number; message: string }
+> => {
+  if (!roleId) {
+    return { ok: false, status: 400, message: "Role id is required." }
+  }
+  if (!draft.name) {
+    return { ok: false, status: 400, message: "Role name is required." }
+  }
+
+  const parsedHours = parseHoursPerWeek(draft.hoursRaw)
+  if (!parsedHours.ok) {
+    return { ok: false, status: 400, message: parsedHours.message }
+  }
+
+  const { data: role, error: roleError } = await supabase
+    .from("roles")
+    .select("id, slug")
+    .eq("org_id", orgId)
+    .eq("id", roleId)
+    .maybeSingle()
+
+  if (roleError) {
+    return { ok: false, status: 400, message: roleError.message }
+  }
+  if (!role) {
+    return { ok: false, status: 404, message: "Role not found." }
+  }
+
+  const { error: updateError } = await supabase
+    .from("roles")
+    .update({
+      name: draft.name,
+      description_rich: plainToRich(draft.description),
+      person_name: draft.personName || null,
+      hours_per_week: parsedHours.value,
+    })
+    .eq("org_id", orgId)
+    .eq("id", role.id)
+
+  if (updateError) {
+    return { ok: false, status: 400, message: updateError.message }
+  }
+
+  return { ok: true, id: role.id, slug: role.slug }
+}
+
+export const deleteRoleRecord = async ({
+  supabase,
+  orgId,
+  roleId,
+}: {
+  supabase: SupabaseClient
+  orgId: string
+  roleId: string
+}): Promise<
+  | { ok: true }
+  | { ok: false; status: number; message: string }
+> => {
+  if (!roleId) {
+    return { ok: false, status: 400, message: "Role id is required." }
+  }
+
+  const { data: role, error: roleError } = await supabase
+    .from("roles")
+    .select("id")
+    .eq("org_id", orgId)
+    .eq("id", roleId)
+    .maybeSingle()
+
+  if (roleError) {
+    return { ok: false, status: 400, message: roleError.message }
+  }
+  if (!role) {
+    return { ok: false, status: 404, message: "Role not found." }
+  }
+
+  const { count: actionCount, error: actionCountError } = await supabase
+    .from("actions")
+    .select("id", { count: "exact", head: true })
+    .eq("org_id", orgId)
+    .eq("owner_role_id", role.id)
+
+  if (actionCountError) {
+    return { ok: false, status: 400, message: actionCountError.message }
+  }
+
+  if ((actionCount ?? 0) > 0) {
+    const plural = actionCount === 1 ? "action is" : "actions are"
+    return {
+      ok: false,
+      status: 409,
+      message: `Cannot delete role while ${actionCount} ${plural} assigned to it.`,
+    }
+  }
+
+  const { error: deleteError } = await supabase
+    .from("roles")
+    .delete()
+    .eq("org_id", orgId)
+    .eq("id", role.id)
+
+  if (deleteError) {
+    return { ok: false, status: 400, message: deleteError.message }
+  }
+
+  return { ok: true }
 }
 
 export type SystemDraft = {
@@ -123,6 +252,123 @@ export const createSystemRecord = async ({
   return { ok: true, id: data.id, slug: data.slug }
 }
 
+export const updateSystemRecord = async ({
+  supabase,
+  orgId,
+  systemId,
+  draft,
+}: {
+  supabase: SupabaseClient
+  orgId: string
+  systemId: string
+  draft: SystemDraft
+}): Promise<
+  | { ok: true; id: string; slug: string }
+  | { ok: false; status: number; message: string }
+> => {
+  if (!systemId) {
+    return { ok: false, status: 400, message: "System id is required." }
+  }
+  if (!draft.name) {
+    return { ok: false, status: 400, message: "System name is required." }
+  }
+
+  const { data: system, error: systemError } = await supabase
+    .from("systems")
+    .select("id, slug")
+    .eq("org_id", orgId)
+    .eq("id", systemId)
+    .maybeSingle()
+
+  if (systemError) {
+    return { ok: false, status: 400, message: systemError.message }
+  }
+  if (!system) {
+    return { ok: false, status: 404, message: "System not found." }
+  }
+
+  const ownerRoleId = draft.ownerRoleIdRaw || null
+  const { error: updateError } = await supabase
+    .from("systems")
+    .update({
+      name: draft.name,
+      description_rich: plainToRich(draft.description),
+      location: draft.location || null,
+      url: draft.url || null,
+      owner_role_id: ownerRoleId,
+    })
+    .eq("org_id", orgId)
+    .eq("id", system.id)
+
+  if (updateError) {
+    return { ok: false, status: 400, message: updateError.message }
+  }
+
+  return { ok: true, id: system.id, slug: system.slug }
+}
+
+export const deleteSystemRecord = async ({
+  supabase,
+  orgId,
+  systemId,
+}: {
+  supabase: SupabaseClient
+  orgId: string
+  systemId: string
+}): Promise<
+  | { ok: true }
+  | { ok: false; status: number; message: string }
+> => {
+  if (!systemId) {
+    return { ok: false, status: 400, message: "System id is required." }
+  }
+
+  const { data: system, error: systemError } = await supabase
+    .from("systems")
+    .select("id")
+    .eq("org_id", orgId)
+    .eq("id", systemId)
+    .maybeSingle()
+
+  if (systemError) {
+    return { ok: false, status: 400, message: systemError.message }
+  }
+  if (!system) {
+    return { ok: false, status: 404, message: "System not found." }
+  }
+
+  const { count: actionCount, error: actionCountError } = await supabase
+    .from("actions")
+    .select("id", { count: "exact", head: true })
+    .eq("org_id", orgId)
+    .eq("system_id", system.id)
+
+  if (actionCountError) {
+    return { ok: false, status: 400, message: actionCountError.message }
+  }
+
+  if ((actionCount ?? 0) > 0) {
+    const plural = actionCount === 1 ? "action is" : "actions are"
+    return {
+      ok: false,
+      status: 409,
+      message: `Cannot delete system while ${actionCount} ${plural} linked to it.`,
+    }
+  }
+
+  const { error: deleteError } = await supabase
+    .from("systems")
+    .delete()
+    .eq("org_id", orgId)
+    .eq("id", system.id)
+
+  if (deleteError) {
+    return { ok: false, status: 400, message: deleteError.message }
+  }
+
+  return { ok: true }
+}
+
 type EntityFlagTargetType = "process" | "role" | "system"
 type EntityTargetTable = "processes" | "roles" | "systems"
 
@@ -154,6 +400,7 @@ export const createFlagForEntity = async ({
       createFlagError,
       createFlagTargetType: targetType,
       createFlagTargetId: targetId,
+      createFlagTargetPath: targetPath,
     },
   })
 

@@ -271,6 +271,11 @@ button[disabled].authBtn::before {
   min-width: 0;
 }
 
+.sc-rail-main {
+  width: 100%;
+  max-width: 740px;
+}
+
 .sc-process-sidebar {
   padding-left: 20px;
   box-sizing: border-box;
@@ -436,7 +441,8 @@ button[disabled].authBtn::before {
 }
 
 .sc-action-card-clickable:hover,
-.sc-action-card-clickable:focus-visible {
+.sc-action-card-clickable:focus-visible,
+.sc-action-card-clickable.is-highlighted {
   border-color: var(--sc-green-border);
 }
 
@@ -461,6 +467,32 @@ button[disabled].authBtn::before {
 .sc-action-side-row {
   display: inline-flex;
   justify-content: flex-end;
+}
+
+.sc-action-order-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sc-action-order-form {
+  margin: 0;
+}
+
+.sc-action-order-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--sc-radius-md);
+  border: 1px solid var(--sc-border);
+  background: var(--sc-bg-inset);
+  color: var(--sc-text);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sc-action-order-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .sc-process-badge-rows {
@@ -575,6 +607,11 @@ button[disabled].authBtn::before {
   font-size: var(--avatar-font);
   font-weight: 700;
   letter-spacing: 0.02em;
+}
+
+.sc-avatar-nav {
+  --avatar-size: 36px;
+  --avatar-font: 14px;
 }
 
 .sc-system {
@@ -721,6 +758,58 @@ button[disabled].authBtn::before {
   margin-bottom: 2px;
 }
 
+.sc-form-error-block {
+  color: var(--sc-danger);
+  margin-bottom: 10px;
+}
+
+.sc-copy-md {
+  margin-top: 12px;
+  font-size: var(--sc-font-md);
+}
+
+.sc-stack-top-6 {
+  margin-top: 6px;
+}
+
+.sc-stack-top-8 {
+  margin-top: 8px;
+}
+
+.sc-stack-top-10 {
+  margin-top: 10px;
+}
+
+.sc-stack-top-12 {
+  margin-top: 12px;
+}
+
+.sc-byline-stack {
+  margin-top: 12px;
+}
+
+.sc-actions-stack {
+  margin-top: 12px;
+}
+
+.sc-byline-spaced {
+  margin-bottom: 10px;
+}
+
+.sc-action-description {
+  font-size: var(--sc-font-lg);
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.sc-muted-line {
+  color: var(--sc-text-muted);
+}
+
+.sc-action-label {
+  font-weight: 600;
+}
+
 .sc-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -757,6 +846,26 @@ button[disabled].authBtn::before {
 
 .sc-modal-close {
   white-space: nowrap;
+}
+
+.sc-search-results {
+  margin-top: 14px;
+}
+
+.sc-search-result {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.sc-search-result-title {
+  margin-top: 6px;
+  font-size: var(--sc-font-md);
+  font-weight: 700;
+}
+
+.sc-search-type-pill {
+  text-transform: capitalize;
 }
 
 .sc-toast {
