@@ -7,13 +7,25 @@
   let {
     process,
     showName = true,
+    query = "",
   }: {
     process: ProcessPortalModel
     showName?: boolean
+    query?: string
   } = $props()
+
+  const href = $derived.by(() => {
+    if (!query) {
+      return `/app/processes/${process.slug}`
+    }
+    if (query.startsWith("?")) {
+      return `/app/processes/${process.slug}${query}`
+    }
+    return `/app/processes/${process.slug}?${query}`
+  })
 </script>
 
-<a class="sc-portal sc-portal-process" href={`/app/processes/${process.slug}`}>
+<a class="sc-portal sc-portal-process" {href}>
   {#if showName}
     <span class="sc-portal-name">{process.name}</span>
   {/if}

@@ -5,6 +5,7 @@
   import ScModal from "$lib/components/ScModal.svelte"
   import InlineCreateRoleModal from "$lib/components/InlineCreateRoleModal.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
+  import FlagSidebar from "$lib/components/FlagSidebar.svelte"
 
   let { data, form } = $props()
   let isCreateProcessModalOpen = $state(false)
@@ -24,28 +25,7 @@
   })
 </script>
 
-<div class="sc-page">
-  <div class="sc-page-head">
-    <div class="flex flex-col">
-      <div class="sc-page-title text-2xl font-bold">Processes</div>
-      <div class="sc-page-subtitle">
-        Write down how your work works, and save yourself the headache later.
-      </div>
-    </div>
-
-    <div class="sc-actions">
-      <button
-        class="sc-btn"
-        type="button"
-        onclick={() => {
-          isCreateProcessModalOpen = true
-        }}
-      >
-        Write a Process
-      </button>
-    </div>
-  </div>
-
+<div class="sc-process-page">
   <ScModal
     bind:open={isCreateProcessModalOpen}
     title="Add Process"
@@ -122,81 +102,124 @@
     helperText="This role is immediately available as process owner."
   />
 
-  <div class="sc-section">
-    {#if data.processes.length === 0}
-      <div class="sc-card">
-        <div class="sc-page-subtitle">
-          No processes yet. Start by writing your first process.
+  <div class="sc-process-layout">
+    <div class="sc-process-main">
+      <div class="sc-page-head">
+        <div class="flex flex-col">
+          <div class="sc-page-title text-2xl font-bold">Processes</div>
+          <div class="sc-page-subtitle">
+            Write down how your work works, and save yourself the headache
+            later.
+          </div>
+        </div>
+
+        <div class="sc-actions">
+          <button
+            class="sc-btn"
+            type="button"
+            onclick={() => {
+              isCreateProcessModalOpen = true
+            }}
+          >
+            Write a Process
+          </button>
         </div>
       </div>
-    {:else}
-      {#each data.processes as process}
-        <article class="sc-card sc-entity-card sc-process-card">
-          <InlineEntityFlagControl
-            action="?/createFlag"
-            targetType="process"
-            targetId={process.id}
-            entityLabel={process.name}
-            viewerRole={data.org.membershipRole}
-            errorMessage={form?.createFlagError}
-            errorTargetType={form?.createFlagTargetType}
-            errorTargetId={form?.createFlagTargetId}
-          />
-          <div class="sc-section-title">
-            <a
-              class="sc-portal sc-portal-process"
-              href={`/app/processes/${process.slug}`}
+      <div class="sc-section">
+        {#if data.processes.length === 0}
+          <div class="sc-card">
+            <div class="sc-page-subtitle">
+              No processes yet. Start by writing your first process.
+            </div>
+          </div>
+        {:else}
+          {#each data.processes as process}
+            <article
+              class="sc-card sc-entity-card sc-process-card sc-card-interactive"
             >
-              {process.name}
-            </a>
-          </div>
-          <div class="sc-page-subtitle">
-            <RichText html={process.descriptionHtml} />
-          </div>
-          {#if process.trigger || process.endState}
-            <div class="sc-byline" style="margin-top:10px;">
-              {#if process.trigger}
-                <span class="sc-pill">Trigger: {process.trigger}</span>
-              {/if}
-              {#if process.endState}
-                <span class="sc-pill">Outcome: {process.endState}</span>
-              {/if}
-            </div>
-          {/if}
+              <InlineEntityFlagControl
+                action="?/createFlag"
+                targetType="process"
+                targetId={process.id}
+                entityLabel={process.name}
+                viewerRole={data.org.membershipRole}
+                errorMessage={form?.createFlagError}
+                errorTargetType={form?.createFlagTargetType}
+                errorTargetId={form?.createFlagTargetId}
+              />
+              <a
+                class="sc-process-card-link"
+                href={`/app/processes/${process.slug}`}
+              >
+                <div class="sc-process-card-content">
+                  <div class="sc-process-card-info">
+                    <div class="sc-section-title">
+                      <span class="sc-portal sc-portal-process">
+                        {process.name}
+                      </span>
+                    </div>
+                    <div class="sc-page-subtitle">
+                      <RichText html={process.descriptionHtml} />
+                    </div>
+                  </div>
 
-          <div class="sc-process-badge-rows">
-            <div class="sc-process-badge-row">
-              <span class="sc-process-badge-label">Roles</span>
-              <div class="sc-process-badges">
-                {#if process.roleBadges.length === 0}
-                  <span class="sc-page-subtitle">None linked yet</span>
-                {:else}
-                  {#each process.roleBadges as role}
-                    <span class="sc-process-badge" title={role.name}>
-                      <RolePortal {role} size="sm" showName={false} />
-                    </span>
-                  {/each}
-                {/if}
-              </div>
-            </div>
+                  <div class="sc-process-badge-rows">
+                    <div class="sc-process-badge-row">
+                      <span class="sc-process-badge-label">Roles</span>
+                      <div class="sc-process-badges">
+                        {#if process.roleBadges.length === 0}
+                          <span class="sc-page-subtitle">None</span>
+                        {:else}
+                          {#each process.roleBadges as role}
+                            <span class="sc-process-badge" title={role.name}>
+                              <RolePortal {role} size="sm" showName={false} />
+                            </span>
+                          {/each}
+                        {/if}
+                      </div>
+                    </div>
 
-            <div class="sc-process-badge-row">
-              <span class="sc-process-badge-label">Systems</span>
-              <div class="sc-process-badges">
-                {#if process.systemBadges.length === 0}
-                  <span class="sc-page-subtitle">None linked yet</span>
-                {:else}
-                  {#each process.systemBadges as system}
-                    <span class="sc-process-badge" title={system.name}>
-                      <SystemPortal {system} size="sm" showName={false} />
-                    </span>
-                  {/each}
-                {/if}
-              </div>
-            </div>
-          </div>
-        </article>
-      {/each}
-    {/if}
+                    <div class="sc-process-badge-row">
+                      <span class="sc-process-badge-label">Systems</span>
+                      <div class="sc-process-badges">
+                        {#if process.systemBadges.length === 0}
+                          <span class="sc-page-subtitle">None</span>
+                        {:else}
+                          {#each process.systemBadges as system}
+                            <span class="sc-process-badge" title={system.name}>
+                              <SystemPortal
+                                {system}
+                                size="sm"
+                                showName={false}
+                              />
+                            </span>
+                          {/each}
+                        {/if}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </article>
+          {/each}
+        {/if}
+      </div>
+    </div>
+
+    <aside class="sc-process-sidebar">
+      <FlagSidebar
+        title="Flags"
+        flags={data.openFlags.map((flag) => ({
+          id: flag.id,
+          href: `/app/processes/${flag.process.slug}?flagId=${flag.id}`,
+          flagType: flag.flagType ?? "flag",
+          createdAt: flag.createdAt,
+          message: flag.message,
+          context: flag.process.name,
+          targetPath: flag.targetPath,
+        }))}
+        highlightedFlagId={null}
+      />
+    </aside>
   </div>
 </div>

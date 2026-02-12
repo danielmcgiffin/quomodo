@@ -48,6 +48,7 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [x] Sub-entity flag targeting (`target_path`) support
 - [x] Flags dashboard (global)
 - [x] Resolve/Dismiss flow
+- [ ] Right-side flags sidebar on all `/app/*` pages with stable main-content width (started on `/app/processes`)
 
 ## Deployment
 
@@ -59,3 +60,11 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 
 - [x] Legacy starter routes are explicitly marked as deferred (`LP-008`) with TODO markers in retained files
 - [x] Active SystemsCraft routes vs retained legacy routes are documented in `LAUNCH_PLAN.md`
+
+## Post-V1: Data-Gated Intelligence (Non-Blocking for V1)
+
+- [ ] `LP-070` Real customer data readiness gate + telemetry baseline for search/docs
+- [ ] `LP-071` Deterministic search quality improvements using real customer query logs
+- [ ] `LP-072` Ad hoc documentation v1 (template-based export, no LLM)
+- [ ] `LP-073` NLP search beta (hybrid lexical + semantic) behind feature flag
+- [ ] `LP-074` Ad hoc documentation v2 (LLM-assisted with citations + human review)

@@ -8,6 +8,7 @@
     title = "Add Role",
     description = "Create a role.",
     helperText = "This role is immediately available.",
+    actionDescriptionDraft = "",
     maxWidth = "760px",
   }: {
     open?: boolean
@@ -16,30 +17,30 @@
     title?: string
     description?: string
     helperText?: string
+    actionDescriptionDraft?: string
     maxWidth?: string
   } = $props()
 </script>
 
-<ScModal bind:open={open} {title} {description} {maxWidth}>
-  <form class="sc-form" method="POST" action={action}>
+<ScModal bind:open {title} {description} {maxWidth}>
+  <form class="sc-form" method="POST" {action}>
+    <input
+      type="hidden"
+      name="action_description_draft"
+      value={actionDescriptionDraft}
+    />
     {#if errorMessage}
       <div class="sc-form-error">{errorMessage}</div>
     {/if}
     <div class="sc-form-row">
-      <input class="sc-search sc-field" name="name" placeholder="Role name" required />
-    </div>
-    <div class="sc-form-row">
       <input
         class="sc-search sc-field"
-        name="person_name"
-        placeholder="Person name (optional)"
-      />
-      <input
-        class="sc-search sc-field"
-        name="hours_per_week"
-        placeholder="Hours per week (optional)"
+        name="name"
+        placeholder="Role name"
+        required
       />
     </div>
+    <div class="sc-form-row"></div>
     <div class="sc-form-row">
       <textarea
         class="sc-search sc-field sc-textarea"

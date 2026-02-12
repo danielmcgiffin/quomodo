@@ -1,6 +1,6 @@
 # SystemsCraft Launch Plan
 
-Last updated: 2026-02-11
+Last updated: 2026-02-12
 Owner: Danny McGiffin
 Status: Active plan for V1 launch
 
@@ -77,6 +77,7 @@ V1 is launch-ready when all of the following are true:
 - Comments are modeled as `flags` with `flag_type = comment`.
 - Flags can target whole entities and optional sub-entity paths via `target_path`.
 - AI and vector retrieval are out of V1 scope.
+- NLP search and ad hoc documentation generation are post-V1 work, gated on real customer data (`WS8`, `LP-070` to `LP-074`).
 
 ## Concrete V1 Architecture (Target)
 
@@ -319,6 +320,13 @@ LP-008 route isolation inventory:
 - From Process/Action/Role/System pages, user can flag either whole entity or specific field target.
 - `target_path` is populated when field-level option is used.
 
+- [ ] `LP-037` Add right-rail open flags sidebar on `/app/*` pages.
+      Acceptance:
+- Each `/app` page renders an open-flags sidebar on the right in desktop layouts.
+- When no open flags exist, the sidebar remains in-position so main content width does not shift.
+- On pages with multiple sidebar sections, flags appears as the top section.
+- `/app/processes` is implemented first as the reference pattern.
+
 ### WS5: Retrieval and Search
 
 - [ ] `LP-040` Implement search backend endpoint for entity lookup.
@@ -382,6 +390,46 @@ LP-008 route isolation inventory:
 - Single runbook covers `npm run build`, `npx wrangler deploy`, required vars/secrets, and rollback strategy.
 - No Vercel deployment instructions remain in active docs.
 
+### WS8: Post-V1 Intelligence and Documentation (Data-Gated)
+
+Gate policy for WS8:
+
+- Each layer must be independently shippable and valuable on its own.
+- Progression is strictly sequential and requires real customer data evidence before starting the next layer.
+- Seed/dev/internal org data does not satisfy progression gates.
+
+- [ ] `LP-070` Define and implement real customer data readiness gate.
+      Acceptance:
+- Telemetry exists for search queries, zero-result queries, click-through, and doc generation usage by `org_id`.
+- Real customer orgs are explicitly distinguished from seed/dev/internal orgs in analytics.
+- A written baseline threshold exists for moving from `LP-070` to `LP-071` (customer org count, query volume, entity corpus coverage).
+
+- [ ] `LP-071` Deterministic retrieval quality baseline (no AI).
+      Acceptance:
+- Existing search (`LP-040` to `LP-043`) is enhanced with typo tolerance, synonym handling, and zero-result instrumentation.
+- Search quality report uses real customer queries and includes baseline metrics (success proxy, zero-result rate, click-through).
+- Exit gate to `LP-072` is documented and met using real customer data.
+
+- [ ] `LP-072` Ad hoc documentation v1 (template-based, no LLM).
+      Acceptance:
+- Users can generate process/role/system docs in at least Markdown and one share format (HTML or PDF).
+- Generated docs include source entity links, flag summary, and generated timestamp/version metadata.
+- Adoption metrics and qualitative feedback are captured from real customer org usage.
+- Exit gate to `LP-073` is documented and met using real customer data.
+
+- [ ] `LP-073` NLP search beta (hybrid lexical + semantic) behind feature flag.
+      Acceptance:
+- Semantic retrieval (embedding/vector) is introduced behind org-level feature flags with rollback controls.
+- Results show citation context and confidence/reason signals sufficient for user trust/debugging.
+- Real-customer A/B comparison demonstrates measurable lift over `LP-071` baseline at acceptable latency/cost.
+- Exit gate to `LP-074` is documented and met using real customer data.
+
+- [ ] `LP-074` Ad hoc documentation v2 (LLM-assisted with citations + review).
+      Acceptance:
+- Users can generate narrative docs from atlas entities with mandatory source citations.
+- Human review/approval is required before publish/export, with correction logging.
+- Production readiness is based on factuality and correction-rate targets measured on real customer review samples.
+
 ## Execution Order With Dependencies
 
 ### Stage A: Foundation
@@ -405,6 +453,14 @@ LP-008 route isolation inventory:
 2. `LP-051`, `LP-052`, `LP-053`.
 3. `LP-060` to `LP-064`.
 
+### Stage E: Post-V1 intelligence (data-gated)
+
+1. `LP-070` (customer-data telemetry + readiness gate).
+2. `LP-071` deterministic retrieval improvements using real query logs.
+3. `LP-072` ad hoc docs v1 (template-based).
+4. `LP-073` NLP search beta (hybrid retrieval under feature flag).
+5. `LP-074` ad hoc docs v2 (LLM-assisted + citations + review).
+
 ## Delivery Cadence (Suggested)
 
 Use this as a planning baseline, not a hard date commitment.
@@ -422,6 +478,12 @@ Use this as a planning baseline, not a hard date commitment.
   - Search + retrieval polish + rich text hardening (`LP-040` to `LP-053`).
 - Week 6:
   - Hardening, smoke tests, deployment playbook, launch gate (`LP-060` to `LP-064`).
+- Post-launch (data-gated):
+  - Layer 1: real-customer data gate + telemetry (`LP-070`).
+  - Layer 2: deterministic retrieval quality baseline (`LP-071`).
+  - Layer 3: ad hoc docs v1 template generation (`LP-072`).
+  - Layer 4: NLP search beta (`LP-073`).
+  - Layer 5: ad hoc docs v2 with citations and review (`LP-074`).
 
 ## Launch Sequence (Recommended)
 
@@ -430,6 +492,7 @@ Use this as a planning baseline, not a hard date commitment.
 3. `WS6` parallel with `WS4` (rich text safety before broad editing).
 4. `WS5` after stable CRUD and indexes.
 5. `WS7` final hardening before production announcement.
+6. `WS8` only after launch and only with real customer data gates satisfied between each layer.
 
 ## Quality Gates
 

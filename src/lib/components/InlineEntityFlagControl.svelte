@@ -57,12 +57,12 @@
 </button>
 
 <ScModal
-  bind:open={open}
+  bind:open
   title={`Flag ${entityLabel}`}
   description="Report stale, incorrect, or questionable details."
   maxWidth="680px"
 >
-  <form class="sc-form" method="POST" action={action}>
+  <form class="sc-form" method="POST" {action}>
     {#if showError}
       <div class="sc-form-error">{errorMessage}</div>
     {/if}

@@ -29,9 +29,14 @@ type ActionRow = {
 }
 type RoleRow = { id: string; slug: string; name: string }
 type SystemRow = { id: string; slug: string; name: string }
-type FlagRow = { id: string; flag_type: string; message: string }
+type FlagRow = {
+  id: string
+  flag_type: string
+  message: string
+  created_at: string
+}
 
-export const load = async ({ params, locals }) => {
+export const load = async ({ params, locals, url }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
 
@@ -74,7 +79,7 @@ export const load = async ({ params, locals }) => {
         .order("name"),
       supabase
         .from("flags")
-        .select("id, flag_type, message")
+        .select("id, flag_type, message, created_at")
         .eq("org_id", context.orgId)
         .eq("target_type", "process")
         .eq("target_id", processRow.id)
@@ -161,8 +166,10 @@ export const load = async ({ params, locals }) => {
       id: flag.id,
       flagType: flag.flag_type,
       message: flag.message,
+      createdAt: new Date(flag.created_at).toLocaleString(),
     })),
     viewerRole: context.membershipRole,
+    highlightedFlagId: url.searchParams.get("flagId") ?? null,
   }
 }
 
@@ -178,12 +185,20 @@ export const actions = {
     const description = String(formData.get("description") ?? "").trim()
     const ownerRoleId = String(formData.get("owner_role_id") ?? "").trim()
     const systemId = String(formData.get("system_id") ?? "").trim()
+    const actionId = String(formData.get("action_id") ?? "").trim()
     const sequenceRaw = String(formData.get("sequence") ?? "").trim()
 
-    if (!description || !ownerRoleId || !systemId) {
-      return fail(400, {
-        createActionError: "Description, role, and system are required.",
+    const failAction = (status: number, createActionError: string) =>
+      fail(status, {
+        createActionError,
+        actionDescriptionDraft: description,
+        selectedOwnerRoleId: ownerRoleId,
+        selectedSystemId: systemId,
+        editingActionId: actionId || null,
       })
+
+    if (!description || !ownerRoleId || !systemId) {
+      return failAction(400, "Description, role, and system are required.")
     }
 
     const { data: process, error: processError } = await supabase
@@ -194,7 +209,37 @@ export const actions = {
       .maybeSingle()
 
     if (processError || !process) {
-      return fail(404, { createActionError: "Process not found." })
+      return failAction(404, "Process not found.")
+    }
+
+    if (actionId) {
+      const { data: actionTarget, error: actionTargetError } = await supabase
+        .from("actions")
+        .select("id")
+        .eq("org_id", context.orgId)
+        .eq("process_id", process.id)
+        .eq("id", actionId)
+        .maybeSingle()
+
+      if (actionTargetError || !actionTarget) {
+        return failAction(404, "Action not found.")
+      }
+
+      const { error: updateError } = await supabase
+        .from("actions")
+        .update({
+          description_rich: plainToRich(description),
+          owner_role_id: ownerRoleId,
+          system_id: systemId,
+        })
+        .eq("org_id", context.orgId)
+        .eq("id", actionId)
+
+      if (updateError) {
+        return failAction(400, updateError.message)
+      }
+
+      redirect(303, `/app/processes/${params.slug}`)
     }
 
     let sequence = Number(sequenceRaw)
@@ -220,7 +265,7 @@ export const actions = {
     })
 
     if (error) {
-      return fail(400, { createActionError: error.message })
+      return failAction(400, error.message)
     }
 
     redirect(303, `/app/processes/${params.slug}`)
@@ -236,16 +281,25 @@ export const actions = {
 
     const name = String(formData.get("name") ?? "").trim()
     const description = String(formData.get("description") ?? "").trim()
+    const actionDescriptionDraft = String(
+      formData.get("action_description_draft") ?? "",
+    )
     const personName = String(formData.get("person_name") ?? "").trim()
     const hoursRaw = String(formData.get("hours_per_week") ?? "").trim()
 
     if (!name) {
-      return fail(400, { createRoleError: "Role name is required." })
+      return fail(400, {
+        createRoleError: "Role name is required.",
+        actionDescriptionDraft,
+      })
     }
 
     const hours = hoursRaw ? Number(hoursRaw) : null
     if (hoursRaw && Number.isNaN(hours)) {
-      return fail(400, { createRoleError: "Hours per week must be numeric." })
+      return fail(400, {
+        createRoleError: "Hours per week must be numeric.",
+        actionDescriptionDraft,
+      })
     }
 
     const slug = await ensureUniqueSlug(supabase, "roles", context.orgId, name)
@@ -263,10 +317,17 @@ export const actions = {
       .single()
 
     if (error) {
-      return fail(400, { createRoleError: error.message })
+      return fail(400, {
+        createRoleError: error.message,
+        actionDescriptionDraft,
+      })
     }
 
-    return { createRoleSuccess: true, createdRoleId: data.id }
+    return {
+      createRoleSuccess: true,
+      createdRoleId: data.id,
+      actionDescriptionDraft,
+    }
   },
 
   createSystem: async ({ request, locals }) => {
@@ -279,12 +340,18 @@ export const actions = {
 
     const name = String(formData.get("name") ?? "").trim()
     const description = String(formData.get("description") ?? "").trim()
+    const actionDescriptionDraft = String(
+      formData.get("action_description_draft") ?? "",
+    )
     const location = String(formData.get("location") ?? "").trim()
     const url = String(formData.get("url") ?? "").trim()
     const ownerRoleIdRaw = String(formData.get("owner_role_id") ?? "").trim()
 
     if (!name) {
-      return fail(400, { createSystemError: "System name is required." })
+      return fail(400, {
+        createSystemError: "System name is required.",
+        actionDescriptionDraft,
+      })
     }
 
     const slug = await ensureUniqueSlug(
@@ -310,10 +377,17 @@ export const actions = {
       .single()
 
     if (error) {
-      return fail(400, { createSystemError: error.message })
+      return fail(400, {
+        createSystemError: error.message,
+        actionDescriptionDraft,
+      })
     }
 
-    return { createSystemSuccess: true, createdSystemId: data.id }
+    return {
+      createSystemSuccess: true,
+      createdSystemId: data.id,
+      actionDescriptionDraft,
+    }
   },
 
   createFlag: async ({ request, params, locals }) => {

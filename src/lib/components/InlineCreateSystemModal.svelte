@@ -15,6 +15,7 @@
     title = "Add System",
     description = "Create a system.",
     helperText = "This system is immediately available.",
+    actionDescriptionDraft = "",
     maxWidth = "760px",
   }: {
     open?: boolean
@@ -25,25 +26,35 @@
     title?: string
     description?: string
     helperText?: string
+    actionDescriptionDraft?: string
     maxWidth?: string
   } = $props()
 </script>
 
-<ScModal bind:open={open} {title} {description} {maxWidth}>
-  <form class="sc-form" method="POST" action={action}>
+<ScModal bind:open {title} {description} {maxWidth}>
+  <form class="sc-form" method="POST" {action}>
+    <input
+      type="hidden"
+      name="action_description_draft"
+      value={actionDescriptionDraft}
+    />
     {#if errorMessage}
       <div class="sc-form-error">{errorMessage}</div>
     {/if}
     <div class="sc-form-row">
-      <input class="sc-search sc-field" name="name" placeholder="System name" required />
+      <input
+        class="sc-search sc-field"
+        name="name"
+        placeholder="System name"
+        required
+      />
+    </div>
+    <div class="sc-form-row">
       <input
         class="sc-search sc-field"
         name="location"
         placeholder="Location (URL or app section)"
       />
-    </div>
-    <div class="sc-form-row">
-      <input class="sc-search sc-field" name="url" placeholder="Public URL" />
       <select class="sc-search sc-field" name="owner_role_id">
         <option value="">Owner role (optional)</option>
         {#each roles as role}

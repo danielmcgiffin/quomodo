@@ -158,7 +158,9 @@ const main = async () => {
   ])
 
   console.log("SystemsCraft dev seed complete.")
-  console.log(`owner_user_id=${owner.userId} (${owner.created ? "created" : "reused"})`)
+  console.log(
+    `owner_user_id=${owner.userId} (${owner.created ? "created" : "reused"})`,
+  )
   console.log(`org_id=${seededOrgId}`)
   console.log(
     `counts roles=${roles} systems=${systems} processes=${processes} actions=${actions} flags=${flags}`,

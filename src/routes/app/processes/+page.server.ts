@@ -26,6 +26,14 @@ type ActionRow = {
   system_id: string | null
   owner_role_id: string | null
 }
+type FlagRow = {
+  id: string
+  target_id: string
+  target_path: string | null
+  flag_type: string
+  message: string
+  created_at: string
+}
 
 const toRole = (row: RoleRow) => ({
   id: row.id,
@@ -44,31 +52,43 @@ export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
 
-  const [rolesResult, systemsResult, processesResult, actionsResult] =
-    await Promise.all([
-      supabase
-        .from("roles")
-        .select("id, slug, name")
-        .eq("org_id", context.orgId)
-        .order("name"),
-      supabase
-        .from("systems")
-        .select("id, slug, name")
-        .eq("org_id", context.orgId)
-        .order("name"),
-      supabase
-        .from("processes")
-        .select(
-          "id, slug, name, description_rich, trigger, end_state, owner_role_id",
-        )
-        .eq("org_id", context.orgId)
-        .order("name"),
-      supabase
-        .from("actions")
-        .select("process_id, system_id, owner_role_id")
-        .eq("org_id", context.orgId)
-        .order("process_id"),
-    ])
+  const [
+    rolesResult,
+    systemsResult,
+    processesResult,
+    actionsResult,
+    flagsResult,
+  ] = await Promise.all([
+    supabase
+      .from("roles")
+      .select("id, slug, name")
+      .eq("org_id", context.orgId)
+      .order("name"),
+    supabase
+      .from("systems")
+      .select("id, slug, name")
+      .eq("org_id", context.orgId)
+      .order("name"),
+    supabase
+      .from("processes")
+      .select(
+        "id, slug, name, description_rich, trigger, end_state, owner_role_id",
+      )
+      .eq("org_id", context.orgId)
+      .order("name"),
+    supabase
+      .from("actions")
+      .select("process_id, system_id, owner_role_id")
+      .eq("org_id", context.orgId)
+      .order("process_id"),
+    supabase
+      .from("flags")
+      .select("id, target_id, target_path, flag_type, message, created_at")
+      .eq("org_id", context.orgId)
+      .eq("target_type", "process")
+      .eq("status", "open")
+      .order("created_at", { ascending: false }),
+  ])
 
   if (rolesResult.error) {
     throw kitError(500, `Failed to load roles: ${rolesResult.error.message}`)
@@ -91,14 +111,28 @@ export const load = async ({ locals }) => {
       `Failed to load actions: ${actionsResult.error.message}`,
     )
   }
+  if (flagsResult.error) {
+    throw kitError(500, `Failed to load flags: ${flagsResult.error.message}`)
+  }
 
   const roles = ((rolesResult.data ?? []) as RoleRow[]).map(toRole)
   const systems = ((systemsResult.data ?? []) as SystemRow[]).map(toSystem)
+  const processRows = (processesResult.data ?? []) as ProcessRow[]
   const roleById = new Map(
     roles.map((role: ReturnType<typeof toRole>) => [role.id, role]),
   )
   const systemById = new Map(
     systems.map((system: ReturnType<typeof toSystem>) => [system.id, system]),
+  )
+  const processById = new Map(
+    processRows.map((row) => [
+      row.id,
+      {
+        id: row.id,
+        slug: row.slug,
+        name: row.name,
+      },
+    ]),
   )
 
   const roleIdsByProcess = new Map<string, Set<string>>()
@@ -118,7 +152,7 @@ export const load = async ({ locals }) => {
     }
   }
 
-  const processes = ((processesResult.data ?? []) as ProcessRow[])
+  const processes = processRows
     .map((row) => {
       const ownerRole = row.owner_role_id
         ? (roleById.get(row.owner_role_id) ?? null)
@@ -160,11 +194,44 @@ export const load = async ({ locals }) => {
       a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
     )
 
+  const openFlags = ((flagsResult.data ?? []) as FlagRow[])
+    .map((flag) => {
+      const process = processById.get(flag.target_id)
+      if (!process) {
+        return null
+      }
+      return {
+        id: flag.id,
+        flagType: flag.flag_type,
+        message: flag.message,
+        targetPath: flag.target_path,
+        createdAt: new Date(flag.created_at).toLocaleString(),
+        process,
+      }
+    })
+    .filter(
+      (
+        flag,
+      ): flag is {
+        id: string
+        flagType: string
+        message: string
+        targetPath: string | null
+        createdAt: string
+        process: {
+          id: string
+          slug: string
+          name: string
+        }
+      } => Boolean(flag),
+    )
+
   return {
     org: context,
     roles,
     systems,
     processes,
+    openFlags,
   }
 }
 

@@ -35,26 +35,44 @@
 </script>
 
 <div class="sc-app">
-  <nav class="sc-nav">
+  <nav class="sc-nav width-full mx-64">
     <div class="sc-nav-inner">
-      <div class="sc-tabs">
-        {#each navItems as item}
-          <a
-            class={`sc-tab ${$page.url.pathname.startsWith(item.href) ? "is-active" : ""}`}
-            href={item.href}
-          >
-            <span>{item.label} ({item.count})</span>
-          </a>
-        {/each}
+      <div class="sc-nav-edge sc-nav-edge--start">
+        <a class="sc-brand" href="/app/processes">
+          <img
+            src="/images/1746823640049.jpeg"
+            alt="SystemsCraft"
+            width="36"
+            height="36"
+          />
+          <span>SystemsCraft</span>
+        </a>
       </div>
-      <div class="sc-actions">
-        <button class="sc-search" type="button">
-          <span>Search</span>
-          <span>(Ctrl-?)</span>
-        </button>
-        <span class="sc-avatar" style="--avatar-size:36px;--avatar-font:14px;">
-          {data.viewerInitials}
-        </span>
+      <div class="sc-nav-body">
+        <div class="sc-tabs">
+          {#each navItems as item}
+            <a
+              class={`sc-tab ${$page.url.pathname.startsWith(item.href) ? "is-active" : ""}`}
+              href={item.href}
+            >
+              <span>{item.label} ({item.count})</span>
+            </a>
+          {/each}
+        </div>
+      </div>
+      <div class="sc-nav-edge sc-nav-edge--end">
+        <div class="sc-actions">
+          <button class="sc-search" type="button">
+            <span>Search</span>
+            <span>(Ctrl-?)</span>
+          </button>
+          <span
+            class="sc-avatar"
+            style="--avatar-size:36px;--avatar-font:14px;"
+          >
+            {data.viewerInitials}
+          </span>
+        </div>
       </div>
     </div>
   </nav>
