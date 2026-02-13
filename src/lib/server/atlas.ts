@@ -271,6 +271,7 @@ const resolveOrgContext = async (locals: App.Locals): Promise<OrgContext> => {
       `${displayName}'s Workspace`,
     )
     locals.activeWorkspaceId = org.id
+    locals.workspaceJustCreated = true
     return {
       orgId: org.id,
       orgName: org.name,
@@ -280,6 +281,7 @@ const resolveOrgContext = async (locals: App.Locals): Promise<OrgContext> => {
   }
 
   locals.activeWorkspaceId = membership.org_id
+  locals.workspaceJustCreated = false
 
   const { data: org, error: orgError } = await supabase
     .from("orgs")

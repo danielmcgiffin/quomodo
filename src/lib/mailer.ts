@@ -12,6 +12,20 @@ Accept invite: {{{inviteLink}}}`
 
 const teamInviteHtml = `<html><body><p>You've been invited to join <strong>{{{workspaceName}}}</strong> on {{{companyName}}}.</p><p><a href="{{{inviteLink}}}">Accept invite</a></p></body></html>`
 
+const ownershipTransferText = `Ownership transfer requested for {{{workspaceName}}}.
+
+Accept transfer: {{{transferLink}}}
+
+If you weren't expecting this, you can ignore this email.`
+
+const ownershipTransferHtml = `<html><body><p><strong>Ownership transfer requested</strong> for <strong>{{{workspaceName}}}</strong>.</p><p><a href="{{{transferLink}}}">Accept ownership transfer</a></p><p>If you weren't expecting this, you can ignore this email.</p></body></html>`
+
+const ownershipTransferCompleteText = `Ownership transfer complete for {{{workspaceName}}}.
+
+Open workspace: {{{workspaceLink}}}`
+
+const ownershipTransferCompleteHtml = `<html><body><p><strong>Ownership transfer complete</strong> for <strong>{{{workspaceName}}}</strong>.</p><p><a href="{{{workspaceLink}}}">Open workspace</a></p></body></html>`
+
 const EMAIL_TEMPLATES: Record<string, { text?: string; html?: string }> = {
   welcome_email: {
     text: welcomeEmailText,
@@ -20,6 +34,14 @@ const EMAIL_TEMPLATES: Record<string, { text?: string; html?: string }> = {
   team_invite: {
     text: teamInviteText,
     html: teamInviteHtml,
+  },
+  ownership_transfer: {
+    text: ownershipTransferText,
+    html: ownershipTransferHtml,
+  },
+  ownership_transfer_complete: {
+    text: ownershipTransferCompleteText,
+    html: ownershipTransferCompleteHtml,
   },
 }
 

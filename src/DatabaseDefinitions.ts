@@ -201,6 +201,66 @@ export interface Database {
         }
         Relationships: []
       }
+      org_ownership_transfers: {
+        Row: {
+          id: string
+          org_id: string
+          token_hash: string
+          from_owner_id: string
+          to_owner_id: string
+          initiated_by_user_id: string
+          prior_owner_role_after:
+            | Database["public"]["Enums"]["sc_membership_role"]
+            | null
+          prior_owner_leave: boolean
+          status: Database["public"]["Enums"]["sc_ownership_transfer_status"]
+          expires_at: string
+          created_at: string
+          accepted_at: string | null
+          accepted_by_user_id: string | null
+          cancelled_at: string | null
+          cancelled_by_user_id: string | null
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          token_hash: string
+          from_owner_id: string
+          to_owner_id: string
+          initiated_by_user_id: string
+          prior_owner_role_after?:
+            | Database["public"]["Enums"]["sc_membership_role"]
+            | null
+          prior_owner_leave?: boolean
+          status?: Database["public"]["Enums"]["sc_ownership_transfer_status"]
+          expires_at: string
+          created_at?: string
+          accepted_at?: string | null
+          accepted_by_user_id?: string | null
+          cancelled_at?: string | null
+          cancelled_by_user_id?: string | null
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          token_hash?: string
+          from_owner_id?: string
+          to_owner_id?: string
+          initiated_by_user_id?: string
+          prior_owner_role_after?:
+            | Database["public"]["Enums"]["sc_membership_role"]
+            | null
+          prior_owner_leave?: boolean
+          status?: Database["public"]["Enums"]["sc_ownership_transfer_status"]
+          expires_at?: string
+          created_at?: string
+          accepted_at?: string | null
+          accepted_by_user_id?: string | null
+          cancelled_at?: string | null
+          cancelled_by_user_id?: string | null
+        }
+        Relationships: []
+      }
       roles: {
         Row: {
           id: string
@@ -435,7 +495,28 @@ export interface Database {
       }
     }
     Functions: {
-      [_ in never]: never
+      sc_accept_ownership_transfer: {
+        Args: {
+          p_token_hash: string
+        }
+        Returns: string
+      }
+      sc_cancel_ownership_transfer: {
+        Args: {
+          p_org_id: string
+        }
+        Returns: undefined
+      }
+      sc_create_ownership_transfer: {
+        Args: {
+          p_org_id: string
+          p_to_user_id: string
+          p_token_hash: string
+          p_prior_owner_disposition: string
+          p_expires_at: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       sc_entity_type: "role" | "system" | "process" | "action"
@@ -446,6 +527,7 @@ export interface Database {
         | "needs_review"
         | "question"
         | "comment"
+      sc_ownership_transfer_status: "pending" | "accepted" | "cancelled"
       sc_membership_role: "owner" | "admin" | "editor" | "member"
     }
     CompositeTypes: {

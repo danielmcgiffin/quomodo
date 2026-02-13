@@ -5,12 +5,29 @@
     data: {
       org: {
         orgName: string
+        membershipRole?: WorkspaceRole
       }
       updated: boolean
       removed: boolean
       inviteCreated: boolean
       inviteRevoked: boolean
+      ownershipTransferInitiated: boolean
+      ownershipTransferCancelled: boolean
+      ownershipTransferAccepted: boolean
       inviteRoleOptions: WorkspaceRole[]
+      canTransferOwnership: boolean
+      pendingOwnershipTransfer: {
+        id: string
+        recipientName: string
+        recipientUserId: string
+        createdAt: string
+        expiresAt: string
+        priorOwnerDisposition: "admin" | "editor" | "leave"
+      } | null
+      ownershipTransferRecipients: {
+        userId: string
+        displayName: string
+      }[]
       members: {
         id: string
         userId: string
@@ -42,6 +59,8 @@
       createInviteError?: string
       revokeInviteError?: string
       inviteEmailDraft?: string
+      ownershipTransferError?: string
+      cancelOwnershipTransferError?: string
     }
   }
 
@@ -94,6 +113,30 @@
     </div>
   {/if}
 
+  {#if data.ownershipTransferInitiated}
+    <div class="sc-card sc-stack-top-12">
+      <div class="font-semibold">Ownership transfer initiated.</div>
+      <div class="sc-muted-line sc-stack-top-6">
+        The recipient has been notified and must accept the transfer to complete it.
+      </div>
+    </div>
+  {/if}
+
+  {#if data.ownershipTransferCancelled}
+    <div class="sc-card sc-stack-top-12">
+      <div class="font-semibold">Ownership transfer cancelled.</div>
+    </div>
+  {/if}
+
+  {#if data.ownershipTransferAccepted}
+    <div class="sc-card sc-stack-top-12">
+      <div class="font-semibold">Ownership transfer accepted.</div>
+      <div class="sc-muted-line sc-stack-top-6">
+        Workspace ownership and roles have been updated.
+      </div>
+    </div>
+  {/if}
+
   {#if form?.updateMemberRoleError}
     <div class="sc-card sc-stack-top-12">
       <div class="sc-form-error">{form.updateMemberRoleError}</div>
@@ -116,6 +159,91 @@
     <div class="sc-card sc-stack-top-12">
       <div class="sc-form-error">{form.revokeInviteError}</div>
     </div>
+  {/if}
+
+  {#if form?.ownershipTransferError}
+    <div class="sc-card sc-stack-top-12">
+      <div class="sc-form-error">{form.ownershipTransferError}</div>
+    </div>
+  {/if}
+
+  {#if form?.cancelOwnershipTransferError}
+    <div class="sc-card sc-stack-top-12">
+      <div class="sc-form-error">{form.cancelOwnershipTransferError}</div>
+    </div>
+  {/if}
+
+  {#if data.canTransferOwnership}
+    <section class="sc-card sc-stack-top-12">
+      <div class="font-semibold">Ownership transfer</div>
+      <div class="sc-muted-line sc-stack-top-6">
+        Transfer ownership to an existing accepted admin. The recipient must accept to complete the handoff.
+      </div>
+
+      {#if data.pendingOwnershipTransfer}
+        <div class="sc-stack-top-10 rounded-[var(--sc-radius-md)] border border-[var(--sc-border)] bg-[var(--sc-bg-inset)] p-3">
+          <div class="font-semibold">Pending transfer</div>
+          <div class="sc-muted-line sc-stack-top-6">
+            Recipient: {data.pendingOwnershipTransfer.recipientName}
+          </div>
+          <div class="sc-muted-line sc-stack-top-6">
+            Created: {data.pendingOwnershipTransfer.createdAt} • Expires: {data.pendingOwnershipTransfer.expiresAt}
+          </div>
+          <div class="sc-muted-line sc-stack-top-6">
+            After transfer, you will: {data.pendingOwnershipTransfer.priorOwnerDisposition === "leave"
+              ? "leave the workspace"
+              : `stay as ${data.pendingOwnershipTransfer.priorOwnerDisposition}`}
+          </div>
+          <div class="sc-stack-top-10">
+            <form method="POST" action="?/cancelOwnershipTransfer">
+              <button class="sc-btn secondary" type="submit">Cancel transfer</button>
+            </form>
+          </div>
+        </div>
+      {:else}
+        {#if data.ownershipTransferRecipients.length === 0}
+          <div class="sc-muted-line sc-stack-top-10">
+            No eligible recipients found. The recipient must be an accepted admin member.
+          </div>
+        {:else}
+          <form class="sc-form sc-stack-top-10" method="POST" action="?/initiateOwnershipTransfer">
+            <div class="sc-form-row">
+              <select class="sc-search sc-field" name="recipientUserId" required>
+                <option value="" disabled selected>Select admin recipient</option>
+                {#each data.ownershipTransferRecipients as recipient (recipient.userId)}
+                  <option value={recipient.userId}>{recipient.displayName}</option>
+                {/each}
+              </select>
+            </div>
+
+            <div class="sc-stack-top-10">
+              <div class="font-semibold">After transfer</div>
+              <div class="sc-muted-line sc-stack-top-6">
+                Choose what happens to your access after ownership moves.
+              </div>
+              <div class="sc-stack-top-8 flex flex-col gap-2">
+                <label class="sc-form-row items-center gap-2">
+                  <input type="radio" name="priorOwnerDisposition" value="admin" checked />
+                  <span>Stay as admin</span>
+                </label>
+                <label class="sc-form-row items-center gap-2">
+                  <input type="radio" name="priorOwnerDisposition" value="editor" />
+                  <span>Stay as editor</span>
+                </label>
+                <label class="sc-form-row items-center gap-2">
+                  <input type="radio" name="priorOwnerDisposition" value="leave" />
+                  <span>Leave workspace</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="sc-form-actions sc-stack-top-10">
+              <button class="sc-btn" type="submit">Initiate transfer</button>
+            </div>
+          </form>
+        {/if}
+      {/if}
+    </section>
   {/if}
 
   <section class="sc-card sc-stack-top-12">
@@ -188,7 +316,7 @@
   <section class="sc-card sc-stack-top-12">
     <div class="font-semibold">Members</div>
     <div class="sc-muted-line sc-stack-top-6">
-      Owner transfer and leave/stay flows are tracked under LP-079.
+      Role changes and removals apply immediately. Ownership transfer requires acceptance.
     </div>
 
     {#if data.members.length === 0}

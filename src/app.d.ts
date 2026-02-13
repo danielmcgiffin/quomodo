@@ -10,6 +10,7 @@ declare global {
       supabase: SupabaseClient<Database>
       supabaseServiceRole: SupabaseClient<Database>
       activeWorkspaceId?: string | null
+      workspaceJustCreated?: boolean
       orgContext?: {
         orgId: string
         orgName: string

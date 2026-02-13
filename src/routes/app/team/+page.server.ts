@@ -14,6 +14,10 @@ import {
   normalizeInviteEmail,
   parseInviteRole,
 } from "$lib/server/invites"
+import {
+  createOwnershipTransferToken,
+  parsePriorOwnerDisposition,
+} from "$lib/server/ownership-transfers"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
 import {
   canAssignMemberRole,
@@ -25,6 +29,7 @@ import {
 } from "$lib/server/team-rbac"
 
 const TEAM_PAGE_PATH = "/app/team"
+const TRANSFER_TOKEN_TTL_DAYS = 7
 
 type TeamMemberRow = {
   id: string
@@ -38,6 +43,17 @@ type TeamMemberRow = {
 type ProfileRow = {
   id: string
   full_name: string | null
+}
+
+type OwnershipTransferRow = {
+  id: string
+  to_owner_id: string
+  from_owner_id: string
+  status: "pending" | "accepted" | "cancelled"
+  created_at: string
+  expires_at: string
+  prior_owner_leave: boolean
+  prior_owner_role_after: MembershipRole | null
 }
 
 type TeamInviteRow = {
@@ -93,7 +109,21 @@ export const load = async ({ locals, url }) => {
     throw kitError(403, "Insufficient permissions.")
   }
 
-  const [membersResult, invitesResult] = await Promise.all([
+  const transferPromise =
+    context.membershipRole === "owner"
+      ? locals.supabase
+          .from("org_ownership_transfers")
+          .select(
+            "id, to_owner_id, from_owner_id, status, created_at, expires_at, prior_owner_leave, prior_owner_role_after",
+          )
+          .eq("org_id", context.orgId)
+          .eq("status", "pending")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null })
+
+  const [membersResult, invitesResult, transferResult] = await Promise.all([
     locals.supabase
       .from("org_members")
       .select("id, user_id, role, invited_at, accepted_at, created_at")
@@ -106,6 +136,7 @@ export const load = async ({ locals, url }) => {
       )
       .eq("org_id", context.orgId)
       .order("created_at", { ascending: false }),
+    transferPromise,
   ])
 
   if (membersResult.error) {
@@ -126,13 +157,26 @@ export const load = async ({ locals, url }) => {
       details: { orgId: context.orgId },
     })
   }
+  if (transferResult.error) {
+    throwRuntime500({
+      context: "app.team.load.transfer",
+      error: transferResult.error,
+      requestId: locals.requestId,
+      route: TEAM_PAGE_PATH,
+      details: { orgId: context.orgId },
+    })
+  }
 
   const members = (membersResult.data ?? []) as TeamMemberRow[]
   const invites = (invitesResult.data ?? []) as TeamInviteRow[]
+  const pendingTransfer = (transferResult.data ?? null) as OwnershipTransferRow | null
   const userIds = [
     ...new Set([
       ...members.map((member) => member.user_id),
       ...invites.map((invite) => invite.invited_by_user_id),
+      ...(pendingTransfer
+        ? [pendingTransfer.to_owner_id, pendingTransfer.from_owner_id]
+        : []),
     ]),
   ]
   const profileById = new Map<string, ProfileRow>()
@@ -158,12 +202,34 @@ export const load = async ({ locals, url }) => {
     }
   }
 
+  const transferRecipientOptions = members
+    .filter((member) => {
+      return (
+        member.user_id !== context.userId &&
+        member.role === "admin" &&
+        Boolean(member.accepted_at)
+      )
+    })
+    .map((member) => {
+      const profile = profileById.get(member.user_id)
+      return {
+        userId: member.user_id,
+        displayName: profile?.full_name?.trim() || member.user_id,
+      }
+    })
+
   return {
     org: context,
     updated: url.searchParams.get("updated") === "1",
     removed: url.searchParams.get("removed") === "1",
     inviteCreated: url.searchParams.get("inviteCreated") === "1",
     inviteRevoked: url.searchParams.get("inviteRevoked") === "1",
+    ownershipTransferInitiated:
+      url.searchParams.get("ownershipTransferInitiated") === "1",
+    ownershipTransferCancelled:
+      url.searchParams.get("ownershipTransferCancelled") === "1",
+    ownershipTransferAccepted:
+      url.searchParams.get("ownershipTransferAccepted") === "1",
     members: members.map((member) => {
       const profile = profileById.get(member.user_id)
       const displayName = profile?.full_name?.trim() || member.user_id
@@ -218,6 +284,24 @@ export const load = async ({ locals, url }) => {
           canManageMemberRole(context.membershipRole, invite.role),
       }
     }),
+    canTransferOwnership: context.membershipRole === "owner",
+    pendingOwnershipTransfer: pendingTransfer
+      ? {
+          id: pendingTransfer.id,
+          recipientName:
+            profileById.get(pendingTransfer.to_owner_id)?.full_name?.trim() ||
+            pendingTransfer.to_owner_id,
+          recipientUserId: pendingTransfer.to_owner_id,
+          createdAt: formatDateTime(pendingTransfer.created_at),
+          expiresAt: formatDateTime(pendingTransfer.expires_at),
+          priorOwnerDisposition: pendingTransfer.prior_owner_leave
+            ? ("leave" as const)
+            : pendingTransfer.prior_owner_role_after === "editor"
+              ? ("editor" as const)
+              : ("admin" as const),
+        }
+      : null,
+    ownershipTransferRecipients: transferRecipientOptions,
   }
 }
 
@@ -491,5 +575,126 @@ export const actions = {
     }
 
     redirect(303, `${TEAM_PAGE_PATH}?inviteRevoked=1`)
+  },
+
+  initiateOwnershipTransfer: async ({ request, locals }) => {
+    const context = await ensureOrgContext(locals)
+    if (context.membershipRole !== "owner") {
+      return fail(403, {
+        ownershipTransferError: "Only owners can transfer ownership.",
+      })
+    }
+
+    const formData = await request.formData()
+    const recipientUserId = String(formData.get("recipientUserId") ?? "").trim()
+    const dispositionRaw = String(formData.get("priorOwnerDisposition") ?? "").trim()
+    const disposition = parsePriorOwnerDisposition(dispositionRaw)
+
+    if (!recipientUserId) {
+      return fail(400, { ownershipTransferError: "Recipient is required." })
+    }
+    if (!disposition) {
+      return fail(400, {
+        ownershipTransferError: "Prior owner disposition is required.",
+      })
+    }
+
+    const recipientLookup =
+      await locals.supabaseServiceRole.auth.admin.getUserById(recipientUserId)
+    const recipientUser = recipientLookup.data.user
+    const recipientEmailVerified = Boolean(
+      recipientUser?.email_confirmed_at || recipientUser?.user_metadata?.email_verified,
+    )
+
+    if (!recipientUser || !recipientUser.email || !recipientEmailVerified) {
+      return fail(400, {
+        ownershipTransferError:
+          "Recipient must have a verified email address to accept an ownership transfer.",
+      })
+    }
+
+    // Generate token now; store only the hash in DB.
+    const { token, tokenHash } = await createOwnershipTransferToken()
+    const expiresAt = new Date(
+      Date.now() + TRANSFER_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
+    ).toISOString()
+
+    const rpcResult = await locals.supabase.rpc("sc_create_ownership_transfer", {
+      p_org_id: context.orgId,
+      p_to_user_id: recipientUserId,
+      p_token_hash: tokenHash,
+      p_prior_owner_disposition: disposition,
+      p_expires_at: expiresAt,
+    })
+
+    if (rpcResult.error) {
+      return fail(400, {
+        ownershipTransferError: rpcResult.error.message,
+      })
+    }
+
+    const fromEmail =
+      env.PRIVATE_FROM_ADMIN_EMAIL ||
+      env.PRIVATE_ADMIN_EMAIL ||
+      "no-reply@systemscraft.co"
+    const transferLink = `${WebsiteBaseUrl}/transfer/${token}`
+
+    // Notify recipient and prior owner (initiator).
+    try {
+      const [{ data: recipient }, { data: owner }] = await Promise.all([
+        Promise.resolve(recipientLookup),
+        locals.supabaseServiceRole.auth.admin.getUserById(context.userId),
+      ])
+
+      const recipientEmail = recipient.user?.email
+      const ownerEmail = owner.user?.email
+
+      if (recipientEmail) {
+        await sendTemplatedEmail({
+          subject: `Ownership transfer requested for ${context.orgName}`,
+          to_emails: [recipientEmail],
+          from_email: fromEmail,
+          template_name: "ownership_transfer",
+          template_properties: {
+            workspaceName: context.orgName,
+            transferLink,
+          },
+        })
+      }
+
+      if (ownerEmail) {
+        await sendTemplatedEmail({
+          subject: `Ownership transfer initiated for ${context.orgName}`,
+          to_emails: [ownerEmail],
+          from_email: fromEmail,
+          template_name: "ownership_transfer",
+          template_properties: {
+            workspaceName: context.orgName,
+            transferLink,
+          },
+        })
+      }
+    } catch (e) {
+      console.log("Failed sending ownership transfer notification email", e)
+    }
+
+    redirect(303, `${TEAM_PAGE_PATH}?ownershipTransferInitiated=1`)
+  },
+
+  cancelOwnershipTransfer: async ({ locals }) => {
+    const context = await ensureOrgContext(locals)
+    if (context.membershipRole !== "owner") {
+      return fail(403, { cancelOwnershipTransferError: "Only owners can cancel transfers." })
+    }
+
+    const rpcResult = await locals.supabase.rpc("sc_cancel_ownership_transfer", {
+      p_org_id: context.orgId,
+    })
+
+    if (rpcResult.error) {
+      return fail(400, { cancelOwnershipTransferError: rpcResult.error.message })
+    }
+
+    redirect(303, `${TEAM_PAGE_PATH}?ownershipTransferCancelled=1`)
   },
 }

@@ -41,9 +41,6 @@ Still open and launch-blocking:
 
 Not yet productized for commercial handoff:
 
-- Multi-workspace switcher and explicit workspace lifecycle UX.
-- In-app invites and role management UX (currently script-based ops path).
-- Ownership transfer UX implementation (policy guardrails are now defined).
 - Workspace-aligned billing implementation and lapsed-access enforcement.
 
 ## Commercial Viability Stories (Acceptance Standard)
@@ -105,7 +102,7 @@ Launch is approved only when all conditions are true:
 
 ### WS2: Workspace Lifecycle and Multi-Workspace Productization
 
-- [ ] `LP-075` Workspace lifecycle UX (create + rename + first-workspace onboarding polish).
+- [x] `LP-075` Workspace lifecycle UX (create + rename + first-workspace onboarding polish).
   Acceptance:
 - New user gets first workspace automatically or via one clear onboarding step.
 - Existing user can create additional workspaces from UI.
@@ -113,6 +110,8 @@ Launch is approved only when all conditions are true:
   Progress:
 - 2026-02-13: Slice 1 implementation added `/app/workspace` create + rename flows, app-nav workspace entry points, and request-scoped org-context caching to prevent duplicate first-workspace bootstrap in multi-load requests; first-workspace onboarding validation remains in progress.
 - 2026-02-13: One-time owner-workspace dedupe executed via `scripts/dedupe-owner-workspaces.mjs --apply`; removed duplicate org `67a26826-a763-469d-9477-dfc7dc670356` and verified `duplicate_candidates=0` on post-run dry check.
+  Status:
+- Completed 2026-02-13 (first-workspace bootstrap persists `sc_active_workspace` cookie via `src/hooks.server.ts`; create + rename are self-service in `/app/workspace` with owner/admin checks).
 
 - [x] `LP-076` Multi-workspace membership context + nav switcher.
   Acceptance:
@@ -157,7 +156,7 @@ Launch is approved only when all conditions are true:
   Status:
 - Completed 2026-02-13 (stored invite records, revoke flow, and email-link acceptance are live; accepted invites land in invited workspace context).
 
-- [ ] `LP-079` Ownership transfer + consultant leave/stay path.
+- [x] `LP-079` Ownership transfer + consultant leave/stay path.
   Acceptance:
 - Only current `owner` can initiate transfer in-product.
 - Recipient must be an existing verified `admin` member of the workspace.
@@ -166,6 +165,13 @@ Launch is approved only when all conditions are true:
 - Ownership cannot be orphaned: current owner remains owner until recipient acceptance and billing-owner update complete.
 - Prior owner can choose post-transfer role: stay `admin`, stay `editor`, or leave workspace.
 - Immutable audit record and notifications are emitted to prior/new owners.
+  Progress:
+- 2026-02-13: Added ownership transfer persistence + RPC guardrails in `supabase/migrations/20260213123000_add_org_ownership_transfers.sql` (table `org_ownership_transfers`, `sc_create_ownership_transfer`, `sc_accept_ownership_transfer`, `sc_cancel_ownership_transfer`).
+- 2026-02-13: Added owner-only initiation UX in `/app/team` with prior-owner stay admin/editor or leave options (`src/routes/app/team/+page.server.ts`, `src/routes/app/team/+page.svelte`).
+- 2026-02-13: Added recipient acceptance route at `/transfer/[token]` with login continuation and post-accept redirect to `/app/team` (`src/routes/(marketing)/transfer/[token]/+page.server.ts`, `src/routes/(marketing)/transfer/[token]/+page.svelte`).
+- 2026-02-13: Notifications: transfer request + completion emails via `src/lib/mailer.ts`.
+  Status:
+- Completed 2026-02-13 (owner-initiated, recipient-accepted transfer with atomic DB updates; recipient must be accepted admin with verified email; prior owner disposition supported; audit record persisted).
 
 ### WS4: Billing and Sales Readiness
 

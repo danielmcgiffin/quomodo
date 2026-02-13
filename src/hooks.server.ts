@@ -9,7 +9,7 @@ import { sequence } from "@sveltejs/kit/hooks"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "./DatabaseDefinitions"
 import { logRuntimeError } from "$lib/server/runtime-errors"
-import { ACTIVE_WORKSPACE_COOKIE } from "$lib/server/atlas"
+import { ACTIVE_WORKSPACE_COOKIE, setActiveWorkspaceCookie } from "$lib/server/atlas"
 
 const { PRIVATE_SUPABASE_SERVICE_ROLE } = privateEnv
 const { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } = publicEnv
@@ -180,7 +180,21 @@ const authGuard: Handle = async ({ event, resolve }) => {
   event.locals.session = session
   event.locals.user = user
 
-  return resolve(event)
+  const response = await resolve(event)
+
+  // Persist the active workspace selection after downstream loaders/actions
+  // resolve org context (including first-workspace bootstrap).
+  if (
+    event.locals.user &&
+    event.url.pathname.startsWith("/app") &&
+    typeof event.locals.activeWorkspaceId === "string" &&
+    event.locals.activeWorkspaceId.trim().length > 0 &&
+    event.cookies.get(ACTIVE_WORKSPACE_COOKIE) !== event.locals.activeWorkspaceId
+  ) {
+    setActiveWorkspaceCookie(event.cookies, event.locals.activeWorkspaceId)
+  }
+
+  return response
 }
 
 export const handle: Handle = sequence(supabase, authGuard)
