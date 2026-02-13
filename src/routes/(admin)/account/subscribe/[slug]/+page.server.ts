@@ -1,6 +1,7 @@
 import { env as privateEnv } from "$env/dynamic/private"
 import { error, redirect } from "@sveltejs/kit"
 import Stripe from "stripe"
+import { WebsiteBaseUrl } from "../../../../../config"
 import {
   fetchSubscription,
   getOrCreateCustomerId,
@@ -12,7 +13,6 @@ const stripe = new Stripe(privateEnv.PRIVATE_STRIPE_API_KEY, {
 
 export const load: PageServerLoad = async ({
   params,
-  url,
   locals: { safeGetSession, supabaseServiceRole },
 }) => {
   const { session, user } = await safeGetSession()
@@ -46,6 +46,8 @@ export const load: PageServerLoad = async ({
 
   let checkoutUrl
   try {
+    const successUrl = new URL("/account", WebsiteBaseUrl).toString()
+    const cancelUrl = new URL("/account/billing", WebsiteBaseUrl).toString()
     const stripeSession = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -55,8 +57,8 @@ export const load: PageServerLoad = async ({
       ],
       customer: customerId,
       mode: "subscription",
-      success_url: `${url.origin}/account`,
-      cancel_url: `${url.origin}/account/billing`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
     })
     checkoutUrl = stripeSession.url
   } catch (e) {

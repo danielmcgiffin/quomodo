@@ -72,7 +72,7 @@ npx wrangler deploy
 
 ## Verify Production
 
-- Open the production URL from Wrangler output (for this project, `https://quomodo.danielmcgiffin.workers.dev`).
+- Open the canonical production URL (`https://systemscraft.co`).
 - Validate:
   - login
   - CRUD (roles/systems/processes/actions)
@@ -83,7 +83,7 @@ npx wrangler deploy
 - Optional deployed smoke run:
 
 ```bash
-SMOKE_BASE_URL=https://quomodo.danielmcgiffin.workers.dev npm run smoke:deployed
+SMOKE_BASE_URL=https://systemscraft.co npm run smoke:deployed
 ```
 
 ## Rollback Strategy

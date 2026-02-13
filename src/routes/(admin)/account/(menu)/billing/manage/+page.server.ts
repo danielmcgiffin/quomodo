@@ -1,6 +1,7 @@
 import { env as privateEnv } from "$env/dynamic/private"
 import { error, redirect } from "@sveltejs/kit"
 import Stripe from "stripe"
+import { WebsiteBaseUrl } from "../../../../../../config"
 import { getOrCreateCustomerId } from "../../../subscription_helpers.server"
 import type { PageServerLoad } from "./$types"
 const stripe = new Stripe(privateEnv.PRIVATE_STRIPE_API_KEY, {
@@ -8,7 +9,6 @@ const stripe = new Stripe(privateEnv.PRIVATE_STRIPE_API_KEY, {
 })
 
 export const load: PageServerLoad = async ({
-  url,
   locals: { safeGetSession, supabaseServiceRole },
 }) => {
   const { session, user } = await safeGetSession()
@@ -29,9 +29,10 @@ export const load: PageServerLoad = async ({
 
   let portalLink
   try {
+    const returnUrl = new URL("/account/billing", WebsiteBaseUrl).toString()
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${url.origin}/account/billing`,
+      return_url: returnUrl,
     })
     portalLink = portalSession?.url
   } catch (e) {

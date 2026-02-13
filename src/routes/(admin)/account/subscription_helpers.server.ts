@@ -103,15 +103,21 @@ export const fetchSubscription = async ({
   })
   let appSubscription = null
   if (primaryStripeSubscription) {
-    const productId =
-      primaryStripeSubscription?.items?.data?.[0]?.price.product ?? ""
+    const primaryPrice = primaryStripeSubscription?.items?.data?.[0]?.price
+    const productId = primaryPrice?.product ?? ""
+    const priceId = primaryPrice?.id ?? ""
+
     appSubscription = pricingPlans.find((x) => {
-      return x.stripe_product_id === productId
+      if (!x.stripe_product_id && !x.stripe_price_id) {
+        return false
+      }
+
+      return x.stripe_product_id === productId || x.stripe_price_id === priceId
     })
     if (!appSubscription) {
       return {
         error:
-          "Stripe subscription does not have matching app subscription in pricing_plans.ts (via product id match)",
+          `Stripe subscription could not be mapped to pricing_plans.ts (product=${productId}, price=${priceId})`,
       }
     }
   }
