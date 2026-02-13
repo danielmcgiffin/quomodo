@@ -11,12 +11,12 @@
   "routes": [
     {
       "pattern": "systemscraft.co",
-      "custom_domain": true,
+      "custom_domain": true
     },
     {
       "pattern": "www.systemscraft.co",
-      "custom_domain": true,
-    },
+      "custom_domain": true
+    }
   ],
   "env": {
     "preview": {
