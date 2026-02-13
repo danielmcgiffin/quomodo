@@ -465,6 +465,7 @@ LP-008 route isolation inventory:
 - Failures include explicit remediation owner and re-test step.
   Progress:
 - 2026-02-12: Added `scripts/onboarding-deployed.mjs` and executed onboarding validation. Signup/verify passed via rate-limit fallback, but profile creation failed with HTTP 500. Blocker evidence and hypotheses captured in `plans/LP-068-069_BLOCKERS_2026-02-12.md`.
+- 2026-02-13: After fixing invalid custom-domain route patterns and completing a new build/deploy, canonical-domain onboarding still fails at signup with `Error sending confirmation email`.
 
 - [ ] `LP-069` Multi-user workspace provisioning path.
       Acceptance:
@@ -473,6 +474,7 @@ LP-008 route isolation inventory:
 - Smoke validation includes at least one non-owner user completing core `/app` traversal with role-appropriate permissions.
   Progress:
 - 2026-02-12: Added `scripts/provision-workspace-members.mjs` and provisioned admin/editor/member successfully. Remaining closeout is non-owner smoke traversal blocked by `/app/processes` HTTP 500 on deployed environment. Details in `plans/LP-068-069_BLOCKERS_2026-02-12.md`.
+- 2026-02-13: Re-ran smoke after deploy; `workers.dev` target now returns 404 for `/app/processes` while canonical domain still returns 500. Provisioning verification continues to pass.
 
 ### WS8: Post-V1 Intelligence and Documentation (Data-Gated)
 

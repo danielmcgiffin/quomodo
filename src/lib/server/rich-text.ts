@@ -1,4 +1,4 @@
-import { generateHTML, generateJSON } from "@tiptap/html"
+import { generateHTML, generateJSON } from "@tiptap/html/server"
 import sanitizeHtml from "sanitize-html"
 import { createRichTextExtensions } from "$lib/rich-text/extensions"
 import {
