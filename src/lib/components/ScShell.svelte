@@ -84,7 +84,12 @@
   }
 
   const onWindowKeydown = (event: KeyboardEvent) => {
-    if (event.defaultPrevented || !event.ctrlKey || event.metaKey || event.altKey) {
+    if (
+      event.defaultPrevented ||
+      !event.ctrlKey ||
+      event.metaKey ||
+      event.altKey
+    ) {
       return
     }
 
@@ -156,7 +161,7 @@
               isSearchOpen = true
             }}
           >
-            <span class="sc-searchbar-placeholder">Search</span>
+            <span class="sc-searchbar-placeholder align-center">Search</span>
             <span class="sc-searchbar-hint">Ctrl-?</span>
           </button>
         </div>
@@ -202,8 +207,12 @@
     {#if data.billing?.isLapsed}
       <div class="sc-banner-shell">
         <div class="sc-banner sc-banner--warning">
-          <div>This workspace is in read-only mode because billing has lapsed.</div>
-          <a class="link" href={resolve("/account/billing")}>Reactivate billing</a>
+          <div>
+            This workspace is in read-only mode because billing has lapsed.
+          </div>
+          <a class="link" href={resolve("/account/billing")}
+            >Reactivate billing</a
+          >
         </div>
       </div>
     {/if}

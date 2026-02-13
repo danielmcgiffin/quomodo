@@ -1,0 +1,3 @@
+- [ ] fix Flag to follow button/modal pattern
+- [ ] fix flag page so it doesn't have a flag sidebar (can't flag flags?)
+- [ ] Claude IA convo solutioning
