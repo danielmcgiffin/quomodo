@@ -9,6 +9,18 @@ declare global {
       requestId?: string
       supabase: SupabaseClient<Database>
       supabaseServiceRole: SupabaseClient<Database>
+      orgContext?: {
+        orgId: string
+        orgName: string
+        membershipRole: "owner" | "admin" | "editor" | "member"
+        userId: string
+      }
+      orgContextPromise?: Promise<{
+        orgId: string
+        orgName: string
+        membershipRole: "owner" | "admin" | "editor" | "member"
+        userId: string
+      }>
       safeGetSession: () => Promise<{
         session: Session | null
         user: User | null

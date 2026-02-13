@@ -28,26 +28,25 @@
       >
         <div class="sc-byline">
           <div class="sc-flag-banner">
-            ⚑ {flag.context}
+            ⚑
+            <slot name="flag-context" {flag}>
+              {#if flag.context}
+                <span class="sc-portal-name">{flag.context}</span>
+              {/if}
+            </slot>
           </div>
         </div>
         <div class="sc-copy-md">
           {flag.message}
         </div>
-        <div class="sc-byline sc-byline-stack">
-          <slot name="flag-context" {flag}>
-            {#if flag.context}
-              <span class="sc-portal-name">{flag.context}</span>
-            {/if}
-            <span class="sc-pill">{flag.createdAt}</span>
-            {#if flag.context && flag.targetPath}
-              <span>·</span>
-            {/if}
-            {#if flag.targetPath}
-              <span>Path: {flag.targetPath}</span>
-            {/if}
-          </slot>
-        </div>
+        <div class="sc-byline sc-byline-stack"></div>
+        <span class="sc-pill">{flag.createdAt}</span>
+        {#if flag.context && flag.targetPath}
+          <span>·</span>
+        {/if}
+        {#if flag.targetPath}
+          <span>Path: {flag.targetPath}</span>
+        {/if}
       </a>
     {/each}
   {/if}

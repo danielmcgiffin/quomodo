@@ -179,9 +179,20 @@ const createOrgForUser = async (
   throw kitError(500, USER_SAFE_WORKSPACE_CREATE_ERROR_MESSAGE)
 }
 
-export const ensureOrgContext = async (
+export const createWorkspaceForUser = async (
   locals: App.Locals,
-): Promise<OrgContext> => {
+  userId: string,
+  preferredName: string,
+) =>
+  createOrgForUser(
+    locals.supabase,
+    locals.supabaseServiceRole,
+    userId,
+    preferredName,
+    locals.requestId,
+  )
+
+const resolveOrgContext = async (locals: App.Locals): Promise<OrgContext> => {
   const user = locals.user
   if (!user) {
     throw redirect(303, "/login")
@@ -221,12 +232,10 @@ export const ensureOrgContext = async (
         user.user_metadata.full_name) ||
       (typeof user.email === "string" && user.email.split("@")[0]) ||
       "My Workspace"
-    const org = await createOrgForUser(
-      supabase,
-      locals.supabaseServiceRole,
+    const org = await createWorkspaceForUser(
+      locals,
       user.id,
       `${displayName}'s Workspace`,
-      locals.requestId,
     )
     return {
       orgId: org.id,
@@ -257,6 +266,27 @@ export const ensureOrgContext = async (
     orgName: org.name,
     membershipRole: membership.role as MembershipRole,
     userId: user.id,
+  }
+}
+
+export const ensureOrgContext = async (
+  locals: App.Locals,
+): Promise<OrgContext> => {
+  if (locals.orgContext) {
+    return locals.orgContext
+  }
+
+  if (!locals.orgContextPromise) {
+    locals.orgContextPromise = resolveOrgContext(locals).then((context) => {
+      locals.orgContext = context
+      return context
+    })
+  }
+
+  try {
+    return await locals.orgContextPromise
+  } finally {
+    locals.orgContextPromise = undefined
   }
 }
 

@@ -16,7 +16,7 @@ In scope for this plan:
 - External signup -> verified onboarding -> workspace usage on `https://systemscraft.co`.
 - Consultant-to-customer workspace handoff without scripts/SQL.
 - Cofounder self-service setup without founder intervention.
-- Billing that supports paid launch (minimum acceptable: per-user; preferred: per-workspace).
+- Billing that supports paid launch via per-workspace ownership and handoff.
 - Preserve existing CRUD, portal traversal, flags, and current search behavior without regressions.
 
 Explicitly out of this plan (post-launch only):
@@ -43,8 +43,8 @@ Not yet productized for commercial handoff:
 
 - Multi-workspace switcher and explicit workspace lifecycle UX.
 - In-app invites and role management UX (currently script-based ops path).
-- Ownership transfer UX/policy guardrails.
-- Workspace-aligned billing model decision/implementation.
+- Ownership transfer UX implementation (policy guardrails are now defined).
+- Workspace-aligned billing implementation and lapsed-access enforcement.
 
 ## Commercial Viability Stories (Acceptance Standard)
 
@@ -110,6 +110,9 @@ Launch is approved only when all conditions are true:
 - New user gets first workspace automatically or via one clear onboarding step.
 - Existing user can create additional workspaces from UI.
 - Workspace rename is available to `owner/admin` with server-side auth checks.
+  Progress:
+- 2026-02-13: Slice 1 implementation added `/app/workspace` create + rename flows, app-nav workspace entry points, and request-scoped org-context caching to prevent duplicate first-workspace bootstrap in multi-load requests; first-workspace onboarding validation remains in progress.
+- 2026-02-13: One-time owner-workspace dedupe executed via `scripts/dedupe-owner-workspaces.mjs --apply`; removed duplicate org `67a26826-a763-469d-9477-dfc7dc670356` and verified `duplicate_candidates=0` on post-run dry check.
 
 - [ ] `LP-076` Multi-workspace membership context + nav switcher.
   Acceptance:
@@ -132,18 +135,24 @@ Launch is approved only when all conditions are true:
 
 - [ ] `LP-079` Ownership transfer + consultant leave/stay path.
   Acceptance:
-- Current owner can promote another member to owner.
-- Policy prevents orphaned workspace ownership.
-- Consultant can remain admin/editor or leave workspace safely.
+- Only current `owner` can initiate transfer in-product.
+- Recipient must be an existing verified `admin` member of the workspace.
+- Transfer is atomic with billing owner handoff (both succeed or both roll back).
+- Transfer is allowed while workspace billing is lapsed; lapsed state persists after transfer until reactivation.
+- Ownership cannot be orphaned: current owner remains owner until recipient acceptance and billing-owner update complete.
+- Prior owner can choose post-transfer role: stay `admin`, stay `editor`, or leave workspace.
+- Immutable audit record and notifications are emitted to prior/new owners.
 
 ### WS4: Billing and Sales Readiness
 
 - [ ] `LP-080` Billing model alignment for commercial launch.
   Acceptance:
-- Founders choose and document launch billing model:
-  - Option A (faster): per-user subscription gates workspace creation/access.
-  - Option B (preferred): per-workspace subscription owner and billing handoff.
-- Implement chosen model end-to-end and validate in smoke/runbook.
+- Launch billing model is per-workspace with owner as billing authority.
+- Lapsed workspaces are view-only for all roles.
+- In lapsed state, invites are blocked; `owner/admin` may still remove members; billing actions are available.
+- Reactivation from lapsed is owner-only.
+- Ownership transfer remains allowed in lapsed state under `LP-079` transfer guardrails.
+- Implement model end-to-end and validate in smoke/runbook.
 - Customer handoff billing path is documented for sales operations.
 
 ## Execution Sequence (Single Track)
@@ -154,12 +163,15 @@ Launch is approved only when all conditions are true:
 4. `LP-080` (billing model completion for sales close + customer ownership).
 5. Final launch verification on canonical domain and launch commit.
 
-## Founder Decision Defaults (Used Unless Overridden)
+## Founder Decisions (Locked 2026-02-13)
 
-1. Billing model default: start with per-user (`LP-080` Option A) if needed for speed, but implement data model seams for per-workspace migration.
-2. Consultant post-handoff default: allow both "stay as admin/editor" and "leave workspace".
-3. Free tier default: one workspace, limited member count; paid plans unlock scale.
-4. Invite mechanism default: stored invite records (not stateless links only).
+1. Billing model: per-workspace; workspace `owner` is billing authority.
+2. Ownership transfer initiation: current owner only; recipient must be existing verified `admin`.
+3. Ownership transfer behavior: atomic with billing-owner handoff; no orphaned owner state.
+4. Lapsed policy: view-only for all roles, invites blocked, `owner/admin` can remove members, billing actions remain available.
+5. Reactivation policy: owner-only.
+6. Consultant post-handoff: prior owner can stay `admin`, stay `editor`, or leave.
+7. Invite mechanism: stored invite records (not stateless links only).
 
 ## Quality Gates Before Launch Approval
 
