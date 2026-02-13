@@ -11,6 +11,7 @@ export const GET: RequestHandler = async () => {
     excludeRoutePatterns: [
       ".*\\(admin\\).*", // i.e. exclude routes within admin group
       "^/app.*",
+      "/invite/.*", // tokenized invite links are not enumerable and should not appear in sitemap
     ],
     paramValues: {
       "/method/[slug]": methodSections.map((section) => section.slug),

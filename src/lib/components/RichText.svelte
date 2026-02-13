@@ -3,6 +3,6 @@
 </script>
 
 <div class="sc-rich">
+  <!-- eslint-disable-next-line svelte/no-at-html-tags -->
   {@html html}
 </div>
-
