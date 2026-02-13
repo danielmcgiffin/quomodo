@@ -1,6 +1,6 @@
 # SystemsCraft Launch Plan
 
-Last updated: 2026-02-12
+Last updated: 2026-02-13
 Owner: Danny McGiffin
 Status: Active plan for V1 launch
 
@@ -25,6 +25,10 @@ It is detailed enough for founder decision-making and for any agent to execute w
 - Triad model is live in Supabase-backed routes: Process -> ordered Actions, each action has one Role and one System.
 - Entity detail views are connected through portal links and read from DB loaders.
 - Create flows exist for Roles, Systems, Processes, Actions, and Flags.
+- Schema contract cleanup is applied in app + migrations:
+  - `systems` uses a single locator field (`location`); legacy `url` is removed.
+  - `processes.trigger` and `processes.end_state` are required (non-empty).
+  - `roles.person_name` and `roles.hours_per_week` are removed.
 - Visual token system exists with parchment background and green accent (`--sc-green` family).
 - Marketing shell now uses SystemsCraft IA (`/`, `/method`, `/method/[slug]`, `/partners`, `/contact`) with dark/gold theme and `/app` entry CTA.
 - Cloudflare adapter and Wrangler config are present.
@@ -71,7 +75,7 @@ V1 is launch-ready when all of the following are true:
 - `/app` is the SystemsCraft product surface.
 - `/account` remains account-management namespace; `/account` root redirects to `/app/processes`.
 - Entity model naming uses `Action` (not `Step`) in UI and data.
-- Process model fields for V1: `name`, `description`, `trigger`, `end_state`, `owner`.
+- Process model fields for V1: `name`, `description`, required `trigger`, required `end_state`, `owner`.
 - Rich text editor for V1 is TipTap.
 - Hosting for V1 is Cloudflare only (no Vercel target).
 - Comments are modeled as `flags` with `flag_type = comment`.
@@ -110,8 +114,8 @@ V1 is launch-ready when all of the following are true:
 ### Entities
 
 - `roles`: `name`, `description_rich`, optional metadata.
-- `systems`: `name`, `description_rich`, `location`, `owner_role_id`.
-- `processes`: `name`, `description_rich`, `trigger`, `end_state`, `owner_role_id`.
+- `systems`: `name`, `description_rich`, `location` (single locator field), `owner_role_id`.
+- `processes`: `name`, `description_rich`, required `trigger`, required `end_state`, `owner_role_id`.
 - `actions`: ordered list by `sequence` per process, each with `description_rich`, `owner_role_id`, `system_id`.
 - `flags`: alert/comment/quality marker on entity or sub-entity path.
 
@@ -458,7 +462,7 @@ LP-008 route isolation inventory:
   Status:
 - Completed 2026-02-12 (Supabase custom SMTP configured for production-domain auth mail, Resend sender/domain verified, and dashboard-side LP-067 closeout confirmed).
 
-- [ ] `LP-068` First-customer onboarding runbook + validation pass.
+- [x] `LP-068` First-customer onboarding runbook + validation pass.
       Acceptance:
 - A single runbook documents the end-to-end external user path: sign up, verify email, create profile, land in `/app/processes`, create first role/system/process/action, run search, file a flag.
 - The runbook is executed once against production (or production-equivalent preview) with timestamped pass/fail notes.
@@ -466,8 +470,14 @@ LP-008 route isolation inventory:
   Progress:
 - 2026-02-12: Added `scripts/onboarding-deployed.mjs` and executed onboarding validation. Signup/verify passed via rate-limit fallback, but profile creation failed with HTTP 500. Blocker evidence and hypotheses captured in `plans/LP-068-069_BLOCKERS_2026-02-12.md`.
 - 2026-02-13: After fixing invalid custom-domain route patterns and completing a new build/deploy, canonical-domain onboarding still fails at signup with `Error sending confirmation email`.
+- 2026-02-13: `/app/processes` runtime 500 root cause fixed and smoke now passes; LP-068 remains blocked only on Supabase confirmation-email delivery (`Error sending confirmation email`).
+- 2026-02-13: Supabase Auth logs confirmed SMTP failure (`535 Authentication credentials invalid`); repasting SMTP password in Supabase resolved signup confirmation sends.
+- 2026-02-13: Updated `scripts/onboarding-deployed.mjs` to submit `?/action` POSTs with Svelte action headers so script behavior matches browser-enhanced forms.
+- 2026-02-13: `src/lib/mailer.ts` switched to Cloudflare-safe static template rendering (no runtime Handlebars codegen), removing post-profile email-template runtime warnings.
+  Status:
+- Completed 2026-02-13 (`SMOKE_BASE_URL=https://systemscraft.co npm run -s onboarding:deployed` PASS at `2026-02-13T11:11:47.052Z` across signup, verification, profile, CRUD, search, and flag flows).
 
-- [ ] `LP-069` Multi-user workspace provisioning path.
+- [x] `LP-069` Multi-user workspace provisioning path.
       Acceptance:
 - A tested method exists to add non-owner users to an existing org and assign `admin/editor/member` roles.
 - If invite UX is deferred, a documented operational procedure exists for provisioning + role changes (with rollback).
@@ -475,6 +485,8 @@ LP-008 route isolation inventory:
   Progress:
 - 2026-02-12: Added `scripts/provision-workspace-members.mjs` and provisioned admin/editor/member successfully. Remaining closeout is non-owner smoke traversal blocked by `/app/processes` HTTP 500 on deployed environment. Details in `plans/LP-068-069_BLOCKERS_2026-02-12.md`.
 - 2026-02-13: Re-ran smoke after deploy; `workers.dev` target now returns 404 for `/app/processes` while canonical domain still returns 500. Provisioning verification continues to pass.
+  Status:
+- Completed 2026-02-13 (provisioning script and rollback path implemented via `scripts/provision-workspace-members.mjs`; deployed smoke run on `https://systemscraft.co` now passes non-owner RBAC checks including admin/editor/member permission boundaries).
 
 ### WS8: Post-V1 Intelligence and Documentation (Data-Gated)
 

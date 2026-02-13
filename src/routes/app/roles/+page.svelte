@@ -12,8 +12,6 @@
     name: string
     initials: string
     descriptionHtml: string
-    personName: string
-    hoursPerWeek: number | null
   }
   type Props = {
     data: {
@@ -35,8 +33,6 @@
       createFlagTargetId?: string
       createFlagTargetPath?: string
       roleNameDraft?: string
-      rolePersonNameDraft?: string
-      roleHoursPerWeekDraft?: string
       roleDescriptionDraft?: string
       roleDescriptionRichDraft?: string
     }
@@ -45,22 +41,16 @@
   let { data, form }: Props = $props()
   let isCreateRoleModalOpen = $state(false)
   let roleNameDraft = $state("")
-  let rolePersonNameDraft = $state("")
-  let roleHoursPerWeekDraft = $state("")
   let roleDescriptionDraft = $state("")
   let roleDescriptionRichDraft = $state("")
 
   const roleFieldTargets = [
     { path: "name", label: "Name" },
     { path: "description", label: "Description" },
-    { path: "person_name", label: "Person name" },
-    { path: "hours_per_week", label: "Hours per week" },
   ]
 
   const openCreateRoleModal = () => {
     roleNameDraft = ""
-    rolePersonNameDraft = ""
-    roleHoursPerWeekDraft = ""
     roleDescriptionDraft = ""
     roleDescriptionRichDraft = ""
     isCreateRoleModalOpen = true
@@ -72,12 +62,6 @@
     }
     if (typeof form?.roleNameDraft === "string") {
       roleNameDraft = form.roleNameDraft
-    }
-    if (typeof form?.rolePersonNameDraft === "string") {
-      rolePersonNameDraft = form.rolePersonNameDraft
-    }
-    if (typeof form?.roleHoursPerWeekDraft === "string") {
-      roleHoursPerWeekDraft = form.roleHoursPerWeekDraft
     }
     if (typeof form?.roleDescriptionDraft === "string") {
       roleDescriptionDraft = form.roleDescriptionDraft
@@ -100,11 +84,7 @@
         </div>
 
         <div class="sc-actions">
-          <button
-            class="sc-btn"
-            type="button"
-            onclick={openCreateRoleModal}
-          >
+          <button class="sc-btn" type="button" onclick={openCreateRoleModal}>
             Make a Role
           </button>
         </div>
@@ -127,20 +107,6 @@
               placeholder="Role name"
               bind:value={roleNameDraft}
               required
-            />
-          </div>
-          <div class="sc-form-row">
-            <input
-              class="sc-search sc-field"
-              name="person_name"
-              placeholder="Person name (optional)"
-              bind:value={rolePersonNameDraft}
-            />
-            <input
-              class="sc-search sc-field"
-              name="hours_per_week"
-              placeholder="Hours per week (optional)"
-              bind:value={roleHoursPerWeekDraft}
             />
           </div>
           <div class="sc-form-row">
@@ -180,15 +146,6 @@
               class="block"
               aria-label={`Open role ${role.name}`}
             >
-              <div class="sc-byline">
-                <RolePortal {role} size="lg" />
-                {#if role.personName}
-                  <span class="sc-pill">{role.personName}</span>
-                {/if}
-                {#if role.hoursPerWeek !== null}
-                  <span class="sc-pill">{role.hoursPerWeek} hrs/week</span>
-                {/if}
-              </div>
               <div class="sc-copy-md">
                 <RichText html={role.descriptionHtml} />
               </div>

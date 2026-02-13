@@ -30,8 +30,6 @@ type RoleRow = {
   slug: string
   name: string
   description_rich: unknown
-  person_name: string | null
-  hours_per_week: number | null
 }
 type SystemRow = { id: string; slug: string; name: string }
 type RoleFlagRow = {
@@ -55,7 +53,7 @@ export const load = async ({ params, locals, url }) => {
 
   const { data: role, error: roleError } = await supabase
     .from("roles")
-    .select("id, slug, name, description_rich, person_name, hours_per_week")
+    .select("id, slug, name, description_rich")
     .eq("org_id", context.orgId)
     .eq("slug", params.slug)
     .maybeSingle()
@@ -154,8 +152,6 @@ export const load = async ({ params, locals, url }) => {
       initials: makeInitials(roleRow.name),
       descriptionRich: richToJsonString(roleRow.description_rich),
       descriptionHtml: richToHtml(roleRow.description_rich),
-      personName: roleRow.person_name ?? "",
-      hoursPerWeek: roleRow.hours_per_week ?? null,
     },
     ownedProcesses,
     actionsPerformed,
@@ -207,8 +203,6 @@ export const actions = {
         roleNameDraft: draft.name,
         roleDescriptionDraft: draft.description,
         roleDescriptionRichDraft: draft.descriptionRichRaw,
-        rolePersonNameDraft: draft.personName,
-        roleHoursPerWeekDraft: draft.hoursRaw,
       })
 
     const result = await updateRoleRecord({

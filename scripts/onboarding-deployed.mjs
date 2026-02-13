@@ -24,8 +24,7 @@ const suffix = now
   .slice(0, 14)
 
 const onboardingEmail =
-  process.env.ONBOARDING_TEST_EMAIL ??
-  `onboarding${suffix}@example.com`
+  process.env.ONBOARDING_TEST_EMAIL ?? `onboarding${suffix}@example.com`
 const onboardingPassword =
   process.env.ONBOARDING_TEST_PASSWORD ?? `Sc!${suffix}aA`
 
@@ -33,7 +32,12 @@ const virtualConsole = new VirtualConsole()
 virtualConsole.on("jsdomError", () => {})
 
 const steps = [
-  { id: "signup", label: "Sign up external user", status: "pending", detail: "" },
+  {
+    id: "signup",
+    label: "Sign up external user",
+    status: "pending",
+    detail: "",
+  },
   {
     id: "verify",
     label: "Verify email and sign in",
@@ -52,8 +56,18 @@ const steps = [
     status: "pending",
     detail: "",
   },
-  { id: "search", label: "Run search and deep-link retrieval", status: "pending", detail: "" },
-  { id: "flag", label: "File first flag and verify dashboard", status: "pending", detail: "" },
+  {
+    id: "search",
+    label: "Run search and deep-link retrieval",
+    status: "pending",
+    detail: "",
+  },
+  {
+    id: "flag",
+    label: "File first flag and verify dashboard",
+    status: "pending",
+    detail: "",
+  },
 ]
 
 const findStep = (id) => {
@@ -146,9 +160,9 @@ const parseActionIdsInOrder = (html) => {
   )
   const ids = []
   for (const form of forms) {
-    const direction = form.querySelector('input[name="direction"]')?.getAttribute(
-      "value",
-    )
+    const direction = form
+      .querySelector('input[name="direction"]')
+      ?.getAttribute("value")
     if (direction !== "up") {
       continue
     }
@@ -210,6 +224,7 @@ const requestApp = async ({
   expectJson = false,
 }) => {
   const targetUrl = new URL(path, `${baseUrl}/`)
+  const isActionRequest = Boolean(formData) && targetUrl.search.startsWith("?/")
   const headers = {}
   const cookieHeader = session.getCookieHeader()
   if (cookieHeader) {
@@ -228,7 +243,10 @@ const requestApp = async ({
     headers.referer = `${baseUrl}${path}`
   }
 
-  if (expectJson) {
+  if (isActionRequest) {
+    headers["x-sveltekit-action"] = "true"
+    headers.accept = "application/json"
+  } else if (expectJson) {
     headers.accept = "application/json"
   } else {
     headers.accept = "text/html,application/xhtml+xml"
@@ -359,7 +377,9 @@ const run = async () => {
           password: onboardingPassword,
         })
       if (loginError || !loginData.session) {
-        throw new Error(`Sign in failed after verification: ${loginError?.message}`)
+        throw new Error(
+          `Sign in failed after verification: ${loginError?.message}`,
+        )
       }
 
       return hasSession
@@ -390,7 +410,11 @@ const run = async () => {
         session: authSession,
         path: "/app/processes",
       })
-      await expectStatus(appProcessesResponse, [200], "Load /app/processes after profile")
+      await expectStatus(
+        appProcessesResponse,
+        [200],
+        "Load /app/processes after profile",
+      )
 
       return "Profile created and /app/processes loaded successfully."
     })
@@ -404,8 +428,6 @@ const run = async () => {
         formData: {
           name: roleName,
           description: `Onboarding role description ${suffix}`,
-          person_name: "Onboarding User",
-          hours_per_week: "5",
         },
       })
       await expectStatus(createRoleResponse, [200, 303], "Create role")
@@ -435,7 +457,6 @@ const run = async () => {
           name: `Onboarding System ${suffix}`,
           description: `Onboarding system description ${suffix}`,
           location: "HQ",
-          url: "https://systemscraft.co",
           owner_role_id: artifacts.roleId,
         },
       })
@@ -484,7 +505,8 @@ const run = async () => {
       })
       await expectStatus(processPageResponse, [200], "Load process detail")
       const processPageHtml = await processPageResponse.text()
-      artifacts.processId = parseHiddenInput(processPageHtml, "process_id") ?? ""
+      artifacts.processId =
+        parseHiddenInput(processPageHtml, "process_id") ?? ""
       if (!artifacts.processId) {
         throw new Error("Process detail missing process_id.")
       }

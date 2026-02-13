@@ -1,4 +1,9 @@
-import { canCreateFlagType, ensureUniqueSlug, isScFlagType, plainToRich } from "$lib/server/atlas"
+import {
+  canCreateFlagType,
+  ensureUniqueSlug,
+  isScFlagType,
+  plainToRich,
+} from "$lib/server/atlas"
 import { readRichTextFormDraft } from "$lib/server/rich-text"
 import type { RichTextDocument } from "$lib/rich-text/document"
 
@@ -14,8 +19,6 @@ export type RoleDraft = {
   description: string
   descriptionRich?: RichTextDocument
   descriptionRichRaw?: string
-  personName: string
-  hoursRaw: string
 }
 
 export const readRoleDraft = (formData: FormData): RoleDraft => {
@@ -30,22 +33,7 @@ export const readRoleDraft = (formData: FormData): RoleDraft => {
     description: descriptionDraft.text,
     descriptionRich: descriptionDraft.rich,
     descriptionRichRaw: descriptionDraft.richRaw,
-    personName: String(formData.get("person_name") ?? "").trim(),
-    hoursRaw: String(formData.get("hours_per_week") ?? "").trim(),
   }
-}
-
-const parseHoursPerWeek = (
-  hoursRaw: string,
-): { ok: true; value: number | null } | { ok: false; message: string } => {
-  const hours = hoursRaw ? Number(hoursRaw) : null
-  if (hoursRaw && Number.isNaN(hours)) {
-    return {
-      ok: false,
-      message: "Hours per week must be numeric.",
-    }
-  }
-  return { ok: true, value: hours }
 }
 
 export const createRoleRecord = async ({
@@ -64,11 +52,6 @@ export const createRoleRecord = async ({
     return { ok: false, status: 400, message: "Role name is required." }
   }
 
-  const parsedHours = parseHoursPerWeek(draft.hoursRaw)
-  if (!parsedHours.ok) {
-    return { ok: false, status: 400, message: parsedHours.message }
-  }
-
   const slug = await ensureUniqueSlug(supabase, "roles", orgId, draft.name)
   const { data, error } = await supabase
     .from("roles")
@@ -77,8 +60,6 @@ export const createRoleRecord = async ({
       slug,
       name: draft.name,
       description_rich: draft.descriptionRich ?? plainToRich(draft.description),
-      person_name: draft.personName || null,
-      hours_per_week: parsedHours.value,
     })
     .select("id, slug")
     .single()
@@ -111,11 +92,6 @@ export const updateRoleRecord = async ({
     return { ok: false, status: 400, message: "Role name is required." }
   }
 
-  const parsedHours = parseHoursPerWeek(draft.hoursRaw)
-  if (!parsedHours.ok) {
-    return { ok: false, status: 400, message: parsedHours.message }
-  }
-
   const { data: role, error: roleError } = await supabase
     .from("roles")
     .select("id, slug")
@@ -135,8 +111,6 @@ export const updateRoleRecord = async ({
     .update({
       name: draft.name,
       description_rich: draft.descriptionRich ?? plainToRich(draft.description),
-      person_name: draft.personName || null,
-      hours_per_week: parsedHours.value,
     })
     .eq("org_id", orgId)
     .eq("id", role.id)
@@ -156,10 +130,7 @@ export const deleteRoleRecord = async ({
   supabase: SupabaseClient
   orgId: string
   roleId: string
-}): Promise<
-  | { ok: true }
-  | { ok: false; status: number; message: string }
-> => {
+}): Promise<{ ok: true } | { ok: false; status: number; message: string }> => {
   if (!roleId) {
     return { ok: false, status: 400, message: "Role id is required." }
   }
@@ -216,7 +187,6 @@ export type SystemDraft = {
   descriptionRich?: RichTextDocument
   descriptionRichRaw?: string
   location: string
-  url: string
   ownerRoleIdRaw: string
 }
 
@@ -233,7 +203,6 @@ export const readSystemDraft = (formData: FormData): SystemDraft => {
     descriptionRich: descriptionDraft.rich,
     descriptionRichRaw: descriptionDraft.richRaw,
     location: String(formData.get("location") ?? "").trim(),
-    url: String(formData.get("url") ?? "").trim(),
     ownerRoleIdRaw: String(formData.get("owner_role_id") ?? "").trim(),
   }
 }
@@ -264,8 +233,7 @@ export const createSystemRecord = async ({
       slug,
       name: draft.name,
       description_rich: draft.descriptionRich ?? plainToRich(draft.description),
-      location: draft.location || null,
-      url: draft.url || null,
+      location: draft.location,
       owner_role_id: ownerRoleId,
     })
     .select("id, slug")
@@ -319,8 +287,7 @@ export const updateSystemRecord = async ({
     .update({
       name: draft.name,
       description_rich: draft.descriptionRich ?? plainToRich(draft.description),
-      location: draft.location || null,
-      url: draft.url || null,
+      location: draft.location,
       owner_role_id: ownerRoleId,
     })
     .eq("org_id", orgId)
@@ -341,10 +308,7 @@ export const deleteSystemRecord = async ({
   supabase: SupabaseClient
   orgId: string
   systemId: string
-}): Promise<
-  | { ok: true }
-  | { ok: false; status: number; message: string }
-> => {
+}): Promise<{ ok: true } | { ok: false; status: number; message: string }> => {
   if (!systemId) {
     return { ok: false, status: 400, message: "System id is required." }
   }

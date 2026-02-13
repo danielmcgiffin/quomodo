@@ -157,8 +157,6 @@ export interface Database {
           slug: string
           name: string
           description_rich: Json
-          person_name: string | null
-          hours_per_week: number | null
           created_at: string
           updated_at: string
         }
@@ -168,8 +166,6 @@ export interface Database {
           slug: string
           name: string
           description_rich?: Json
-          person_name?: string | null
-          hours_per_week?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -179,8 +175,6 @@ export interface Database {
           slug?: string
           name?: string
           description_rich?: Json
-          person_name?: string | null
-          hours_per_week?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -193,8 +187,7 @@ export interface Database {
           slug: string
           name: string
           description_rich: Json
-          location: string | null
-          url: string | null
+          location: string
           owner_role_id: string | null
           created_at: string
           updated_at: string
@@ -205,8 +198,7 @@ export interface Database {
           slug: string
           name: string
           description_rich?: Json
-          location?: string | null
-          url?: string | null
+          location?: string
           owner_role_id?: string | null
           created_at?: string
           updated_at?: string
@@ -217,8 +209,7 @@ export interface Database {
           slug?: string
           name?: string
           description_rich?: Json
-          location?: string | null
-          url?: string | null
+          location?: string
           owner_role_id?: string | null
           created_at?: string
           updated_at?: string
@@ -232,8 +223,8 @@ export interface Database {
           slug: string
           name: string
           description_rich: Json
-          trigger: string | null
-          end_state: string | null
+          trigger: string
+          end_state: string
           owner_role_id: string | null
           created_at: string
           updated_at: string
@@ -244,8 +235,8 @@ export interface Database {
           slug: string
           name: string
           description_rich?: Json
-          trigger?: string | null
-          end_state?: string | null
+          trigger?: string
+          end_state?: string
           owner_role_id?: string | null
           created_at?: string
           updated_at?: string
@@ -256,8 +247,8 @@ export interface Database {
           slug?: string
           name?: string
           description_rich?: Json
-          trigger?: string | null
-          end_state?: string | null
+          trigger?: string
+          end_state?: string
           owner_role_id?: string | null
           created_at?: string
           updated_at?: string
@@ -398,7 +389,12 @@ export interface Database {
     Enums: {
       sc_entity_type: "role" | "system" | "process" | "action"
       sc_flag_status: "open" | "resolved" | "dismissed"
-      sc_flag_type: "stale" | "incorrect" | "needs_review" | "question" | "comment"
+      sc_flag_type:
+        | "stale"
+        | "incorrect"
+        | "needs_review"
+        | "question"
+        | "comment"
       sc_membership_role: "owner" | "admin" | "editor" | "member"
     }
     CompositeTypes: {

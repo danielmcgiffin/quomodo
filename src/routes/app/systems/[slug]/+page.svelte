@@ -18,7 +18,6 @@
         descriptionRich: string
         descriptionHtml: string
         location: string
-        url: string
         ownerRole: {
           id: string
           slug: string
@@ -58,7 +57,6 @@
       systemDescriptionDraft?: string
       systemDescriptionRichDraft?: string
       systemLocationDraft?: string
-      systemUrlDraft?: string
       selectedOwnerRoleIdDraft?: string
     }
   }
@@ -67,7 +65,6 @@
   let isEditSystemModalOpen = $state(false)
   let systemNameDraft = $state("")
   let systemLocationDraft = $state("")
-  let systemUrlDraft = $state("")
   let systemDescriptionDraft = $state("")
   let systemDescriptionRichDraft = $state("")
   let selectedOwnerRoleId = $state("")
@@ -78,7 +75,6 @@
     { path: "name", label: "Name" },
     { path: "description", label: "Description" },
     { path: "location", label: "Location" },
-    { path: "url", label: "URL" },
     { path: "owner_role_id", label: "Owner role" },
   ]
 
@@ -158,7 +154,6 @@
   const setSystemDraftsFromData = () => {
     systemNameDraft = data.system.name
     systemLocationDraft = data.system.location
-    systemUrlDraft = data.system.url
     systemDescriptionDraft = htmlToDraftText(data.system.descriptionHtml)
     systemDescriptionRichDraft = data.system.descriptionRich
     selectedOwnerRoleId = data.system.ownerRole?.id ?? ""
@@ -198,10 +193,6 @@
       typeof form?.systemLocationDraft === "string"
         ? form.systemLocationDraft
         : data.system.location
-    systemUrlDraft =
-      typeof form?.systemUrlDraft === "string"
-        ? form.systemUrlDraft
-        : data.system.url
     selectedOwnerRoleId =
       typeof form?.selectedOwnerRoleIdDraft === "string"
         ? form.selectedOwnerRoleIdDraft
@@ -276,12 +267,6 @@
             />
           </div>
           <div class="sc-form-row">
-            <input
-              class="sc-search sc-field"
-              name="url"
-              placeholder="Public URL"
-              bind:value={systemUrlDraft}
-            />
             <select
               class="sc-search sc-field"
               name="owner_role_id"
@@ -332,15 +317,6 @@
             {#if data.system.ownerRole}
               <span>Owner</span>
               <RolePortal role={data.system.ownerRole} size="sm" />
-            {/if}
-            {#if data.system.url}
-              <a
-                class="sc-portal-process"
-                href={data.system.url}
-                target="_blank"
-              >
-                {data.system.url.replace("https://", "")}
-              </a>
             {/if}
             {#if data.system.location}
               <span class="sc-pill">{data.system.location}</span>

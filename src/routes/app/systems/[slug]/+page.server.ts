@@ -12,7 +12,10 @@ import {
   readSystemDraft,
   updateSystemRecord,
 } from "$lib/server/app/actions/shared"
-import { mapRolePortals, mapSystemPortals } from "$lib/server/app/mappers/portals"
+import {
+  mapRolePortals,
+  mapSystemPortals,
+} from "$lib/server/app/mappers/portals"
 import {
   filterProcessesUsing,
   filterRolesUsing,
@@ -28,7 +31,6 @@ type SystemRow = {
   name: string
   description_rich: unknown
   location: string | null
-  url: string | null
   owner_role_id: string | null
 }
 type RoleRow = { id: string; slug: string; name: string }
@@ -41,7 +43,7 @@ type SystemFlagRow = {
   created_at: string
 }
 
-export const load = async ({ params, locals, url }) => {
+export const load = async ({ params, locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
   const failLoad = (contextName: string, error: unknown) =>
@@ -54,7 +56,7 @@ export const load = async ({ params, locals, url }) => {
 
   const { data: system, error: systemError } = await supabase
     .from("systems")
-    .select("id, slug, name, description_rich, location, url, owner_role_id")
+    .select("id, slug, name, description_rich, location, owner_role_id")
     .eq("org_id", context.orgId)
     .eq("slug", params.slug)
     .maybeSingle()
@@ -112,7 +114,9 @@ export const load = async ({ params, locals, url }) => {
 
   const roles = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
   const roleById = new Map(roles.map((role) => [role.id, role]))
-  const processes = mapSystemPortals((processesResult.data ?? []) as ProcessRow[])
+  const processes = mapSystemPortals(
+    (processesResult.data ?? []) as ProcessRow[],
+  )
   const actionsUsing = mapSystemActionsUsing({
     rows: (actionsResult.data ?? []) as SystemDetailActionRow[],
     roleById,
@@ -148,7 +152,6 @@ export const load = async ({ params, locals, url }) => {
       descriptionRich: richToJsonString(systemRow.description_rich),
       descriptionHtml: richToHtml(systemRow.description_rich),
       location: systemRow.location ?? "",
-      url: systemRow.url ?? "",
       ownerRole: systemRow.owner_role_id
         ? (roleById.get(systemRow.owner_role_id) ?? null)
         : null,
@@ -159,7 +162,6 @@ export const load = async ({ params, locals, url }) => {
     rolesUsing,
     systemFlags: mapOpenFlags(systemFlagRows as OpenFlagRow[]),
     openFlags,
-    highlightedFlagId: url.searchParams.get("flagId") ?? null,
   }
 }
 
@@ -202,7 +204,6 @@ export const actions = {
         systemDescriptionDraft: draft.description,
         systemDescriptionRichDraft: draft.descriptionRichRaw,
         systemLocationDraft: draft.location,
-        systemUrlDraft: draft.url,
         selectedOwnerRoleIdDraft: draft.ownerRoleIdRaw,
       })
 

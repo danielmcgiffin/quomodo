@@ -3,7 +3,22 @@ import { env } from "$env/dynamic/private"
 import { env as publicEnv } from "$env/dynamic/public"
 import { createClient, type User } from "@supabase/supabase-js"
 import type { Database } from "../DatabaseDefinitions"
-import handlebars from "handlebars"
+import welcomeEmailText from "./emails/welcome_email_text.hbs?raw"
+import welcomeEmailHtml from "./emails/welcome_email_html.hbs?raw"
+
+const EMAIL_TEMPLATES: Record<string, { text?: string; html?: string }> = {
+  welcome_email: {
+    text: welcomeEmailText,
+    html: welcomeEmailHtml,
+  },
+}
+
+type TemplateProps = Record<string, string>
+
+const renderTemplate = (template: string, props: TemplateProps) =>
+  template.replace(/\{\{\{?\s*([A-Za-z0-9_]+)\s*\}?\}\}/g, (_match, key) => {
+    return props[key] ?? ""
+  })
 
 // Sends an email to the admin email address.
 // Does not throw errors, but logs them.
@@ -111,35 +126,27 @@ export const sendTemplatedEmail = async ({
   to_emails: string[]
   from_email: string
   template_name: string
-  template_properties: Record<string, string>
+  template_properties: TemplateProps
 }) => {
   if (!env.PRIVATE_RESEND_API_KEY) {
     // email not configured.  Emails are optional so no error is thrown
     return
   }
 
+  const template = EMAIL_TEMPLATES[template_name]
+  if (!template) {
+    console.log("No template found for email:", template_name)
+    return
+  }
+
   let plaintextBody: string | undefined = undefined
-  try {
-    const textTemplate = await import(
-      `./emails/${template_name}_text.hbs?raw`
-    ).then((mod) => mod.default)
-    const template = handlebars.compile(textTemplate)
-    plaintextBody = template(template_properties)
-  } catch (e) {
-    // ignore, plaintextBody is optional
-    plaintextBody = undefined
+  if (template.text) {
+    plaintextBody = renderTemplate(template.text, template_properties)
   }
 
   let htmlBody: string | undefined = undefined
-  try {
-    const htmlTemplate = await import(
-      `./emails/${template_name}_html.hbs?raw`
-    ).then((mod) => mod.default)
-    const template = handlebars.compile(htmlTemplate)
-    htmlBody = template(template_properties)
-  } catch (e) {
-    // ignore, htmlBody is optional
-    htmlBody = undefined
+  if (template.html) {
+    htmlBody = renderTemplate(template.html, template_properties)
   }
 
   if (!plaintextBody && !htmlBody) {

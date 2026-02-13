@@ -11,7 +11,10 @@ import {
   createRoleRecord,
   readRoleDraft,
 } from "$lib/server/app/actions/shared"
-import { mapRoleDirectory, type RoleDirectoryRow } from "$lib/server/app/mappers/directory"
+import {
+  mapRoleDirectory,
+  type RoleDirectoryRow,
+} from "$lib/server/app/mappers/directory"
 
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
@@ -26,7 +29,7 @@ export const load = async ({ locals }) => {
   const [rolesResult, flagsResult] = await Promise.all([
     supabase
       .from("roles")
-      .select("id, slug, name, description_rich, person_name, hours_per_week")
+      .select("id, slug, name, description_rich")
       .eq("org_id", context.orgId)
       .order("name"),
     supabase
@@ -51,14 +54,16 @@ export const load = async ({ locals }) => {
     richToHtml,
   })
   const roleById = new Map(roles.map((role) => [role.id, role]))
-  const openFlags = ((flagsResult.data ?? []) as {
-    id: string
-    target_id: string
-    target_path: string | null
-    flag_type: string
-    message: string
-    created_at: string
-  }[])
+  const openFlags = (
+    (flagsResult.data ?? []) as {
+      id: string
+      target_id: string
+      target_path: string | null
+      flag_type: string
+      message: string
+      created_at: string
+    }[]
+  )
     .map((flag) => {
       const role = roleById.get(flag.target_id)
       if (!role) {
@@ -101,8 +106,6 @@ export const actions = {
         roleNameDraft: draft.name,
         roleDescriptionDraft: draft.description,
         roleDescriptionRichDraft: draft.descriptionRichRaw,
-        rolePersonNameDraft: draft.personName,
-        roleHoursPerWeekDraft: draft.hoursRaw,
       })
     const result = await createRoleRecord({
       supabase,

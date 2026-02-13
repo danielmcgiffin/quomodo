@@ -160,6 +160,12 @@ export const actions = {
     if (!name) {
       return fail(400, { createProcessError: "Process name is required." })
     }
+    if (!trigger) {
+      return fail(400, { createProcessError: "Process trigger is required." })
+    }
+    if (!endState) {
+      return fail(400, { createProcessError: "Process end state is required." })
+    }
 
     const slug = await ensureUniqueSlug(
       supabase,
@@ -173,8 +179,8 @@ export const actions = {
       org_id: context.orgId,
       slug,
       name,
-      trigger: trigger || null,
-      end_state: endState || null,
+      trigger,
+      end_state: endState,
       owner_role_id: ownerRoleId,
       description_rich: descriptionDraft.rich,
     }

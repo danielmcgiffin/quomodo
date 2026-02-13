@@ -44,21 +44,21 @@ begin
     accepted_at = coalesce(org_members.accepted_at, now()),
     updated_at = now();
 
-  insert into public.roles (org_id, slug, name, description_rich, person_name, hours_per_week)
+  insert into public.roles (org_id, slug, name, description_rich)
   values
-    (v_org_id, 'founder', 'Founder', '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Sets direction and owns escalation paths."}]}]}'::jsonb, 'Owner', 20),
-    (v_org_id, 'ops-manager', 'Ops Manager', '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Maintains process quality and execution reliability."}]}]}'::jsonb, 'Ops Lead', 35),
-    (v_org_id, 'client-success', 'Client Success Lead', '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Owns onboarding and renewal outcomes."}]}]}'::jsonb, 'CS Lead', 30);
+    (v_org_id, 'founder', 'Founder', '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Sets direction and owns escalation paths."}]}]}'::jsonb),
+    (v_org_id, 'ops-manager', 'Ops Manager', '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Maintains process quality and execution reliability."}]}]}'::jsonb),
+    (v_org_id, 'client-success', 'Client Success Lead', '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Owns onboarding and renewal outcomes."}]}]}'::jsonb);
 
   select id into v_role_founder from public.roles where org_id = v_org_id and slug = 'founder';
   select id into v_role_ops from public.roles where org_id = v_org_id and slug = 'ops-manager';
   select id into v_role_cs from public.roles where org_id = v_org_id and slug = 'client-success';
 
-  insert into public.systems (org_id, slug, name, description_rich, location, url, owner_role_id)
+  insert into public.systems (org_id, slug, name, description_rich, location, owner_role_id)
   values
-    (v_org_id, 'hubspot', 'HubSpot', '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Primary CRM and pipeline tracking."}]}]}'::jsonb, 'CRM', 'https://app.hubspot.com', v_role_ops),
-    (v_org_id, 'google-drive', 'Google Drive', '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Shared docs and templates."}]}]}'::jsonb, 'Shared drive', 'https://drive.google.com', v_role_ops),
-    (v_org_id, 'zoom', 'Zoom', '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Client and internal call execution."}]}]}'::jsonb, 'Meetings', 'https://zoom.us', v_role_ops);
+    (v_org_id, 'hubspot', 'HubSpot', '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Primary CRM and pipeline tracking."}]}]}'::jsonb, 'CRM', v_role_ops),
+    (v_org_id, 'google-drive', 'Google Drive', '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Shared docs and templates."}]}]}'::jsonb, 'Shared drive', v_role_ops),
+    (v_org_id, 'zoom', 'Zoom', '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Client and internal call execution."}]}]}'::jsonb, 'Meetings', v_role_ops);
 
   select id into v_system_hubspot from public.systems where org_id = v_org_id and slug = 'hubspot';
   select id into v_system_drive from public.systems where org_id = v_org_id and slug = 'google-drive';

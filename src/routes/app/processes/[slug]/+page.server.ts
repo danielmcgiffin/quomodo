@@ -18,7 +18,10 @@ import {
   readRoleDraft,
   readSystemDraft,
 } from "$lib/server/app/actions/shared"
-import { mapRolePortals, mapSystemPortals } from "$lib/server/app/mappers/portals"
+import {
+  mapRolePortals,
+  mapSystemPortals,
+} from "$lib/server/app/mappers/portals"
 import {
   mapProcessDetailActions,
   mapProcessDetailFlags,
@@ -31,8 +34,8 @@ type ProcessRow = {
   slug: string
   name: string
   description_rich: unknown
-  trigger: string | null
-  end_state: string | null
+  trigger: string
+  end_state: string
   owner_role_id: string | null
 }
 type RoleRow = { id: string; slug: string; name: string }
@@ -263,6 +266,12 @@ export const actions = {
     if (!draft.name) {
       return failProcess(400, "Process name is required.")
     }
+    if (!draft.trigger) {
+      return failProcess(400, "Process trigger is required.")
+    }
+    if (!draft.endState) {
+      return failProcess(400, "Process end state is required.")
+    }
 
     const { data: process, error: processError } = await supabase
       .from("processes")
@@ -284,8 +293,8 @@ export const actions = {
       .update({
         name: draft.name,
         description_rich: draft.descriptionRich,
-        trigger: draft.trigger || null,
-        end_state: draft.endState || null,
+        trigger: draft.trigger,
+        end_state: draft.endState,
         owner_role_id: ownerRoleId,
       })
       .eq("org_id", context.orgId)

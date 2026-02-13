@@ -33,7 +33,9 @@ const createRoleLookupChain = (data: { id: string; slug?: string } | null) => {
   return chain
 }
 
-const createSystemLookupChain = (data: { id: string; slug?: string } | null) => {
+const createSystemLookupChain = (
+  data: { id: string; slug?: string } | null,
+) => {
   const chain = {
     select: vi.fn(),
     eq: vi.fn(),
@@ -92,8 +94,6 @@ describe("shared app actions", () => {
       draft: {
         name: "",
         description: "x",
-        personName: "",
-        hoursRaw: "",
       },
     })
 
@@ -104,22 +104,21 @@ describe("shared app actions", () => {
     })
   })
 
-  it("rejects role creation when hours are non-numeric", async () => {
-    const result = await createRoleRecord({
+  it("rejects role update when role name is missing", async () => {
+    const result = await updateRoleRecord({
       supabase: {} as App.Locals["supabase"],
       orgId: "org-1",
+      roleId: "role-1",
       draft: {
-        name: "Operator",
+        name: "",
         description: "x",
-        personName: "",
-        hoursRaw: "abc",
       },
     })
 
     expect(result).toEqual({
       ok: false,
       status: 400,
-      message: "Hours per week must be numeric.",
+      message: "Role name is required.",
     })
   })
 
@@ -131,7 +130,6 @@ describe("shared app actions", () => {
         name: "",
         description: "",
         location: "",
-        url: "",
         ownerRoleIdRaw: "",
       },
     })
@@ -152,7 +150,6 @@ describe("shared app actions", () => {
         name: "CRM",
         description: "",
         location: "",
-        url: "",
         ownerRoleIdRaw: "",
       },
     })
@@ -172,8 +169,6 @@ describe("shared app actions", () => {
       draft: {
         name: "Ops Manager",
         description: "",
-        personName: "",
-        hoursRaw: "",
       },
     })
 
@@ -181,26 +176,6 @@ describe("shared app actions", () => {
       ok: false,
       status: 400,
       message: "Role id is required.",
-    })
-  })
-
-  it("rejects role update when hours are non-numeric", async () => {
-    const result = await updateRoleRecord({
-      supabase: {} as App.Locals["supabase"],
-      orgId: "org-1",
-      roleId: "role-1",
-      draft: {
-        name: "Ops Manager",
-        description: "",
-        personName: "",
-        hoursRaw: "forty",
-      },
-    })
-
-    expect(result).toEqual({
-      ok: false,
-      status: 400,
-      message: "Hours per week must be numeric.",
     })
   })
 
@@ -256,8 +231,6 @@ describe("shared app actions", () => {
       draft: {
         name: "Operations Lead",
         description: "Owns operations",
-        personName: "Taylor",
-        hoursRaw: "40",
       },
     })
 
@@ -277,8 +250,6 @@ describe("shared app actions", () => {
           },
         ],
       },
-      person_name: "Taylor",
-      hours_per_week: 40,
     })
   })
 
@@ -336,7 +307,6 @@ describe("shared app actions", () => {
         name: "HubSpot CRM",
         description: "Customer records",
         location: "sales",
-        url: "https://app.hubspot.com",
         ownerRoleIdRaw: "role-9",
       },
     })
@@ -358,7 +328,6 @@ describe("shared app actions", () => {
         ],
       },
       location: "sales",
-      url: "https://app.hubspot.com",
       owner_role_id: "role-9",
     })
   })

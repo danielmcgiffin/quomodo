@@ -3,8 +3,6 @@ export type RoleDirectoryRow = {
   slug: string
   name: string
   description_rich: unknown
-  person_name: string | null
-  hours_per_week: number | null
 }
 
 export const mapRoleDirectory = ({
@@ -22,8 +20,6 @@ export const mapRoleDirectory = ({
     name: row.name,
     initials: makeInitials(row.name),
     descriptionHtml: richToHtml(row.description_rich),
-    personName: row.person_name ?? "",
-    hoursPerWeek: row.hours_per_week ?? null,
   }))
 
 export type SystemDirectoryRow = {
@@ -32,7 +28,6 @@ export type SystemDirectoryRow = {
   name: string
   description_rich: unknown
   location: string | null
-  url: string | null
   owner_role_id: string | null
 }
 
@@ -53,6 +48,7 @@ export const mapSystemDirectory = ({
     name: row.name,
     descriptionHtml: richToHtml(row.description_rich),
     location: row.location ?? "",
-    url: row.url ?? "",
-    ownerRole: row.owner_role_id ? (roleById.get(row.owner_role_id) ?? null) : null,
+    ownerRole: row.owner_role_id
+      ? (roleById.get(row.owner_role_id) ?? null)
+      : null,
   }))

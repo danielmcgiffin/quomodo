@@ -13,7 +13,10 @@ import {
   readSystemDraft,
 } from "$lib/server/app/actions/shared"
 import { mapRolePortals } from "$lib/server/app/mappers/portals"
-import { mapSystemDirectory, type SystemDirectoryRow } from "$lib/server/app/mappers/directory"
+import {
+  mapSystemDirectory,
+  type SystemDirectoryRow,
+} from "$lib/server/app/mappers/directory"
 
 type RoleRow = { id: string; slug: string; name: string }
 export const load = async ({ locals }) => {
@@ -35,7 +38,7 @@ export const load = async ({ locals }) => {
       .order("name"),
     supabase
       .from("systems")
-      .select("id, slug, name, description_rich, location, url, owner_role_id")
+      .select("id, slug, name, description_rich, location, owner_role_id")
       .eq("org_id", context.orgId)
       .order("name"),
     supabase
@@ -66,14 +69,16 @@ export const load = async ({ locals }) => {
     richToHtml,
   })
   const systemById = new Map(systems.map((system) => [system.id, system]))
-  const openFlags = ((flagsResult.data ?? []) as {
-    id: string
-    target_id: string
-    target_path: string | null
-    flag_type: string
-    message: string
-    created_at: string
-  }[])
+  const openFlags = (
+    (flagsResult.data ?? []) as {
+      id: string
+      target_id: string
+      target_path: string | null
+      flag_type: string
+      message: string
+      created_at: string
+    }[]
+  )
     .map((flag) => {
       const system = systemById.get(flag.target_id)
       if (!system) {
@@ -118,7 +123,6 @@ export const actions = {
         systemDescriptionDraft: draft.description,
         systemDescriptionRichDraft: draft.descriptionRichRaw,
         systemLocationDraft: draft.location,
-        systemUrlDraft: draft.url,
         selectedOwnerRoleIdDraft: draft.ownerRoleIdRaw,
       })
     const result = await createSystemRecord({

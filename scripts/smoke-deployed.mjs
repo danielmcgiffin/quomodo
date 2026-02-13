@@ -326,8 +326,6 @@ const run = async () => {
       formData: {
         name: roleName,
         description: `Smoke role description ${suffix}`,
-        person_name: "Smoke Owner",
-        hours_per_week: "6",
       },
     })
     await expectStatus(createRoleResponse, [200, 303], "Create role")
@@ -357,8 +355,6 @@ const run = async () => {
         role_id: artifacts.roleId,
         name: roleUpdateName,
         description: `Updated smoke role description ${suffix}`,
-        person_name: "Smoke Owner Updated",
-        hours_per_week: "7",
       },
     })
     await expectStatus(updateRoleResponse, [200, 303], "Update role")
@@ -379,7 +375,6 @@ const run = async () => {
         name: systemName,
         description: `Smoke system description ${suffix}`,
         location: "Smoke HQ",
-        url: "https://example.com/smoke",
         owner_role_id: artifacts.roleId,
       },
     })
@@ -411,7 +406,6 @@ const run = async () => {
         name: systemUpdateName,
         description: `Updated smoke system description ${suffix}`,
         location: "Smoke HQ Updated",
-        url: "https://example.com/smoke-updated",
         owner_role_id: artifacts.roleId,
       },
     })
@@ -554,8 +548,6 @@ const run = async () => {
       formData: {
         name: adminRoleName,
         description: `Smoke admin role description ${suffix}`,
-        person_name: "Smoke Admin",
-        hours_per_week: "4",
       },
     })
     await expectStatus(adminCreateRoleResponse, [200, 303], "Admin create role")
@@ -593,8 +585,6 @@ const run = async () => {
       formData: {
         name: `Smoke Editor Role Blocked ${suffix}`,
         description: "Editor should not be able to create directory roles.",
-        person_name: "Smoke Editor",
-        hours_per_week: "3",
       },
     })
     if (editorCreateRoleResponse.status !== 403) {

@@ -17,8 +17,6 @@
         initials: string
         descriptionRich: string
         descriptionHtml: string
-        personName: string
-        hoursPerWeek: number | null
       }
       org: { membershipRole: "owner" | "admin" | "editor" | "member" }
       reportsTo: { slug: string; name: string; initials: string } | null
@@ -52,8 +50,6 @@
       createFlagTargetId?: string
       createFlagTargetPath?: string
       roleNameDraft?: string
-      rolePersonNameDraft?: string
-      roleHoursPerWeekDraft?: string
       roleDescriptionDraft?: string
       roleDescriptionRichDraft?: string
     }
@@ -79,8 +75,6 @@
       .trim()
 
   let roleNameDraft = $state("")
-  let rolePersonNameDraft = $state("")
-  let roleHoursPerWeekDraft = $state("")
   let roleDescriptionDraft = $state("")
   let roleDescriptionRichDraft = $state("")
   let selectedActionProcessSlug = $state("")
@@ -89,8 +83,6 @@
   const roleFieldTargets = [
     { path: "name", label: "Name" },
     { path: "description", label: "Description" },
-    { path: "person_name", label: "Person name" },
-    { path: "hours_per_week", label: "Hours per week" },
   ]
 
   const canManageRole = () =>
@@ -127,9 +119,6 @@
 
   const setRoleDraftsFromData = () => {
     roleNameDraft = data.role.name
-    rolePersonNameDraft = data.role.personName ?? ""
-    roleHoursPerWeekDraft =
-      data.role.hoursPerWeek === null ? "" : String(data.role.hoursPerWeek)
     roleDescriptionDraft = htmlToDraftText(data.role.descriptionHtml)
     roleDescriptionRichDraft = data.role.descriptionRich
   }
@@ -156,16 +145,6 @@
       typeof form?.roleNameDraft === "string"
         ? form.roleNameDraft
         : data.role.name
-    rolePersonNameDraft =
-      typeof form?.rolePersonNameDraft === "string"
-        ? form.rolePersonNameDraft
-        : (data.role.personName ?? "")
-    roleHoursPerWeekDraft =
-      typeof form?.roleHoursPerWeekDraft === "string"
-        ? form.roleHoursPerWeekDraft
-        : data.role.hoursPerWeek === null
-          ? ""
-          : String(data.role.hoursPerWeek)
     roleDescriptionDraft =
       typeof form?.roleDescriptionDraft === "string"
         ? form.roleDescriptionDraft
@@ -235,20 +214,6 @@
             />
           </div>
           <div class="sc-form-row">
-            <input
-              class="sc-search sc-field"
-              name="person_name"
-              placeholder="Person name (optional)"
-              bind:value={rolePersonNameDraft}
-            />
-            <input
-              class="sc-search sc-field"
-              name="hours_per_week"
-              placeholder="Hours per week (optional)"
-              bind:value={roleHoursPerWeekDraft}
-            />
-          </div>
-          <div class="sc-form-row">
             <RichTextEditor
               fieldName="description_rich"
               textFieldName="description"
@@ -281,20 +246,6 @@
             errorTargetId={form?.createFlagTargetId}
             errorTargetPath={form?.createFlagTargetPath}
           />
-          <div class="sc-byline">
-            <RolePortal role={data.role} size="lg" />
-            {#if data.role.personName}
-              <span class="sc-pill">{data.role.personName}</span>
-            {/if}
-            {#if data.role.hoursPerWeek !== null}
-              <span class="sc-pill">{data.role.hoursPerWeek} hrs/week</span>
-            {/if}
-            {#if data.reportsTo}
-              <span>·</span>
-              <span>Reports to</span>
-              <RolePortal role={data.reportsTo} size="sm" />
-            {/if}
-          </div>
         </div>
       </div>
 

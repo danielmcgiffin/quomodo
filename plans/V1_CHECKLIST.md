@@ -39,6 +39,7 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [x] Processes support list/create/edit/delete with ordered action editor (`LP-032`)
 - [x] Actions support add/update/delete in process context (`LP-033`)
 - [x] CRUD for roles, systems, processes, actions, flags
+- [x] Schema cleanup applied: `systems.url` removed (single `location` field), `processes.trigger/end_state` required, and `roles.person_name/hours_per_week` removed
 - [x] Nav counts from live data
 - [x] Portals wired to live IDs
 
@@ -78,8 +79,8 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 - [ ] `LP-065` Production domain, canonical `WebsiteBaseUrl`, and Supabase auth callback allowlist are aligned
 - [ ] `LP-066` Stripe catalog + pricing config moved from demo/test setup to launch-ready plans
 - [x] `LP-067` Email delivery is production-ready (Supabase SMTP + Resend + branded templates + Cloudflare email secrets)
-- [ ] `LP-068` First-customer onboarding path is documented and validated end-to-end (signup -> verify -> create profile -> `/app`; blocked by deployed 500, see `plans/LP-068-069_BLOCKERS_2026-02-12.md`)
-- [ ] `LP-069` Multi-user workspace provisioning path is defined for `owner/admin/editor/member` assignments (provisioning script done; non-owner traversal blocked by deployed 500, see `plans/LP-068-069_BLOCKERS_2026-02-12.md`)
+- [x] `LP-068` First-customer onboarding path is documented and validated end-to-end (signup -> verify -> create profile -> `/app`; production run PASS at `2026-02-13T11:11:47.052Z`, see `plans/LP-068-069_BLOCKERS_2026-02-12.md`)
+- [x] `LP-069` Multi-user workspace provisioning path is defined for `owner/admin/editor/member` assignments
 
 ## Route Isolation
 

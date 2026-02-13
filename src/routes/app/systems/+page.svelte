@@ -18,8 +18,12 @@
         name: string
         descriptionHtml: string
         location: string
-        url: string
-        ownerRole: { id: string; slug: string; name: string; initials: string } | null
+        ownerRole: {
+          id: string
+          slug: string
+          name: string
+          initials: string
+        } | null
       }[]
       openFlags: {
         id: string
@@ -43,7 +47,6 @@
       systemDescriptionDraft?: string
       systemDescriptionRichDraft?: string
       systemLocationDraft?: string
-      systemUrlDraft?: string
       selectedOwnerRoleIdDraft?: string
     }
   }
@@ -53,7 +56,6 @@
   let isCreateRoleModalOpen = $state(false)
   let systemNameDraft = $state("")
   let systemLocationDraft = $state("")
-  let systemUrlDraft = $state("")
   let systemDescriptionDraft = $state("")
   let systemDescriptionRichDraft = $state("")
   let selectedOwnerRoleId = $state("")
@@ -62,14 +64,12 @@
     { path: "name", label: "Name" },
     { path: "description", label: "Description" },
     { path: "location", label: "Location" },
-    { path: "url", label: "URL" },
     { path: "owner_role_id", label: "Owner role" },
   ]
 
   const openCreateSystemModal = () => {
     systemNameDraft = ""
     systemLocationDraft = ""
-    systemUrlDraft = ""
     systemDescriptionDraft = ""
     systemDescriptionRichDraft = ""
     selectedOwnerRoleId = form?.createdRoleId ?? ""
@@ -99,9 +99,6 @@
     if (typeof form?.systemLocationDraft === "string") {
       systemLocationDraft = form.systemLocationDraft
     }
-    if (typeof form?.systemUrlDraft === "string") {
-      systemUrlDraft = form.systemUrlDraft
-    }
     if (typeof form?.selectedOwnerRoleIdDraft === "string") {
       selectedOwnerRoleId = form.selectedOwnerRoleIdDraft
     }
@@ -123,11 +120,7 @@
         </div>
 
         <div class="sc-actions">
-          <button
-            class="sc-btn"
-            type="button"
-            onclick={openCreateSystemModal}
-          >
+          <button class="sc-btn" type="button" onclick={openCreateSystemModal}>
             Record a System
           </button>
         </div>
@@ -159,12 +152,6 @@
             />
           </div>
           <div class="sc-form-row">
-            <input
-              class="sc-search sc-field"
-              name="url"
-              placeholder="Public URL"
-              bind:value={systemUrlDraft}
-            />
             <select
               class="sc-search sc-field"
               name="owner_role_id"
@@ -172,8 +159,9 @@
             >
               <option value="">Owner role (optional)</option>
               {#each data.roles as role}
-                <option value={role.id} selected={form?.createdRoleId === role.id}
-                  >{role.name}</option
+                <option
+                  value={role.id}
+                  selected={form?.createdRoleId === role.id}>{role.name}</option
                 >
               {/each}
             </select>
@@ -203,7 +191,8 @@
           </div>
           {#if form?.createRoleSuccess}
             <div class="sc-page-subtitle">
-              Role created. Select it as owner and continue creating your system.
+              Role created. Select it as owner and continue creating your
+              system.
             </div>
           {/if}
         </form>
