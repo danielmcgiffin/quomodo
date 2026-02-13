@@ -9,7 +9,11 @@ import { sequence } from "@sveltejs/kit/hooks"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "./DatabaseDefinitions"
 import { logRuntimeError } from "$lib/server/runtime-errors"
-import { ACTIVE_WORKSPACE_COOKIE, setActiveWorkspaceCookie } from "$lib/server/atlas"
+import {
+  ACTIVE_WORKSPACE_COOKIE,
+  ensureOrgContext,
+  setActiveWorkspaceCookie,
+} from "$lib/server/atlas"
 
 const { PRIVATE_SUPABASE_SERVICE_ROLE } = privateEnv
 const { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } = publicEnv
@@ -180,21 +184,21 @@ const authGuard: Handle = async ({ event, resolve }) => {
   event.locals.session = session
   event.locals.user = user
 
-  const response = await resolve(event)
-
-  // Persist the active workspace selection after downstream loaders/actions
-  // resolve org context (including first-workspace bootstrap).
-  if (
-    event.locals.user &&
-    event.url.pathname.startsWith("/app") &&
-    typeof event.locals.activeWorkspaceId === "string" &&
-    event.locals.activeWorkspaceId.trim().length > 0 &&
-    event.cookies.get(ACTIVE_WORKSPACE_COOKIE) !== event.locals.activeWorkspaceId
-  ) {
-    setActiveWorkspaceCookie(event.cookies, event.locals.activeWorkspaceId)
+  // Cloudflare adapter can't set cookies after the response is generated.
+  // Resolve org context up-front for /app requests so we can safely persist
+  // the active workspace cookie before calling `resolve(event)`.
+  if (event.locals.user && event.url.pathname.startsWith("/app")) {
+    await ensureOrgContext(event.locals)
+    if (
+      typeof event.locals.activeWorkspaceId === "string" &&
+      event.locals.activeWorkspaceId.trim().length > 0 &&
+      event.cookies.get(ACTIVE_WORKSPACE_COOKIE) !== event.locals.activeWorkspaceId
+    ) {
+      setActiveWorkspaceCookie(event.cookies, event.locals.activeWorkspaceId)
+    }
   }
 
-  return response
+  return await resolve(event)
 }
 
 export const handle: Handle = sequence(supabase, authGuard)
