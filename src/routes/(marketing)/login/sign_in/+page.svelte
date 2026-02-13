@@ -7,6 +7,14 @@
 
   let { data } = $props()
 
+  const resolveNextPath = (): string => {
+    const rawNext = $page.url.searchParams.get("next") ?? ""
+    if (!rawNext.startsWith("/") || rawNext.startsWith("//")) {
+      return "/app/processes"
+    }
+    return rawNext
+  }
+
   onMount(() => {
     const supabase = data.supabase
     if (!supabase) {
@@ -19,7 +27,7 @@
         // Give the layout callback priority to update state or
         // we'll just bounce back to login when /app/processes tries to load
         setTimeout(() => {
-          goto("/app/processes")
+          goto(resolveNextPath())
         }, 1)
       }
     })
@@ -54,7 +62,7 @@
   <Auth
     supabaseClient={data.supabase}
     view="sign_in"
-    redirectTo={`${data.url}/auth/callback`}
+    redirectTo={`${data.url}/auth/callback?next=${encodeURIComponent(resolveNextPath())}`}
     providers={oauthProviders}
     socialLayout="horizontal"
     showLinks={false}

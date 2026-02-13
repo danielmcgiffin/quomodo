@@ -1,8 +1,17 @@
 <script lang="ts">
   import { Auth } from "@supabase/auth-ui-svelte"
   import { sharedAppearance, oauthProviders } from "../login_config"
+  import { page } from "$app/stores"
 
   let { data } = $props()
+
+  const resolveNextPath = (): string => {
+    const rawNext = $page.url.searchParams.get("next") ?? ""
+    if (!rawNext.startsWith("/") || rawNext.startsWith("//")) {
+      return "/app/processes"
+    }
+    return rawNext
+  }
 </script>
 
 <svelte:head>
@@ -16,7 +25,7 @@
   <Auth
     supabaseClient={data.supabase}
     view="sign_up"
-    redirectTo={`${data.url}/auth/callback`}
+    redirectTo={`${data.url}/auth/callback?next=${encodeURIComponent(resolveNextPath())}`}
     showLinks={false}
     providers={oauthProviders}
     socialLayout="horizontal"

@@ -9,6 +9,7 @@ declare global {
       requestId?: string
       supabase: SupabaseClient<Database>
       supabaseServiceRole: SupabaseClient<Database>
+      activeWorkspaceId?: string | null
       orgContext?: {
         orgId: string
         orgName: string

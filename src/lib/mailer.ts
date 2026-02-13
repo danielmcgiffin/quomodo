@@ -6,10 +6,20 @@ import type { Database } from "../DatabaseDefinitions"
 import welcomeEmailText from "./emails/welcome_email_text.hbs?raw"
 import welcomeEmailHtml from "./emails/welcome_email_html.hbs?raw"
 
+const teamInviteText = `You've been invited to join {{{workspaceName}}} on {{{companyName}}}.
+
+Accept invite: {{{inviteLink}}}`
+
+const teamInviteHtml = `<html><body><p>You've been invited to join <strong>{{{workspaceName}}}</strong> on {{{companyName}}}.</p><p><a href="{{{inviteLink}}}">Accept invite</a></p></body></html>`
+
 const EMAIL_TEMPLATES: Record<string, { text?: string; html?: string }> = {
   welcome_email: {
     text: welcomeEmailText,
     html: welcomeEmailHtml,
+  },
+  team_invite: {
+    text: teamInviteText,
+    html: teamInviteHtml,
   },
 }
 

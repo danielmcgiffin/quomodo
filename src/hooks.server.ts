@@ -9,6 +9,7 @@ import { sequence } from "@sveltejs/kit/hooks"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "./DatabaseDefinitions"
 import { logRuntimeError } from "$lib/server/runtime-errors"
+import { ACTIVE_WORKSPACE_COOKIE } from "$lib/server/atlas"
 
 const { PRIVATE_SUPABASE_SERVICE_ROLE } = privateEnv
 const { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } = publicEnv
@@ -138,6 +139,9 @@ export const supabase: Handle = async ({ event, resolve }) => {
 // Next-page CSR will mean relatively minimal calls to this hook
 const authGuard: Handle = async ({ event, resolve }) => {
   const { session, user } = await event.locals.safeGetSession()
+  event.locals.activeWorkspaceId =
+    event.cookies.get(ACTIVE_WORKSPACE_COOKIE) ?? null
+
   if (!user && DEV_AUTH_BYPASS_ENABLED) {
     let bypassUserId = DEV_AUTH_BYPASS_USER_ID ?? null
 

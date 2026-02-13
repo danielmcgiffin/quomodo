@@ -1,6 +1,17 @@
 import { ensureOrgContext, makeInitials } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
 
+type MembershipRow = {
+  org_id: string
+  role: "owner" | "admin" | "editor" | "member"
+  accepted_at: string | null
+}
+
+type OrgRow = {
+  id: string
+  name: string
+}
+
 const countTable = async (
   supabase: App.Locals["supabase"],
   table: "processes" | "roles" | "systems" | "flags",
@@ -28,7 +39,14 @@ export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
 
-  const [processCount, roleCount, systemCount, flagCount, profileResult] =
+  const [
+    processCount,
+    roleCount,
+    systemCount,
+    flagCount,
+    profileResult,
+    membershipsResult,
+  ] =
     await Promise.all([
       countTable(supabase, "processes", context.orgId, locals.requestId),
       countTable(supabase, "roles", context.orgId, locals.requestId),
@@ -39,6 +57,11 @@ export const load = async ({ locals }) => {
         .select("full_name")
         .eq("id", context.userId)
         .maybeSingle(),
+      supabase
+        .from("org_members")
+        .select("org_id, role, accepted_at")
+        .eq("user_id", context.userId)
+        .order("accepted_at", { ascending: false, nullsFirst: false }),
     ])
 
   if (profileResult.error) {
@@ -49,6 +72,41 @@ export const load = async ({ locals }) => {
       route: "/app",
       details: { userId: context.userId },
     })
+  }
+
+  if (membershipsResult.error) {
+    throwRuntime500({
+      context: "app.layout.workspaceMemberships",
+      error: membershipsResult.error,
+      requestId: locals.requestId,
+      route: "/app",
+      details: { userId: context.userId },
+    })
+  }
+
+  const memberships = (membershipsResult.data ?? []) as MembershipRow[]
+  const uniqueOrgIds = [...new Set(memberships.map((membership) => membership.org_id))]
+  const orgById = new Map<string, OrgRow>()
+
+  if (uniqueOrgIds.length > 0) {
+    const orgsResult = await supabase
+      .from("orgs")
+      .select("id, name")
+      .in("id", uniqueOrgIds)
+
+    if (orgsResult.error) {
+      throwRuntime500({
+        context: "app.layout.workspaceOrgs",
+        error: orgsResult.error,
+        requestId: locals.requestId,
+        route: "/app",
+        details: { userId: context.userId },
+      })
+    }
+
+    for (const org of (orgsResult.data ?? []) as OrgRow[]) {
+      orgById.set(org.id, org)
+    }
   }
 
   const displayName =
@@ -66,6 +124,11 @@ export const load = async ({ locals }) => {
       systems: systemCount,
       flags: flagCount,
     },
+    workspaceOptions: memberships.map((membership) => ({
+      id: membership.org_id,
+      name: orgById.get(membership.org_id)?.name ?? "Unknown workspace",
+      role: membership.role,
+    })),
     viewerInitials: makeInitials(displayName),
   }
 }

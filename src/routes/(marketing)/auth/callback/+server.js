@@ -2,6 +2,14 @@
 import { redirect } from "@sveltejs/kit"
 import { isAuthApiError } from "@supabase/supabase-js"
 
+/** @param {string | null} value */
+const resolveNextPath = (value) => {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return null
+  }
+  return value
+}
+
 export const GET = async ({ url, locals: { supabase } }) => {
   const code = url.searchParams.get("code")
   if (code) {
@@ -18,7 +26,7 @@ export const GET = async ({ url, locals: { supabase } }) => {
     }
   }
 
-  const next = url.searchParams.get("next")
+  const next = resolveNextPath(url.searchParams.get("next"))
   if (next) {
     redirect(303, next)
   }

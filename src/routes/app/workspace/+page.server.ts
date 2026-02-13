@@ -3,11 +3,13 @@ import {
   canManageDirectory,
   createWorkspaceForUser,
   ensureOrgContext,
+  setActiveWorkspaceCookie,
   type MembershipRole,
 } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
 
 const WORKSPACE_NAME_MAX_LENGTH = 80
+const APP_DEFAULT_REDIRECT = "/app/processes"
 
 type MembershipRow = {
   org_id: string
@@ -25,6 +27,14 @@ const normalizeWorkspaceName = (value: FormDataEntryValue | null): string =>
   String(value ?? "")
     .trim()
     .replace(/\s+/g, " ")
+
+const resolveAppRedirectTarget = (value: FormDataEntryValue | null): string => {
+  const rawValue = String(value ?? "").trim()
+  if (!rawValue.startsWith("/app") || rawValue.startsWith("//")) {
+    return APP_DEFAULT_REDIRECT
+  }
+  return rawValue
+}
 
 export const load = async ({ locals, url }) => {
   const context = await ensureOrgContext(locals)
@@ -76,6 +86,7 @@ export const load = async ({ locals, url }) => {
     canRenameWorkspace: canManageDirectory(context.membershipRole),
     created: url.searchParams.get("created") === "1",
     renamed: url.searchParams.get("renamed") === "1",
+    switched: url.searchParams.get("switched") === "1",
     workspaces: memberships.map((membership) => {
       const org = orgById.get(membership.org_id)
       return {
@@ -90,7 +101,7 @@ export const load = async ({ locals, url }) => {
 }
 
 export const actions = {
-  createWorkspace: async ({ request, locals }) => {
+  createWorkspace: async ({ request, locals, cookies }) => {
     const context = await ensureOrgContext(locals)
     const formData = await request.formData()
     const name = normalizeWorkspaceName(formData.get("name"))
@@ -109,7 +120,10 @@ export const actions = {
       })
     }
 
-    await createWorkspaceForUser(locals, context.userId, name)
+    const workspace = await createWorkspaceForUser(locals, context.userId, name)
+    setActiveWorkspaceCookie(cookies, workspace.id)
+    locals.activeWorkspaceId = workspace.id
+    locals.orgContext = undefined
     redirect(303, "/app/workspace?created=1")
   },
 
@@ -151,5 +165,47 @@ export const actions = {
     }
 
     redirect(303, "/app/workspace?renamed=1")
+  },
+
+  switchWorkspace: async ({ request, locals, cookies }) => {
+    const context = await ensureOrgContext(locals)
+    const formData = await request.formData()
+    const workspaceId = String(formData.get("workspaceId") ?? "").trim()
+    const redirectTarget = resolveAppRedirectTarget(formData.get("redirectTo"))
+
+    if (!workspaceId) {
+      return fail(400, {
+        switchWorkspaceError: "Workspace is required.",
+      })
+    }
+
+    const membershipResult = await locals.supabase
+      .from("org_members")
+      .select("org_id")
+      .eq("user_id", context.userId)
+      .eq("org_id", workspaceId)
+      .maybeSingle()
+
+    if (membershipResult.error) {
+      throwRuntime500({
+        context: "app.workspace.actions.switchWorkspace.membershipLookup",
+        error: membershipResult.error,
+        requestId: locals.requestId,
+        route: "/app/workspace",
+        details: { userId: context.userId, workspaceId },
+      })
+    }
+
+    if (!membershipResult.data) {
+      return fail(403, {
+        switchWorkspaceError: "You are not a member of that workspace.",
+      })
+    }
+
+    setActiveWorkspaceCookie(cookies, workspaceId)
+    locals.activeWorkspaceId = workspaceId
+    locals.orgContext = undefined
+
+    redirect(303, redirectTarget)
   },
 }

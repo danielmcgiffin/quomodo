@@ -11,6 +11,7 @@
       canRenameWorkspace: boolean
       created: boolean
       renamed: boolean
+      switched: boolean
       workspaces: {
         id: string
         name: string
@@ -24,6 +25,7 @@
       createWorkspaceNameDraft?: string
       renameWorkspaceError?: string
       renameWorkspaceNameDraft?: string
+      switchWorkspaceError?: string
     }
   }
 
@@ -53,6 +55,15 @@
     <div class="sc-card sc-stack-top-12">
       <div class="font-semibold">Workspace name updated.</div>
       <div class="sc-muted-line sc-stack-top-6">Your navigation now uses the new name.</div>
+    </div>
+  {/if}
+
+  {#if data.switched}
+    <div class="sc-card sc-stack-top-12">
+      <div class="font-semibold">Workspace switched.</div>
+      <div class="sc-muted-line sc-stack-top-6">
+        All app pages now resolve in the selected workspace context.
+      </div>
     </div>
   {/if}
 
@@ -117,8 +128,11 @@
   <section class="sc-card sc-stack-top-12">
     <div class="font-semibold">Your memberships</div>
     <div class="sc-muted-line sc-stack-top-6">
-      Workspace switching lands in `LP-076`; for now, most recent context is used.
+      Switch your active workspace here or from the app navigation switcher.
     </div>
+    {#if form?.switchWorkspaceError}
+      <div class="sc-form-error sc-stack-top-8">{form.switchWorkspaceError}</div>
+    {/if}
 
     {#if data.workspaces.length === 0}
       <div class="sc-muted-line sc-stack-top-10">No memberships found.</div>
@@ -133,6 +147,12 @@
             <div class="flex items-center gap-2">
               {#if workspace.isCurrent}
                 <span class="sc-pill">Current</span>
+              {:else}
+                <form method="POST" action="?/switchWorkspace">
+                  <input type="hidden" name="workspaceId" value={workspace.id} />
+                  <input type="hidden" name="redirectTo" value="/app/workspace?switched=1" />
+                  <button class="sc-btn secondary" type="submit">Switch</button>
+                </form>
               {/if}
               {#if workspace.isOwned}
                 <span class="sc-pill">Owner</span>

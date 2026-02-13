@@ -114,24 +114,48 @@ Launch is approved only when all conditions are true:
 - 2026-02-13: Slice 1 implementation added `/app/workspace` create + rename flows, app-nav workspace entry points, and request-scoped org-context caching to prevent duplicate first-workspace bootstrap in multi-load requests; first-workspace onboarding validation remains in progress.
 - 2026-02-13: One-time owner-workspace dedupe executed via `scripts/dedupe-owner-workspaces.mjs --apply`; removed duplicate org `67a26826-a763-469d-9477-dfc7dc670356` and verified `duplicate_candidates=0` on post-run dry check.
 
-- [ ] `LP-076` Multi-workspace membership context + nav switcher.
+- [x] `LP-076` Multi-workspace membership context + nav switcher.
   Acceptance:
 - User can belong to N workspaces and switch active workspace in app nav.
 - All `/app` loaders/actions resolve against selected workspace context.
 - Active workspace context is explicit and stable across navigation.
+  Progress:
+- 2026-02-13: Added explicit active-workspace cookie context (`sc_active_workspace`) resolved in `src/lib/server/atlas.ts` and bootstrapped from `src/hooks.server.ts`.
+- 2026-02-13: Added nav workspace switcher in `src/routes/app/+layout.svelte` with workspace options loaded from `src/routes/app/+layout.server.ts`.
+- 2026-02-13: Added validated `switchWorkspace` action in `src/routes/app/workspace/+page.server.ts` and workspace-page switch controls in `src/routes/app/workspace/+page.svelte`; workspace creation now auto-selects the new workspace.
+- 2026-02-13: Validation PASS (`npm run -s check`; `npm run -s test_run`).
+  Status:
+- Completed 2026-02-13 (active workspace is explicitly selected and persisted, nav switcher is live, and all `/app` loaders/actions resolve through selected context via `ensureOrgContext`).
 
 ### WS3: In-App Team Management and Handoff
 
-- [ ] `LP-077` Team management page (`/app/team` or `/app/settings`) for member list + role changes + removal.
+- [x] `LP-077` Team management page (`/app/team` or `/app/settings`) for member list + role changes + removal.
   Acceptance:
 - `owner/admin` can view members and change/remove according to RBAC policy.
 - `editor/member` cannot access forbidden management actions.
+  Progress:
+- 2026-02-13: Added `/app/team` with member list loader and server actions in `src/routes/app/team/+page.server.ts` and UI in `src/routes/app/team/+page.svelte`.
+- 2026-02-13: Added explicit team RBAC helper + coverage in `src/lib/server/team-rbac.ts` and `src/lib/server/team-rbac.test.ts` (owner manages non-owner; admin manages editor/member; self role-change/removal blocked).
+- 2026-02-13: Added owner/admin-only Team nav entry in `src/routes/app/+layout.svelte`.
+- 2026-02-13: Validation PASS (`npm run -s check`; `npm run -s test_run`).
+  Status:
+- Completed 2026-02-13 (team management is live in-app with server-side RBAC enforcement; owner transfer and leave/stay remain in `LP-079`).
 
-- [ ] `LP-078` Stored invite flow (email invite -> accept -> membership attach).
+- [x] `LP-078` Stored invite flow (email invite -> accept -> membership attach).
   Acceptance:
 - Invites are persisted (auditable), revocable, and role-scoped.
 - Invite acceptance supports both existing users and new signups.
 - Accepted invite lands user in the intended workspace.
+  Progress:
+- 2026-02-13: Added persisted invite schema in `supabase/migrations/20260213104500_add_org_invites.sql` (`org_invites` table, audit fields, role constraints, RLS, and active-invite uniqueness by org+email).
+- 2026-02-13: Applied `org_invites` migration to production via Supabase SQL editor and verified RLS policies present.
+- 2026-02-13: Added invite token/role/email helpers + tests in `src/lib/server/invites.ts` and `src/lib/server/invites.test.ts`.
+- 2026-02-13: Extended `/app/team` with invite create/revoke/history and invite email dispatch in `src/routes/app/team/+page.server.ts` and `src/routes/app/team/+page.svelte`.
+- 2026-02-13: Added invite acceptance route in `src/routes/(marketing)/invite/[token]/+page.server.ts` and `src/routes/(marketing)/invite/[token]/+page.svelte`; acceptance upserts membership, marks invite accepted, sets active workspace cookie, and redirects to `/app/processes`.
+- 2026-02-13: Updated login continuation paths in `src/routes/(marketing)/login/sign_in/+page.svelte`, `src/routes/(marketing)/login/sign_up/+page.svelte`, and `src/routes/(marketing)/auth/callback/+server.js` so invitees can complete sign-in/sign-up and return to invite acceptance.
+- 2026-02-13: Validation PASS (`npm run -s check`; `npm run -s test_run`).
+  Status:
+- Completed 2026-02-13 (stored invite records, revoke flow, and email-link acceptance are live; accepted invites land in invited workspace context).
 
 - [ ] `LP-079` Ownership transfer + consultant leave/stay path.
   Acceptance:

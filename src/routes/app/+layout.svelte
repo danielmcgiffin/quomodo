@@ -9,7 +9,7 @@
       org: {
         id: string
         name: string
-        role: string
+        role: "owner" | "admin" | "editor" | "member"
       }
       navCounts: {
         processes: number
@@ -17,6 +17,11 @@
         systems: number
         flags: number
       }
+      workspaceOptions: {
+        id: string
+        name: string
+        role: "owner" | "admin" | "editor" | "member"
+      }[]
       viewerInitials: string
     }
     children?: import("svelte").Snippet
@@ -30,6 +35,7 @@
     | "/app/roles"
     | "/app/systems"
     | "/app/flags"
+    | "/app/team"
     | "/app/workspace"
 
   type NavItem = {
@@ -38,41 +44,25 @@
     count?: number
   }
 
-  const navItems = $derived.by(() => [
-    {
-      label: "Processes",
-      href: "/app/processes",
-      count: data.navCounts.processes,
-    },
-    { label: "Roles", href: "/app/roles", count: data.navCounts.roles },
-    { label: "Systems", href: "/app/systems", count: data.navCounts.systems },
-    { label: "Flags", href: "/app/flags", count: data.navCounts.flags },
-    { label: "Workspace", href: "/app/workspace" },
-  ] satisfies NavItem[])
+  const navItems = $derived.by(() => {
+    const items: NavItem[] = [
+      {
+        label: "Processes",
+        href: "/app/processes",
+        count: data.navCounts.processes,
+      },
+      { label: "Roles", href: "/app/roles", count: data.navCounts.roles },
+      { label: "Systems", href: "/app/systems", count: data.navCounts.systems },
+      { label: "Flags", href: "/app/flags", count: data.navCounts.flags },
+    ]
 
-  const makeWorkspaceBadge = (name: string): string => {
-    const trimmed = name.trim()
-    if (!trimmed) {
-      return "WS"
+    if (data.org.role === "owner" || data.org.role === "admin") {
+      items.push({ label: "Team", href: "/app/team" })
     }
 
-    const words = trimmed.split(/\s+/).filter(Boolean)
-    if (words.length >= 2) {
-      return words
-        .slice(0, 3)
-        .map((word) => word[0] ?? "")
-        .join("")
-        .toUpperCase()
-    }
-
-    const alnum = trimmed.replace(/[^a-zA-Z0-9]/g, "")
-    if (alnum.length === 0) {
-      return "WS"
-    }
-    return alnum.slice(0, 3).toUpperCase()
-  }
-
-  const workspaceBadge = $derived.by(() => makeWorkspaceBadge(data.org.name))
+    items.push({ label: "Workspace", href: "/app/workspace" })
+    return items
+  })
 
   const onWindowKeydown = (event: KeyboardEvent) => {
     if (event.defaultPrevented || !event.ctrlKey || event.metaKey || event.altKey) {
@@ -135,13 +125,43 @@
             <span>Search</span>
             <span>(Ctrl-?)</span>
           </button>
+          <form
+            class="max-w-56"
+            method="POST"
+            action={`${resolve("/app/workspace")}?/switchWorkspace`}
+          >
+            <input
+              type="hidden"
+              name="redirectTo"
+              value={$page.url.pathname + $page.url.search}
+            />
+            <label class="sr-only" for="sc-nav-workspace">Switch workspace</label>
+            <select
+              id="sc-nav-workspace"
+              class="sc-search sc-field max-w-56"
+              name="workspaceId"
+              value={data.org.id}
+              onchange={(event) => {
+                const form = event.currentTarget.form
+                if (form) {
+                  form.requestSubmit()
+                }
+              }}
+            >
+              {#each data.workspaceOptions as workspace (workspace.id)}
+                <option value={workspace.id}>
+                  {workspace.name} ({workspace.role})
+                </option>
+              {/each}
+            </select>
+          </form>
           <a
-            class="sc-pill max-w-56 overflow-hidden whitespace-nowrap text-ellipsis"
+            class="sc-pill"
             href={resolve("/app/workspace")}
-            title={data.org.name}
+            title="Open workspace settings"
             aria-label="Open workspace settings"
           >
-            {workspaceBadge}
+            Manage
           </a>
           <span
             class="sc-avatar sc-avatar-nav"

@@ -150,6 +150,57 @@ export interface Database {
         }
         Relationships: []
       }
+      org_invites: {
+        Row: {
+          id: string
+          org_id: string
+          email: string
+          role: Database["public"]["Enums"]["sc_membership_role"]
+          token_hash: string
+          invited_by_user_id: string
+          revoked_by_user_id: string | null
+          accepted_by_user_id: string | null
+          org_member_id: string | null
+          expires_at: string
+          revoked_at: string | null
+          accepted_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          email: string
+          role?: Database["public"]["Enums"]["sc_membership_role"]
+          token_hash: string
+          invited_by_user_id: string
+          revoked_by_user_id?: string | null
+          accepted_by_user_id?: string | null
+          org_member_id?: string | null
+          expires_at?: string
+          revoked_at?: string | null
+          accepted_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          email?: string
+          role?: Database["public"]["Enums"]["sc_membership_role"]
+          token_hash?: string
+          invited_by_user_id?: string
+          revoked_by_user_id?: string | null
+          accepted_by_user_id?: string | null
+          org_member_id?: string | null
+          expires_at?: string
+          revoked_at?: string | null
+          accepted_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       roles: {
         Row: {
           id: string

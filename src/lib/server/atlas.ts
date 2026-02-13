@@ -1,4 +1,5 @@
-import { error as kitError, redirect } from "@sveltejs/kit"
+import { dev } from "$app/environment"
+import { error as kitError, redirect, type Cookies } from "@sveltejs/kit"
 import {
   logRuntimeError,
   USER_SAFE_REQUEST_ERROR_MESSAGE,
@@ -27,6 +28,16 @@ export type OrgContext = {
   orgName: string
   membershipRole: MembershipRole
   userId: string
+}
+
+export const ACTIVE_WORKSPACE_COOKIE = "sc_active_workspace"
+const ACTIVE_WORKSPACE_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365
+const ACTIVE_WORKSPACE_COOKIE_OPTIONS = {
+  path: "/",
+  httpOnly: true,
+  sameSite: "lax" as const,
+  secure: !dev,
+  maxAge: ACTIVE_WORKSPACE_COOKIE_MAX_AGE_SECONDS,
 }
 
 const MANAGE_DIRECTORY_ROLES: MembershipRole[] = ["owner", "admin"]
@@ -68,6 +79,13 @@ export const makeInitials = (name: string): string => {
     return parts[0].slice(0, 2).toUpperCase()
   }
   return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+}
+
+export const setActiveWorkspaceCookie = (
+  cookies: Cookies,
+  workspaceId: string,
+): void => {
+  cookies.set(ACTIVE_WORKSPACE_COOKIE, workspaceId, ACTIVE_WORKSPACE_COOKIE_OPTIONS)
 }
 
 export const slugify = (value: string): string =>
@@ -199,12 +217,11 @@ const resolveOrgContext = async (locals: App.Locals): Promise<OrgContext> => {
   }
 
   const supabase = locals.supabase
-  const { data: memberships, error: membershipError } = await supabase
+  const { data: membershipsData, error: membershipError } = await supabase
     .from("org_members")
-    .select("org_id, role")
+    .select("org_id, role, accepted_at")
     .eq("user_id", user.id)
     .order("accepted_at", { ascending: false, nullsFirst: false })
-    .limit(1)
 
   if (membershipError) {
     if (membershipError.code === "42P01") {
@@ -225,7 +242,23 @@ const resolveOrgContext = async (locals: App.Locals): Promise<OrgContext> => {
     throw kitError(500, USER_SAFE_WORKSPACE_ERROR_MESSAGE)
   }
 
-  const membership = memberships?.[0]
+  const memberships = (membershipsData ?? []) as {
+    org_id: string
+    role: MembershipRole
+    accepted_at: string | null
+  }[]
+
+  const preferredWorkspaceId =
+    typeof locals.activeWorkspaceId === "string" &&
+    locals.activeWorkspaceId.trim().length > 0
+      ? locals.activeWorkspaceId.trim()
+      : null
+
+  const membership =
+    (preferredWorkspaceId &&
+      memberships.find((candidate) => candidate.org_id === preferredWorkspaceId)) ||
+    memberships[0]
+
   if (!membership) {
     const displayName =
       (typeof user.user_metadata?.full_name === "string" &&
@@ -237,6 +270,7 @@ const resolveOrgContext = async (locals: App.Locals): Promise<OrgContext> => {
       user.id,
       `${displayName}'s Workspace`,
     )
+    locals.activeWorkspaceId = org.id
     return {
       orgId: org.id,
       orgName: org.name,
@@ -244,6 +278,8 @@ const resolveOrgContext = async (locals: App.Locals): Promise<OrgContext> => {
       userId: user.id,
     }
   }
+
+  locals.activeWorkspaceId = membership.org_id
 
   const { data: org, error: orgError } = await supabase
     .from("orgs")
