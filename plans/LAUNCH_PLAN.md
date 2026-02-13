@@ -447,24 +447,32 @@ LP-008 route isolation inventory:
 - Stripe Billing Portal config is launch-safe (email editing disabled, plan-change path verified).
 - Checkout and billing portal roundtrips return to canonical domain paths.
 
-- [ ] `LP-067` Production email deliverability and template branding.
+- [x] `LP-067` Production email deliverability and template branding.
       Acceptance:
 - Supabase Auth SMTP is configured for production-domain auth emails.
 - Resend is configured with verified sending domain and production sender identity.
 - `PRIVATE_RESEND_API_KEY`, `PRIVATE_ADMIN_EMAIL`, and `PRIVATE_FROM_ADMIN_EMAIL` are present in production + preview Cloudflare secrets.
 - Welcome/admin email content and sender values are branded (no `saasstarter` defaults).
+  Progress:
+- 2026-02-12: Code-side branding defaults removed (`no-reply@saasstarter.work`, `SaaS Starter`), welcome templates rebranded, and `scripts/cloudflare-sync-secrets.sh` updated/executed to sync email secrets to both production and preview.
+  Status:
+- Completed 2026-02-12 (Supabase custom SMTP configured for production-domain auth mail, Resend sender/domain verified, and dashboard-side LP-067 closeout confirmed).
 
 - [ ] `LP-068` First-customer onboarding runbook + validation pass.
       Acceptance:
 - A single runbook documents the end-to-end external user path: sign up, verify email, create profile, land in `/app/processes`, create first role/system/process/action, run search, file a flag.
 - The runbook is executed once against production (or production-equivalent preview) with timestamped pass/fail notes.
 - Failures include explicit remediation owner and re-test step.
+  Progress:
+- 2026-02-12: Added `scripts/onboarding-deployed.mjs` and executed onboarding validation. Signup/verify passed via rate-limit fallback, but profile creation failed with HTTP 500. Blocker evidence and hypotheses captured in `plans/LP-068-069_BLOCKERS_2026-02-12.md`.
 
 - [ ] `LP-069` Multi-user workspace provisioning path.
       Acceptance:
 - A tested method exists to add non-owner users to an existing org and assign `admin/editor/member` roles.
 - If invite UX is deferred, a documented operational procedure exists for provisioning + role changes (with rollback).
 - Smoke validation includes at least one non-owner user completing core `/app` traversal with role-appropriate permissions.
+  Progress:
+- 2026-02-12: Added `scripts/provision-workspace-members.mjs` and provisioned admin/editor/member successfully. Remaining closeout is non-owner smoke traversal blocked by `/app/processes` HTTP 500 on deployed environment. Details in `plans/LP-068-069_BLOCKERS_2026-02-12.md`.
 
 ### WS8: Post-V1 Intelligence and Documentation (Data-Gated)
 

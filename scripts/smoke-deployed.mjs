@@ -43,6 +43,7 @@ const suffix = now
 
 const checks = [
   { id: "login", label: "Login (owner/admin/editor/member)", status: "pending", detail: "" },
+  { id: "rbac", label: "RBAC non-owner permissions", status: "pending", detail: "" },
   { id: "crud", label: "CRUD (roles/systems/processes/actions)", status: "pending", detail: "" },
   { id: "portals", label: "Portals traversal", status: "pending", detail: "" },
   { id: "search", label: "Search endpoint + deep links", status: "pending", detail: "" },
@@ -312,6 +313,7 @@ const run = async () => {
     processId: "",
     actionIds: [],
     flagMessage: `Smoke flag ${suffix}`,
+    memberCommentMessage: `Smoke member comment ${suffix}`,
   }
 
   try {
@@ -544,6 +546,133 @@ const run = async () => {
       "Created/updated/deleted role, system, process, and action in deployed app.",
     )
 
+    const adminRoleName = `Smoke Admin Role ${suffix}`
+    const adminCreateRoleResponse = await requestApp({
+      session: adminSession,
+      path: "/app/roles?/createRole",
+      method: "POST",
+      formData: {
+        name: adminRoleName,
+        description: `Smoke admin role description ${suffix}`,
+        person_name: "Smoke Admin",
+        hours_per_week: "4",
+      },
+    })
+    await expectStatus(adminCreateRoleResponse, [200, 303], "Admin create role")
+    const adminRolePath = await resolveActionRedirectPath(
+      adminCreateRoleResponse,
+      "/app/roles",
+      "Admin create role",
+    )
+
+    const adminRoleDetailResponse = await requestApp({
+      session: adminSession,
+      path: adminRolePath,
+    })
+    await expectStatus(adminRoleDetailResponse, [200], "Admin role detail load")
+    const adminRoleDetailHtml = await adminRoleDetailResponse.text()
+    const adminRoleId = parseHiddenInput(adminRoleDetailHtml, "role_id") ?? ""
+    if (!adminRoleId) {
+      throw new Error("Admin role detail did not include role_id form input.")
+    }
+
+    const adminDeleteRoleResponse = await requestApp({
+      session: adminSession,
+      path: `${adminRolePath}?/deleteRole`,
+      method: "POST",
+      formData: {
+        role_id: adminRoleId,
+      },
+    })
+    await expectStatus(adminDeleteRoleResponse, [200, 303], "Admin role cleanup")
+
+    const editorCreateRoleResponse = await requestApp({
+      session: editorSession,
+      path: "/app/roles?/createRole",
+      method: "POST",
+      formData: {
+        name: `Smoke Editor Role Blocked ${suffix}`,
+        description: "Editor should not be able to create directory roles.",
+        person_name: "Smoke Editor",
+        hours_per_week: "3",
+      },
+    })
+    if (editorCreateRoleResponse.status !== 403) {
+      const snippet = await responseSnippet(editorCreateRoleResponse)
+      throw new Error(
+        `Editor role create expected 403 but received ${editorCreateRoleResponse.status}: ${snippet}`,
+      )
+    }
+
+    const editorCreateActionResponse = await requestApp({
+      session: editorSession,
+      path: `${artifacts.processPath}?/createAction`,
+      method: "POST",
+      formData: {
+        description: `Smoke Editor Action ${suffix}`,
+        owner_role_id: artifacts.roleId,
+        system_id: artifacts.systemId,
+        sequence: "3",
+      },
+    })
+    await expectStatus(editorCreateActionResponse, [200, 303], "Editor create action")
+
+    const memberCreateActionResponse = await requestApp({
+      session: memberSession,
+      path: `${artifacts.processPath}?/createAction`,
+      method: "POST",
+      formData: {
+        description: `Smoke Member Action Blocked ${suffix}`,
+        owner_role_id: artifacts.roleId,
+        system_id: artifacts.systemId,
+        sequence: "4",
+      },
+    })
+    if (memberCreateActionResponse.status !== 403) {
+      const snippet = await responseSnippet(memberCreateActionResponse)
+      throw new Error(
+        `Member action create expected 403 but received ${memberCreateActionResponse.status}: ${snippet}`,
+      )
+    }
+
+    const memberCommentResponse = await requestApp({
+      session: memberSession,
+      path: `${artifacts.processPath}?/createFlag`,
+      method: "POST",
+      formData: {
+        target_type: "process",
+        target_id: artifacts.processId,
+        flag_type: "comment",
+        message: artifacts.memberCommentMessage,
+        target_path: "description",
+      },
+    })
+    await expectStatus(memberCommentResponse, [200], "Member create comment flag")
+
+    const memberNeedsReviewResponse = await requestApp({
+      session: memberSession,
+      path: `${artifacts.processPath}?/createFlag`,
+      method: "POST",
+      formData: {
+        target_type: "process",
+        target_id: artifacts.processId,
+        flag_type: "needs_review",
+        message: `Smoke member non-comment blocked ${suffix}`,
+        target_path: "description",
+      },
+    })
+    if (memberNeedsReviewResponse.status !== 403) {
+      const snippet = await responseSnippet(memberNeedsReviewResponse)
+      throw new Error(
+        `Member non-comment flag create expected 403 but received ${memberNeedsReviewResponse.status}: ${snippet}`,
+      )
+    }
+
+    markPass(
+      "rbac",
+      "Admin can manage directory, editor can edit process actions but not directory roles, and member is limited to comment flags/read-only flow.",
+    )
+
     const roleTraversalResponse = await requestApp({
       session: ownerSession,
       path: artifacts.rolePath,
@@ -663,7 +792,10 @@ const run = async () => {
     })
     await expectStatus(flagsPageResponse, [200], "Flags dashboard load")
     const flagsPageHtml = await flagsPageResponse.text()
-    if (!flagsPageHtml.includes(artifacts.flagMessage)) {
+    if (
+      !flagsPageHtml.includes(artifacts.flagMessage) ||
+      !flagsPageHtml.includes(artifacts.memberCommentMessage)
+    ) {
       throw new Error("Created flag message was not visible on /app/flags.")
     }
 
@@ -763,6 +895,9 @@ const run = async () => {
     })
     await expectStatus(deleteRoleResponse, [200, 303], "Delete role cleanup")
   } catch (error) {
+    if (findCheck("rbac").status === "pending") {
+      markFail("rbac", String(error instanceof Error ? error.message : error))
+    }
     if (findCheck("crud").status === "pending") {
       markFail("crud", String(error instanceof Error ? error.message : error))
     }
@@ -780,6 +915,7 @@ const run = async () => {
     }
     throw error
   } finally {
+    markSkipped("rbac", "Not reached.")
     markSkipped("crud", "Not reached.")
     markSkipped("portals", "Not reached.")
     markSkipped("search", "Not reached.")

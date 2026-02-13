@@ -77,9 +77,9 @@ Marketing reference source: `.reference/qstr-master/qstr-mrktng/*`.
 
 - [ ] `LP-065` Production domain, canonical `WebsiteBaseUrl`, and Supabase auth callback allowlist are aligned
 - [ ] `LP-066` Stripe catalog + pricing config moved from demo/test setup to launch-ready plans
-- [ ] `LP-067` Email delivery is production-ready (Supabase SMTP + Resend + branded templates + Cloudflare email secrets)
-- [ ] `LP-068` First-customer onboarding path is documented and validated end-to-end (signup -> verify -> create profile -> `/app`)
-- [ ] `LP-069` Multi-user workspace provisioning path is defined for `owner/admin/editor/member` assignments
+- [x] `LP-067` Email delivery is production-ready (Supabase SMTP + Resend + branded templates + Cloudflare email secrets)
+- [ ] `LP-068` First-customer onboarding path is documented and validated end-to-end (signup -> verify -> create profile -> `/app`; blocked by deployed 500, see `plans/LP-068-069_BLOCKERS_2026-02-12.md`)
+- [ ] `LP-069` Multi-user workspace provisioning path is defined for `owner/admin/editor/member` assignments (provisioning script done; non-owner traversal blocked by deployed 500, see `plans/LP-068-069_BLOCKERS_2026-02-12.md`)
 
 ## Route Isolation
 

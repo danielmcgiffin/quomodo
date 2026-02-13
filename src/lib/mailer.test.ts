@@ -30,14 +30,13 @@ describe("mailer", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(createClient as any).mockReturnValue(mockSupabaseClient)
 
-    vi.mocked(Resend).mockImplementation(
-      () =>
-        ({
-          emails: {
-            send: mockSend,
-          },
-        }) as unknown as Resend,
-    )
+    vi.mocked(Resend).mockImplementation(function () {
+      return {
+        emails: {
+          send: mockSend,
+        },
+      } as unknown as Resend
+    })
   })
 
   describe("sendUserEmail", () => {
@@ -122,8 +121,8 @@ describe("mailer", () => {
       expect(email.from).toEqual("from@example.com")
       expect(email.to).toEqual(["to@example.com"])
       expect(email.subject).toEqual("Test subject")
-      expect(email.text).toContain("This is a quick sample of a welcome email")
-      expect(email.html).toContain("This is a quick sample of a welcome email")
+      expect(email.text).toContain("Your workspace is ready")
+      expect(email.html).toContain("Your workspace is ready")
       expect(email.html).toContain("<html")
       expect(email.html).toContain("https://test.com")
       expect(email.html).toContain("Test Company")

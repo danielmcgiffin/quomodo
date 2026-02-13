@@ -10,11 +10,11 @@
   },
   "routes": [
     {
-      "pattern": "systemscraft.co/*",
+      "pattern": "systemscraft.co",
       "custom_domain": true,
     },
     {
-      "pattern": "www.systemscraft.co/*",
+      "pattern": "www.systemscraft.co",
       "custom_domain": true,
     },
   ],
