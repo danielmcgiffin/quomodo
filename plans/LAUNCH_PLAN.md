@@ -41,7 +41,7 @@ Still open and launch-blocking:
 
 Not yet productized for commercial handoff:
 
-- Workspace-aligned billing implementation and lapsed-access enforcement.
+- None.
 
 ## Commercial Viability Stories (Acceptance Standard)
 
@@ -175,7 +175,7 @@ Launch is approved only when all conditions are true:
 
 ### WS4: Billing and Sales Readiness
 
-- [ ] `LP-080` Billing model alignment for commercial launch.
+- [x] `LP-080` Billing model alignment for commercial launch.
   Acceptance:
 - Launch billing model is per-workspace with owner as billing authority.
 - Lapsed workspaces are view-only for all roles.
@@ -184,6 +184,20 @@ Launch is approved only when all conditions are true:
 - Ownership transfer remains allowed in lapsed state under `LP-079` transfer guardrails.
 - Implement model end-to-end and validate in smoke/runbook.
 - Customer handoff billing path is documented for sales operations.
+  Progress:
+- 2026-02-13: Added per-workspace billing cache table `org_billing` with Stripe customer linkage + cached `billing_state` (`supabase/migrations/20260213160000_add_org_billing.sql`).
+- 2026-02-13: Implemented billing snapshot + lapsed enforcement helpers in `src/lib/server/billing.ts` (Stripe refresh cached with TTL; lapsed => read-only).
+- 2026-02-13: Enforced lapsed=view-only across `/app` write actions (roles/systems/processes/actions/flags and workspace create/rename) while keeping workspace switching available; added in-app lapsed banner in `src/routes/app/+layout.svelte`.
+- 2026-02-13: Blocked invites while lapsed (invite create/revoke in `/app/team` and invite acceptance at `/invite/[token]`); kept `owner/admin` member removal available and ownership transfer flows unblocked.
+- 2026-02-13: Made billing per-workspace in `/account/billing` by using active workspace context; Stripe customer is now created per workspace (not per user). Reactivation/portal access is owner-only (`src/routes/(admin)/account/(menu)/billing/+page.server.ts`, `src/routes/(admin)/account/(menu)/billing/manage/+page.server.ts`, `src/routes/(admin)/account/subscribe/[slug]/+page.server.ts`).
+- 2026-02-13: Validation PASS: `npm run -s check`, `npm run -s test_run`.
+- 2026-02-13: Deployed smoke could not be executed from this environment due to restricted network/DNS (`getaddrinfo EAI_AGAIN` for Supabase host) when running `npm run -s smoke:deployed`.
+  Customer Handoff Billing Path (Sales Ops):
+- Workspace owner navigates to `/account/billing` with the intended workspace selected (workspace switcher in `/app`).
+- If the workspace is lapsed, `/app` shows a read-only banner linking to `/account/billing`.
+- Owner selects a plan (Checkout) to reactivate; post-checkout returns to `/account/billing` and the workspace exits read-only after billing refresh.
+  Status:
+- Completed 2026-02-13 (per-workspace billing + lapsed enforcement shipped; local quality gates PASS; deployed smoke blocked by environment network restrictions).
 
 ## Execution Sequence (Single Track)
 

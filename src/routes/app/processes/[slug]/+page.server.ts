@@ -12,6 +12,7 @@ import {
 import { readRichTextFormDraft } from "$lib/server/rich-text"
 import type { RichTextDocument } from "$lib/rich-text/document"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
+import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
 import {
   createRoleRecord,
   createSystemRecord,
@@ -244,6 +245,8 @@ export const load = async ({ params, locals, url }) => {
 export const actions = {
   updateProcess: async ({ request, params, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     if (!canEditAtlas(context.membershipRole)) {
       return fail(403, { updateProcessError: "Insufficient permissions." })
     }
@@ -309,6 +312,8 @@ export const actions = {
 
   deleteProcess: async ({ request, params, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     if (!canEditAtlas(context.membershipRole)) {
       return fail(403, { deleteProcessError: "Insufficient permissions." })
     }
@@ -348,6 +353,8 @@ export const actions = {
 
   createAction: async ({ request, params, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     if (!canEditAtlas(context.membershipRole)) {
       return fail(403, { createActionError: "Insufficient permissions." })
     }
@@ -450,6 +457,8 @@ export const actions = {
 
   deleteAction: async ({ request, params, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     if (!canEditAtlas(context.membershipRole)) {
       return fail(403, { deleteActionError: "Insufficient permissions." })
     }
@@ -529,6 +538,8 @@ export const actions = {
 
   reorderAction: async ({ request, params, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     if (!canEditAtlas(context.membershipRole)) {
       return fail(403, { reorderActionError: "Insufficient permissions." })
     }
@@ -603,6 +614,8 @@ export const actions = {
 
   createRole: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     if (!canManageDirectory(context.membershipRole)) {
       return fail(403, { createRoleError: "Insufficient permissions." })
     }
@@ -639,6 +652,8 @@ export const actions = {
 
   createSystem: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     if (!canManageDirectory(context.membershipRole)) {
       return fail(403, { createSystemError: "Insufficient permissions." })
     }
@@ -675,6 +690,8 @@ export const actions = {
 
   createFlag: async ({ request, params, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     const supabase = locals.supabase
     const formData = await request.formData()
 

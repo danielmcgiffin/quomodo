@@ -8,6 +8,7 @@ import {
 } from "$lib/server/atlas"
 import { readRichTextFormDraft } from "$lib/server/rich-text"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
+import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
 import {
   createFlagForEntity,
   createRoleRecord,
@@ -139,6 +140,8 @@ export const load = async ({ locals }) => {
 export const actions = {
   createProcess: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     if (!canEditAtlas(context.membershipRole)) {
       return fail(403, { createProcessError: "Insufficient permissions." })
     }
@@ -199,6 +202,8 @@ export const actions = {
   },
   createRole: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     if (!canManageDirectory(context.membershipRole)) {
       return fail(403, { createRoleError: "Insufficient permissions." })
     }
@@ -219,6 +224,8 @@ export const actions = {
   },
   createFlag: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     const supabase = locals.supabase
     const formData = await request.formData()
     const result = await createFlagForEntity({

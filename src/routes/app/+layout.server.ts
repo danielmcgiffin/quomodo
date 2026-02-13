@@ -1,5 +1,6 @@
 import { ensureOrgContext, makeInitials } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
+import { getOrgBillingSnapshot } from "$lib/server/billing"
 
 type MembershipRow = {
   org_id: string
@@ -44,6 +45,7 @@ export const load = async ({ locals }) => {
     roleCount,
     systemCount,
     flagCount,
+    billing,
     profileResult,
     membershipsResult,
   ] =
@@ -52,6 +54,7 @@ export const load = async ({ locals }) => {
       countTable(supabase, "roles", context.orgId, locals.requestId),
       countTable(supabase, "systems", context.orgId, locals.requestId),
       countTable(supabase, "flags", context.orgId, locals.requestId),
+      getOrgBillingSnapshot(locals, context.orgId),
       supabase
         .from("profiles")
         .select("full_name")
@@ -118,6 +121,7 @@ export const load = async ({ locals }) => {
       name: context.orgName,
       role: context.membershipRole,
     },
+    billing,
     navCounts: {
       processes: processCount,
       roles: roleCount,

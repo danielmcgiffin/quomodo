@@ -1,5 +1,6 @@
 import { fail, redirect } from "@sveltejs/kit"
 import { ensureOrgContext, setActiveWorkspaceCookie } from "$lib/server/atlas"
+import { getOrgBillingSnapshot } from "$lib/server/billing"
 import {
   determineInviteStatus,
   hashInviteToken,
@@ -136,6 +137,14 @@ export const actions = {
     const invite = await loadInviteByToken(locals, token)
     if (!invite) {
       return fail(404, { acceptInviteError: "Invite not found." })
+    }
+
+    const billing = await getOrgBillingSnapshot(locals, invite.org_id)
+    if (billing.isLapsed) {
+      return fail(403, {
+        acceptInviteError:
+          "This workspace is in read-only mode because billing has lapsed. The workspace owner must reactivate billing before new invites can be accepted.",
+      })
     }
 
     const inviteStatus = determineInviteStatus({

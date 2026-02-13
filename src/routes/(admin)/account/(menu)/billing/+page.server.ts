@@ -1,46 +1,26 @@
-import { error, redirect } from "@sveltejs/kit"
-import {
-  fetchSubscription,
-  getOrCreateCustomerId,
-} from "../../subscription_helpers.server"
+import { redirect } from "@sveltejs/kit"
+import { ensureOrgContext } from "$lib/server/atlas"
+import { getOrgBillingSnapshot } from "$lib/server/billing"
 import type { PageServerLoad } from "./$types"
 
 export const load: PageServerLoad = async ({
-  locals: { safeGetSession, supabaseServiceRole },
+  locals,
 }) => {
-  const { session, user } = await safeGetSession()
-  if (!session || !user?.id) {
+  const { session } = await locals.safeGetSession()
+  if (!session || !locals.user?.id) {
     redirect(303, "/login")
   }
 
-  const { error: idError, customerId } = await getOrCreateCustomerId({
-    supabaseServiceRole,
-    user,
-  })
-  if (idError || !customerId) {
-    console.error("Error creating customer id", idError)
-    error(500, {
-      message: "Unknown error. If issue persists, please contact us.",
-    })
-  }
-
-  const {
-    primarySubscription,
-    hasEverHadSubscription,
-    error: fetchErr,
-  } = await fetchSubscription({
-    customerId,
-  })
-  if (fetchErr) {
-    console.error("Error fetching subscription", fetchErr)
-    error(500, {
-      message: "Unknown error. If issue persists, please contact us.",
-    })
-  }
+  const context = await ensureOrgContext(locals)
+  const billing = await getOrgBillingSnapshot(locals, context.orgId)
 
   return {
-    isActiveCustomer: !!primarySubscription,
-    hasEverHadSubscription,
-    currentPlanId: primarySubscription?.appSubscription?.id,
+    org: context,
+    billing,
+    canManageBilling: context.membershipRole === "owner",
+    // Compatibility with existing UI semantics.
+    isActiveCustomer: billing.planId !== "free" && !billing.isLapsed,
+    hasEverHadSubscription: billing.hasEverPaid,
+    currentPlanId: billing.planId,
   }
 }

@@ -2,10 +2,11 @@ import { env as privateEnv } from "$env/dynamic/private"
 import { error, redirect } from "@sveltejs/kit"
 import Stripe from "stripe"
 import { WebsiteBaseUrl } from "../../../../../config"
+import { ensureOrgContext } from "$lib/server/atlas"
 import {
-  fetchSubscription,
-  getOrCreateCustomerId,
-} from "../../subscription_helpers.server"
+  getOrCreateOrgCustomerId,
+  getOrgBillingSnapshot,
+} from "$lib/server/billing"
 import type { PageServerLoad } from "./$types"
 const stripe = new Stripe(privateEnv.PRIVATE_STRIPE_API_KEY, {
   apiVersion: "2023-08-16",
@@ -13,9 +14,9 @@ const stripe = new Stripe(privateEnv.PRIVATE_STRIPE_API_KEY, {
 
 export const load: PageServerLoad = async ({
   params,
-  locals: { safeGetSession, supabaseServiceRole },
+  locals,
 }) => {
-  const { session, user } = await safeGetSession()
+  const { session } = await locals.safeGetSession()
   if (!session) {
     redirect(303, "/login")
   }
@@ -25,23 +26,34 @@ export const load: PageServerLoad = async ({
     redirect(303, "/account")
   }
 
-  const { error: idError, customerId } = await getOrCreateCustomerId({
-    supabaseServiceRole,
-    user,
-  })
-  if (idError || !customerId) {
-    console.error("Error creating customer id", idError)
-    error(500, {
-      message: "Unknown error. If issue persists, please contact us.",
+  const context = await ensureOrgContext(locals)
+  if (context.membershipRole !== "owner") {
+    error(403, {
+      message: "Only the workspace owner can reactivate or change billing.",
     })
   }
 
-  const { primarySubscription } = await fetchSubscription({
-    customerId,
-  })
-  if (primarySubscription) {
-    // User already has plan, we shouldn't let them buy another
+  const currentBilling = await getOrgBillingSnapshot(locals, context.orgId)
+  if (currentBilling.planId !== "free" && !currentBilling.isLapsed) {
+    // Workspace already has an active paid plan.
     redirect(303, "/account/billing")
+  }
+
+  const ownerUser = locals.user
+  if (!ownerUser?.id) {
+    redirect(303, "/login")
+  }
+
+  const customerResult = await getOrCreateOrgCustomerId({
+    supabaseServiceRole: locals.supabaseServiceRole,
+    orgId: context.orgId,
+    ownerUser,
+  })
+  if ("error" in customerResult) {
+    console.error("Error creating org customer id", customerResult.error)
+    error(500, {
+      message: "Unknown error. If issue persists, please contact us.",
+    })
   }
 
   let checkoutUrl
@@ -55,7 +67,7 @@ export const load: PageServerLoad = async ({
           quantity: 1,
         },
       ],
-      customer: customerId,
+      customer: customerResult.customerId,
       mode: "subscription",
       success_url: successUrl,
       cancel_url: cancelUrl,

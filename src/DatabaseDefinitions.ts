@@ -261,6 +261,36 @@ export interface Database {
         }
         Relationships: []
       }
+      org_billing: {
+        Row: {
+          org_id: string
+          stripe_customer_id: string | null
+          plan_id: string
+          billing_state: Database["public"]["Enums"]["sc_billing_state"]
+          has_ever_paid: boolean
+          last_checked_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          org_id: string
+          stripe_customer_id?: string | null
+          plan_id?: string
+          billing_state?: Database["public"]["Enums"]["sc_billing_state"]
+          has_ever_paid?: boolean
+          last_checked_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          org_id?: string
+          stripe_customer_id?: string | null
+          plan_id?: string
+          billing_state?: Database["public"]["Enums"]["sc_billing_state"]
+          has_ever_paid?: boolean
+          last_checked_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       roles: {
         Row: {
           id: string
@@ -519,6 +549,7 @@ export interface Database {
       }
     }
     Enums: {
+      sc_billing_state: "active" | "lapsed"
       sc_entity_type: "role" | "system" | "process" | "action"
       sc_flag_status: "open" | "resolved" | "dismissed"
       sc_flag_type:

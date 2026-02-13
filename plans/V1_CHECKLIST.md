@@ -23,7 +23,7 @@ Locked decisions remain: Cloudflare-only hosting, TipTap for rich text, and RBAC
 - [x] `LP-077` In-app team management exists (member list + role changes + remove shipped 2026-02-13 at `/app/team`; owner/admin access only with RBAC-scoped role update/remove actions; self role-change/removal remains deferred; validation PASS: `npm run -s check`, `npm run -s test_run`)
 - [x] `LP-078` Stored in-app invite flow exists (invite, accept, revoke, org attachment shipped 2026-02-13 with persisted `org_invites`, `/app/team` invite create/revoke/history, and `/invite/[token]` acceptance for existing/new users with workspace-context landing; prod migration applied 2026-02-13 via Supabase SQL editor and verified RLS policies present; validation PASS: `npm run -s check`, `npm run -s test_run`)
 - [x] `LP-079` Ownership transfer + consultant leave/stay path is implemented (shipped 2026-02-13: owner-only initiation in `/app/team`, recipient acceptance via `/transfer/[token]`, recipient must be accepted admin with verified email; prior owner stay admin/editor or leave; audit table `org_ownership_transfers` + RPC functions enforce atomic role/owner updates)
-- [ ] `LP-080` Billing model is finalized and implemented for commercial launch (model locked 2026-02-13: per-workspace billing, lapsed=view-only/no invites, owner-only reactivation)
+- [x] `LP-080` Billing model is finalized and implemented for commercial launch (shipped 2026-02-13: per-workspace Stripe customer via `org_billing`; lapsed=view-only/no invites enforced server-side; owner-only reactivation via `/account/billing`; in-app lapsed banner shipped; validation PASS: `npm run -s check`, `npm run -s test_run`)
 
 ## Post-Launch Backlog (Explicitly Deferred)
 

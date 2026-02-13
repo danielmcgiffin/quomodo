@@ -6,6 +6,7 @@ import {
   richToHtml,
 } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
+import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
 import {
   createFlagForEntity,
   deleteSystemRecord,
@@ -168,6 +169,8 @@ export const load = async ({ params, locals }) => {
 export const actions = {
   createFlag: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     const supabase = locals.supabase
     const formData = await request.formData()
     const result = await createFlagForEntity({
@@ -188,6 +191,8 @@ export const actions = {
 
   updateSystem: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     if (!canManageDirectory(context.membershipRole)) {
       return fail(403, { updateSystemError: "Insufficient permissions." })
     }
@@ -223,6 +228,8 @@ export const actions = {
 
   deleteSystem: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     if (!canManageDirectory(context.membershipRole)) {
       return fail(403, { deleteSystemError: "Insufficient permissions." })
     }

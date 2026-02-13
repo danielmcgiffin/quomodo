@@ -19,6 +19,7 @@ import {
   parsePriorOwnerDisposition,
 } from "$lib/server/ownership-transfers"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
+import { getOrgBillingSnapshot } from "$lib/server/billing"
 import {
   canAssignMemberRole,
   canChangeMemberRole,
@@ -308,6 +309,13 @@ export const load = async ({ locals, url }) => {
 export const actions = {
   createInvite: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    if (billing.isLapsed) {
+      return fail(403, {
+        createInviteError:
+          "Invites are disabled while this workspace is in read-only mode (billing lapsed).",
+      })
+    }
     if (!canManageDirectory(context.membershipRole)) {
       return fail(403, { createInviteError: "Insufficient permissions." })
     }
@@ -396,6 +404,13 @@ export const actions = {
 
   updateMemberRole: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    if (billing.isLapsed) {
+      return fail(403, {
+        updateMemberRoleError:
+          "This workspace is in read-only mode because billing has lapsed.",
+      })
+    }
     if (!canManageDirectory(context.membershipRole)) {
       return fail(403, { updateMemberRoleError: "Insufficient permissions." })
     }
@@ -501,6 +516,13 @@ export const actions = {
 
   revokeInvite: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    if (billing.isLapsed) {
+      return fail(403, {
+        revokeInviteError:
+          "Invites are disabled while this workspace is in read-only mode (billing lapsed).",
+      })
+    }
     if (!canManageDirectory(context.membershipRole)) {
       return fail(403, { revokeInviteError: "Insufficient permissions." })
     }

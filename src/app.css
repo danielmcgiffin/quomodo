@@ -197,6 +197,24 @@ button[disabled].authBtn::before {
   gap: 0;
 }
 
+.sc-banner {
+  margin: 12px auto 0;
+  padding: 10px 14px;
+  border-radius: var(--sc-radius-lg);
+  border: 1px solid var(--sc-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #ffffff;
+}
+
+.sc-banner--warning {
+  background: #fff7ed;
+  border-color: #fdba74;
+  color: #7c2d12;
+}
+
 .sc-nav-body {
   display: flex;
   justify-content: center;

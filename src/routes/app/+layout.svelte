@@ -17,6 +17,12 @@
         systems: number
         flags: number
       }
+      billing: {
+        planId: string
+        billingState: "active" | "lapsed"
+        isLapsed: boolean
+        hasEverPaid: boolean
+      }
       workspaceOptions: {
         id: string
         name: string
@@ -172,6 +178,16 @@
       </div>
     </div>
   </nav>
+  {#if data.billing?.isLapsed}
+    <div class="width-full mx-64">
+      <div class="sc-banner sc-banner--warning">
+        <div>
+          This workspace is in read-only mode because billing has lapsed.
+        </div>
+        <a class="link" href={resolve("/account/billing")}>Reactivate billing</a>
+      </div>
+    </div>
+  {/if}
   {@render children?.()}
   <AppSearchOverlay bind:open={isSearchOpen} />
 </div>

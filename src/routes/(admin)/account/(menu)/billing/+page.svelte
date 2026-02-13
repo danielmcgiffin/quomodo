@@ -24,18 +24,31 @@
 </svelte:head>
 
 <h1 class="text-2xl font-bold mb-2">
-  {data.isActiveCustomer ? "Billing" : "Select a Plan"}
+  {data.billing?.isLapsed ? "Billing (Lapsed)" : data.isActiveCustomer ? "Billing" : "Select a Plan"}
 </h1>
 <div>
   View our <a href="/pricing" target="_blank" class="link">pricing page</a> for details.
 </div>
 
-{#if !data.isActiveCustomer}
-  <div class="mt-8">
-    <PricingModule {currentPlanId} callToAction="Select Plan" center={false} />
+{#if data.billing?.isLapsed}
+  <div class="mt-4">
+    This workspace is in read-only mode because billing has lapsed. Only the workspace
+    owner can reactivate billing.
   </div>
+{/if}
 
-  {#if data.hasEverHadSubscription}
+{#if !data.isActiveCustomer}
+  {#if data.canManageBilling}
+    <div class="mt-8">
+      <PricingModule {currentPlanId} callToAction={data.billing?.isLapsed ? "Reactivate" : "Select Plan"} center={false} />
+    </div>
+  {:else}
+    <div class="mt-8">
+      Only the workspace owner can manage billing for this workspace.
+    </div>
+  {/if}
+
+  {#if data.hasEverHadSubscription && data.canManageBilling}
     <div class="mt-10">
       <a href="/account/billing/manage" class="link">View past invoices</a>
     </div>
@@ -51,7 +64,7 @@
         initialValue: currentPlanName || "",
       },
     ]}
-    editButtonTitle="Manage Subscription"
-    editLink="/account/billing/manage"
+    editButtonTitle={data.canManageBilling ? "Manage Subscription" : "Billing Owner Only"}
+    editLink={data.canManageBilling ? "/account/billing/manage" : undefined}
   />
 {/if}

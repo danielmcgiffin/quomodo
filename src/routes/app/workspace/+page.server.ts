@@ -7,6 +7,7 @@ import {
   type MembershipRole,
 } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
+import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
 
 const WORKSPACE_NAME_MAX_LENGTH = 80
 const APP_DEFAULT_REDIRECT = "/app/processes"
@@ -103,6 +104,8 @@ export const load = async ({ locals, url }) => {
 export const actions = {
   createWorkspace: async ({ request, locals, cookies }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     const formData = await request.formData()
     const name = normalizeWorkspaceName(formData.get("name"))
 
@@ -129,6 +132,8 @@ export const actions = {
 
   renameWorkspace: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     if (!canManageDirectory(context.membershipRole)) {
       return fail(403, {
         renameWorkspaceError: "Only workspace owners and admins can rename this workspace.",

@@ -7,6 +7,7 @@ import {
   type ScFlagType,
 } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
+import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
 import {
   mapActionTargets,
   mapFlagsDashboard,
@@ -122,6 +123,8 @@ export const load = async ({ locals }) => {
 export const actions = {
   createFlag: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     const supabase = locals.supabase
     const formData = await request.formData()
 
@@ -172,6 +175,8 @@ export const actions = {
 
   resolveFlag: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     if (!canModerateFlags(context.membershipRole)) {
       return fail(403, { resolveFlagError: "Insufficient permissions." })
     }
@@ -204,6 +209,8 @@ export const actions = {
 
   dismissFlag: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    assertWorkspaceWritable(billing)
     if (!canModerateFlags(context.membershipRole)) {
       return fail(403, { dismissFlagError: "Insufficient permissions." })
     }
