@@ -31,7 +31,12 @@ const normalizeWorkspaceName = (value: FormDataEntryValue | null): string =>
 
 const resolveAppRedirectTarget = (value: FormDataEntryValue | null): string => {
   const rawValue = String(value ?? "").trim()
-  if (!rawValue.startsWith("/app") || rawValue.startsWith("//")) {
+  if (
+    !rawValue.startsWith("/") ||
+    rawValue.startsWith("//") ||
+    rawValue.includes("\n") ||
+    rawValue.includes("\r")
+  ) {
     return APP_DEFAULT_REDIRECT
   }
   return rawValue

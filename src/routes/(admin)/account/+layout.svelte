@@ -1,9 +1,46 @@
 <script lang="ts">
-  // TODO(LP-008): Retained legacy account auth shell. Keep for session/billing flows until replaced by dedicated SystemsCraft account UX.
+  import "../../../app.css"
   import { invalidate } from "$app/navigation"
   import { onMount } from "svelte"
+  import ScShell from "$lib/components/ScShell.svelte"
 
-  let { data, children } = $props()
+  interface Props {
+    data: {
+      supabase: {
+        auth: {
+          onAuthStateChange: (
+            callback: (event: string, session: { expires_at?: number } | null) => void,
+          ) => { data: { subscription: { unsubscribe: () => void } } }
+        }
+      }
+      session: { expires_at?: number } | null
+      org: {
+        id: string
+        name: string
+        role: "owner" | "admin" | "editor" | "member"
+      }
+      navCounts: {
+        processes: number
+        roles: number
+        systems: number
+        flags: number
+      }
+      billing?: {
+        planId: string
+        billingState: "active" | "lapsed"
+        isLapsed: boolean
+        hasEverPaid: boolean
+      }
+      workspaceOptions: {
+        id: string
+        name: string
+        role: "owner" | "admin" | "editor" | "member"
+      }[]
+    }
+    children?: import("svelte").Snippet
+  }
+
+  let { data, children }: Props = $props()
 
   onMount(() => {
     const { data: authData } = data.supabase.auth.onAuthStateChange(
@@ -18,4 +55,4 @@
   })
 </script>
 
-{@render children?.()}
+<ScShell {data} {children} />
