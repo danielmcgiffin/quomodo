@@ -55,4 +55,6 @@
   })
 </script>
 
-<ScShell {data} {children} />
+<ScShell {data}>
+  {@render children?.()}
+</ScShell>

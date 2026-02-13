@@ -229,14 +229,15 @@ button[disabled].authBtn::before {
   object-fit: cover;
 }
 
-.sc-sidebar-gap {
-  height: clamp(18px, 7vh, 110px);
-}
-
 .sc-sidebar-nav {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.sc-sidebar-nav .sc-side-link {
+  min-height: 78px;
+  padding: 18px 16px;
 }
 
 .sc-sidebar-footer {
@@ -314,13 +315,15 @@ button[disabled].authBtn::before {
   height: 64px;
   padding: 10px 20px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 760px) minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0;
   align-items: center;
 }
 
 .sc-topbar-search {
   min-width: 0;
+  justify-self: center;
+  width: min(760px, 100%);
 }
 
 .sc-searchbar {
@@ -405,10 +408,6 @@ button[disabled].authBtn::before {
     padding: 12px;
   }
 
-  .sc-sidebar-gap {
-    display: none;
-  }
-
   .sc-sidebar-brand-pill span {
     display: none;
   }
@@ -429,6 +428,11 @@ button[disabled].authBtn::before {
     width: auto;
     flex: 0 0 auto;
   }
+
+  .sc-sidebar-nav .sc-side-link {
+    min-height: 52px;
+    padding: 12px 14px;
+  }
 }
 
 @media (max-width: 720px) {
@@ -440,8 +444,8 @@ button[disabled].authBtn::before {
     padding: 12px;
   }
 
-  .sc-topbar-spacer {
-    display: none;
+  .sc-topbar-search {
+    width: 100%;
   }
 
   .sc-topbar-actions {

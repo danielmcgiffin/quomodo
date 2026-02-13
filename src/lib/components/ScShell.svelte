@@ -41,7 +41,7 @@
     | "/app/flags"
     | "/app/team"
     | "/app/workspace"
-    | "/account"
+    | "/account/settings"
 
   type NavItem = {
     label: string
@@ -72,12 +72,16 @@
       items.push({ label: "Team", href: "/app/team" })
     }
 
-    items.push({ label: "Account", href: "/account" })
+    items.push({ label: "Account", href: "/account/settings" })
     return items
   })
 
-  const isActiveHref = (href: NavHref) =>
-    $page.url.pathname.startsWith(resolve(href))
+  const isActiveHref = (href: NavHref) => {
+    if (href.startsWith("/account")) {
+      return $page.url.pathname.startsWith(resolve("/account"))
+    }
+    return $page.url.pathname.startsWith(resolve(href))
+  }
 
   const onWindowKeydown = (event: KeyboardEvent) => {
     if (event.defaultPrevented || !event.ctrlKey || event.metaKey || event.altKey) {
@@ -112,8 +116,6 @@
         </span>
       </a>
 
-      <div class="sc-sidebar-gap" aria-hidden="true"></div>
-
       <nav class="sc-sidebar-nav" aria-label="Primary">
         {#each topNavItems as item (item.href)}
           <a
@@ -146,7 +148,6 @@
   <div class="sc-main">
     <header class="sc-topbar">
       <div class="sc-topbar-inner">
-        <div class="sc-topbar-spacer"></div>
         <div class="sc-topbar-search">
           <button
             class="sc-searchbar"
@@ -211,4 +212,3 @@
     <AppSearchOverlay bind:open={isSearchOpen} />
   </div>
 </div>
-

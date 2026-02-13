@@ -62,50 +62,50 @@
           errorTargetId={createFlagTargetId}
           errorTargetPath={createFlagTargetPath}
         />
-        <a class="sc-process-card-link" href={`/app/processes/${process.slug}`}>
-          <div class="sc-process-card-content">
-            <div class="sc-process-card-info">
+        <div class="sc-process-card-content">
+          <div class="sc-process-card-info">
+            <a class="sc-process-card-link" href={`/app/processes/${process.slug}`}>
               <div class="sc-section-title">
                 <span class="sc-portal sc-portal-process">{process.name}</span>
               </div>
-              <div class="sc-page-subtitle">
-                <RichText html={process.descriptionHtml} />
+            </a>
+            <div class="sc-page-subtitle">
+              <RichText html={process.descriptionHtml} />
+            </div>
+          </div>
+
+          <div class="sc-process-badge-rows">
+            <div class="sc-process-badge-row">
+              <span class="sc-process-badge-label">Roles</span>
+              <div class="sc-process-badges">
+                {#if process.roleBadges.length === 0}
+                  <span class="sc-page-subtitle">None</span>
+                {:else}
+                  {#each process.roleBadges as role}
+                    <span class="sc-process-badge" title={role.name}>
+                      <RolePortal {role} size="sm" showName={false} />
+                    </span>
+                  {/each}
+                {/if}
               </div>
             </div>
 
-            <div class="sc-process-badge-rows">
-              <div class="sc-process-badge-row">
-                <span class="sc-process-badge-label">Roles</span>
-                <div class="sc-process-badges">
-                  {#if process.roleBadges.length === 0}
-                    <span class="sc-page-subtitle">None</span>
-                  {:else}
-                    {#each process.roleBadges as role}
-                      <span class="sc-process-badge" title={role.name}>
-                        <RolePortal {role} size="sm" showName={false} />
-                      </span>
-                    {/each}
-                  {/if}
-                </div>
-              </div>
-
-              <div class="sc-process-badge-row">
-                <span class="sc-process-badge-label">Systems</span>
-                <div class="sc-process-badges">
-                  {#if process.systemBadges.length === 0}
-                    <span class="sc-page-subtitle">None</span>
-                  {:else}
-                    {#each process.systemBadges as system}
-                      <span class="sc-process-badge" title={system.name}>
-                        <SystemPortal {system} size="sm" showName={false} />
-                      </span>
-                    {/each}
-                  {/if}
-                </div>
+            <div class="sc-process-badge-row">
+              <span class="sc-process-badge-label">Systems</span>
+              <div class="sc-process-badges">
+                {#if process.systemBadges.length === 0}
+                  <span class="sc-page-subtitle">None</span>
+                {:else}
+                  {#each process.systemBadges as system}
+                    <span class="sc-process-badge" title={system.name}>
+                      <SystemPortal {system} size="sm" showName={false} />
+                    </span>
+                  {/each}
+                {/if}
               </div>
             </div>
           </div>
-        </a>
+        </div>
       </article>
     {/each}
   {/if}

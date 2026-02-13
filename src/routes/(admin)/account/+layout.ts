@@ -62,6 +62,10 @@ export const load = async ({ fetch, data, depends, url }) => {
     profile,
     user,
     amr: aal?.currentAuthenticationMethods,
+    org: data.org,
+    navCounts: data.navCounts,
+    billing: data.billing,
+    workspaceOptions: data.workspaceOptions,
   }
 }
 

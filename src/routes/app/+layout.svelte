@@ -33,5 +33,6 @@
   let { data, children }: Props = $props()
 </script>
 
-<ScShell {data} {children} />
-
+<ScShell {data}>
+  {@render children?.()}
+</ScShell>
