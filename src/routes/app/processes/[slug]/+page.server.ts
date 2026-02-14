@@ -7,7 +7,7 @@ import {
   richToHtml,
 } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
-import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
+import { wrapAction } from "$lib/server/app/actions"
 import {
   createOrUpdateActionRecord,
   deleteActionRecord,
@@ -164,264 +164,218 @@ export const load = async ({ params, locals, url }) => {
 }
 
 export const actions = {
-  updateProcess: async ({ request, params, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    if (!canEditAtlas(context.membershipRole)) {
-      return fail(403, { updateProcessError: "Insufficient permissions." })
-    }
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const processId = String(formData.get("process_id") ?? "").trim()
-    const draft = readProcessDraft(formData)
+  updateProcess: wrapAction(
+    async ({ context, supabase, formData, params }) => {
+      const processId = String(formData.get("process_id") ?? "").trim()
+      const draft = readProcessDraft(formData)
+      const failProcess = (status: number, updateProcessError: string) =>
+        fail(status, {
+          updateProcessError,
+          processNameDraft: draft.name,
+          processDescriptionDraft: draft.description,
+          processDescriptionRichDraft: draft.descriptionRichRaw,
+          processTriggerDraft: draft.trigger,
+          processEndStateDraft: draft.endState,
+          selectedProcessOwnerRoleIdDraft: draft.ownerRoleIdRaw,
+        })
 
-    const failProcess = (status: number, updateProcessError: string) =>
-      fail(status, {
-        updateProcessError,
-        processNameDraft: draft.name,
-        processDescriptionDraft: draft.description,
-        processDescriptionRichDraft: draft.descriptionRichRaw,
-        processTriggerDraft: draft.trigger,
-        processEndStateDraft: draft.endState,
-        selectedProcessOwnerRoleIdDraft: draft.ownerRoleIdRaw,
-      })
-
-    const result = await updateProcessRecord({
-      supabase,
-      orgId: context.orgId,
-      processSlug: params.slug,
-      expectedProcessId: processId,
-      draft,
-    })
-
-    if (!result.ok) {
-      return failProcess(result.status, result.message)
-    }
-
-    redirect(303, `/app/processes/${result.slug}`)
-  },
-
-  deleteProcess: async ({ request, params, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    if (!canEditAtlas(context.membershipRole)) {
-      return fail(403, { deleteProcessError: "Insufficient permissions." })
-    }
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const processId = String(formData.get("process_id") ?? "").trim()
-
-    const failDelete = (status: number, deleteProcessError: string) =>
-      fail(status, { deleteProcessError })
-    const result = await deleteProcessRecord({
-      supabase,
-      orgId: context.orgId,
-      processSlug: params.slug,
-      expectedProcessId: processId,
-    })
-
-    if (!result.ok) {
-      return failDelete(result.status, result.message)
-    }
-
-    redirect(303, "/app/processes")
-  },
-
-  createAction: async ({ request, params, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    if (!canEditAtlas(context.membershipRole)) {
-      return fail(403, { createActionError: "Insufficient permissions." })
-    }
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const draft = readActionDraft(formData)
-
-    const failAction = (status: number, createActionError: string) =>
-      fail(status, {
-        createActionError,
-        actionDescriptionDraft: draft.description,
-        actionDescriptionRichDraft: draft.descriptionRichRaw,
-        selectedOwnerRoleId: draft.ownerRoleId,
-        selectedSystemId: draft.systemId,
-        editingActionId: draft.actionId || null,
-      })
-
-    const result = await createOrUpdateActionRecord({
-      supabase,
-      orgId: context.orgId,
-      processSlug: params.slug,
-      draft,
-    })
-
-    if (!result.ok) {
-      return failAction(result.status, result.message)
-    }
-
-    redirect(303, `/app/processes/${params.slug}`)
-  },
-
-  deleteAction: async ({ request, params, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    if (!canEditAtlas(context.membershipRole)) {
-      return fail(403, { deleteActionError: "Insufficient permissions." })
-    }
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const actionId = String(formData.get("action_id") ?? "").trim()
-
-    const failDelete = (status: number, deleteActionError: string) =>
-      fail(status, {
-        deleteActionError,
-        editingActionId: actionId || null,
-      })
-
-    if (!actionId) {
-      return failDelete(400, "Action id is required.")
-    }
-    const result = await deleteActionRecord({
-      supabase,
-      orgId: context.orgId,
-      processSlug: params.slug,
-      actionId,
-    })
-
-    if (!result.ok) {
-      return failDelete(result.status, result.message)
-    }
-
-    redirect(303, `/app/processes/${params.slug}`)
-  },
-
-  reorderAction: async ({ request, params, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    if (!canEditAtlas(context.membershipRole)) {
-      return fail(403, { reorderActionError: "Insufficient permissions." })
-    }
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const actionId = String(formData.get("action_id") ?? "").trim()
-    const direction = String(formData.get("direction") ?? "").trim()
-
-    const failReorder = (status: number, reorderActionError: string) =>
-      fail(status, { reorderActionError })
-
-    if (!actionId) {
-      return failReorder(400, "Action id is required.")
-    }
-    if (direction !== "up" && direction !== "down") {
-      return failReorder(400, "Invalid reorder direction.")
-    }
-    const result = await reorderActionRecord({
-      supabase,
-      orgId: context.orgId,
-      processSlug: params.slug,
-      actionId,
-      direction,
-    })
-
-    if (!result.ok) {
-      return failReorder(result.status, result.message)
-    }
-
-    redirect(303, `/app/processes/${params.slug}`)
-  },
-
-  createRole: async ({ request, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    if (!canManageDirectory(context.membershipRole)) {
-      return fail(403, { createRoleError: "Insufficient permissions." })
-    }
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const roleDraft = readRoleDraft(formData)
-    const actionDescriptionDraft = String(
-      formData.get("action_description_draft") ?? "",
-    )
-    const actionDescriptionRichDraft = String(
-      formData.get("action_description_rich_draft") ?? "",
-    )
-    const result = await createRoleRecord({
-      supabase,
-      orgId: context.orgId,
-      draft: roleDraft,
-    })
-
-    if (!result.ok) {
-      return fail(result.status, {
-        createRoleError: result.message,
-        actionDescriptionDraft,
-        actionDescriptionRichDraft,
-      })
-    }
-
-    return {
-      createRoleSuccess: true,
-      createdRoleId: result.id,
-      actionDescriptionDraft,
-      actionDescriptionRichDraft,
-    }
-  },
-
-  createSystem: async ({ request, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    if (!canManageDirectory(context.membershipRole)) {
-      return fail(403, { createSystemError: "Insufficient permissions." })
-    }
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const systemDraft = readSystemDraft(formData)
-    const actionDescriptionDraft = String(
-      formData.get("action_description_draft") ?? "",
-    )
-    const actionDescriptionRichDraft = String(
-      formData.get("action_description_rich_draft") ?? "",
-    )
-    const result = await createSystemRecord({
-      supabase,
-      orgId: context.orgId,
-      draft: systemDraft,
-    })
-
-    if (!result.ok) {
-      return fail(result.status, {
-        createSystemError: result.message,
-        actionDescriptionDraft,
-        actionDescriptionRichDraft,
-      })
-    }
-
-    return {
-      createSystemSuccess: true,
-      createdSystemId: result.id,
-      actionDescriptionDraft,
-      actionDescriptionRichDraft,
-    }
-  },
-
-  createFlag: async ({ request, params, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const result = await createFlagForProcessDetail({
-      context: {
+      const result = await updateProcessRecord({
+        supabase,
         orgId: context.orgId,
-        userId: context.userId,
-        membershipRole: context.membershipRole,
-      },
+        processSlug: params.slug,
+        expectedProcessId: processId,
+        draft,
+      })
+
+      if (!result.ok) {
+        return failProcess(result.status, result.message)
+      }
+
+      redirect(303, `/app/processes/${result.slug}`)
+    },
+    { permission: canEditAtlas, forbiddenPayload: { updateProcessError: "Insufficient permissions." } },
+  ),
+
+  deleteProcess: wrapAction(
+    async ({ context, supabase, formData, params }) => {
+      const processId = String(formData.get("process_id") ?? "").trim()
+      const failDelete = (status: number, deleteProcessError: string) =>
+        fail(status, { deleteProcessError })
+
+      const result = await deleteProcessRecord({
+        supabase,
+        orgId: context.orgId,
+        processSlug: params.slug,
+        expectedProcessId: processId,
+      })
+
+      if (!result.ok) {
+        return failDelete(result.status, result.message)
+      }
+
+      redirect(303, "/app/processes")
+    },
+    { permission: canEditAtlas, forbiddenPayload: { deleteProcessError: "Insufficient permissions." } },
+  ),
+
+  createAction: wrapAction(
+    async ({ context, supabase, formData, params }) => {
+      const draft = readActionDraft(formData)
+      const failAction = (status: number, createActionError: string) =>
+        fail(status, {
+          createActionError,
+          actionDescriptionDraft: draft.description,
+          actionDescriptionRichDraft: draft.descriptionRichRaw,
+          selectedOwnerRoleId: draft.ownerRoleId,
+          selectedSystemId: draft.systemId,
+          editingActionId: draft.actionId || null,
+        })
+
+      const result = await createOrUpdateActionRecord({
+        supabase,
+        orgId: context.orgId,
+        processSlug: params.slug,
+        draft,
+      })
+
+      if (!result.ok) {
+        return failAction(result.status, result.message)
+      }
+
+      redirect(303, `/app/processes/${params.slug}`)
+    },
+    { permission: canEditAtlas, forbiddenPayload: { createActionError: "Insufficient permissions." } },
+  ),
+
+  deleteAction: wrapAction(
+    async ({ context, supabase, formData, params }) => {
+      const actionId = String(formData.get("action_id") ?? "").trim()
+      const failDelete = (status: number, deleteActionError: string) =>
+        fail(status, {
+          deleteActionError,
+          editingActionId: actionId || null,
+        })
+
+      if (!actionId) {
+        return failDelete(400, "Action id is required.")
+      }
+
+      const result = await deleteActionRecord({
+        supabase,
+        orgId: context.orgId,
+        processSlug: params.slug,
+        actionId,
+      })
+
+      if (!result.ok) {
+        return failDelete(result.status, result.message)
+      }
+
+      redirect(303, `/app/processes/${params.slug}`)
+    },
+    { permission: canEditAtlas, forbiddenPayload: { deleteActionError: "Insufficient permissions." } },
+  ),
+
+  reorderAction: wrapAction(
+    async ({ context, supabase, formData, params }) => {
+      const actionId = String(formData.get("action_id") ?? "").trim()
+      const direction = String(formData.get("direction") ?? "").trim()
+      const failReorder = (status: number, reorderActionError: string) =>
+        fail(status, { reorderActionError })
+
+      if (!actionId) {
+        return failReorder(400, "Action id is required.")
+      }
+      if (direction !== "up" && direction !== "down") {
+        return failReorder(400, "Invalid reorder direction.")
+      }
+
+      const result = await reorderActionRecord({
+        supabase,
+        orgId: context.orgId,
+        processSlug: params.slug,
+        actionId,
+        direction,
+      })
+
+      if (!result.ok) {
+        return failReorder(result.status, result.message)
+      }
+
+      redirect(303, `/app/processes/${params.slug}`)
+    },
+    { permission: canEditAtlas, forbiddenPayload: { reorderActionError: "Insufficient permissions." } },
+  ),
+
+  createRole: wrapAction(
+    async ({ context, supabase, formData }) => {
+      const roleDraft = readRoleDraft(formData)
+      const actionDescriptionDraft = String(
+        formData.get("action_description_draft") ?? "",
+      )
+      const actionDescriptionRichDraft = String(
+        formData.get("action_description_rich_draft") ?? "",
+      )
+      const result = await createRoleRecord({
+        supabase,
+        orgId: context.orgId,
+        draft: roleDraft,
+      })
+
+      if (!result.ok) {
+        return fail(result.status, {
+          createRoleError: result.message,
+          actionDescriptionDraft,
+          actionDescriptionRichDraft,
+        })
+      }
+
+      return {
+        createRoleSuccess: true,
+        createdRoleId: result.id,
+        actionDescriptionDraft,
+        actionDescriptionRichDraft,
+      }
+    },
+    { permission: canManageDirectory, forbiddenPayload: { createRoleError: "Insufficient permissions." } },
+  ),
+
+  createSystem: wrapAction(
+    async ({ context, supabase, formData }) => {
+      const systemDraft = readSystemDraft(formData)
+      const actionDescriptionDraft = String(
+        formData.get("action_description_draft") ?? "",
+      )
+      const actionDescriptionRichDraft = String(
+        formData.get("action_description_rich_draft") ?? "",
+      )
+      const result = await createSystemRecord({
+        supabase,
+        orgId: context.orgId,
+        draft: systemDraft,
+      })
+
+      if (!result.ok) {
+        return fail(result.status, {
+          createSystemError: result.message,
+          actionDescriptionDraft,
+          actionDescriptionRichDraft,
+        })
+      }
+
+      return {
+        createSystemSuccess: true,
+        createdSystemId: result.id,
+        actionDescriptionDraft,
+        actionDescriptionRichDraft,
+      }
+    },
+    { permission: canManageDirectory, forbiddenPayload: { createSystemError: "Insufficient permissions." } },
+  ),
+
+  createFlag: wrapAction(async ({ context, supabase, formData, params }) => {
+    const result = await createFlagForProcessDetail({
+      context,
       supabase,
       formData,
       processSlug: params.slug,
@@ -432,5 +386,5 @@ export const actions = {
     }
 
     return { createFlagSuccess: true }
-  },
+  }),
 }

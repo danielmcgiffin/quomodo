@@ -7,7 +7,7 @@ import {
   richToHtml,
 } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
-import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
+import { wrapAction } from "$lib/server/app/actions"
 import {
   createFlagForEntity,
   deleteRoleRecord,
@@ -167,12 +167,7 @@ export const load = async ({ params, locals, url }) => {
 }
 
 export const actions = {
-  createFlag: async ({ request, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    const supabase = locals.supabase
-    const formData = await request.formData()
+  createFlag: wrapAction(async ({ context, supabase, formData }) => {
     const result = await createFlagForEntity({
       context,
       supabase,
@@ -181,70 +176,56 @@ export const actions = {
       targetTable: "roles",
       missingTargetMessage: "Role not found.",
     })
-
     if (!result.ok) {
       return fail(result.status, result.payload)
     }
-
     return { createFlagSuccess: true }
-  },
+  }),
 
-  updateRole: async ({ request, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    if (!canManageDirectory(context.membershipRole)) {
-      return fail(403, { updateRoleError: "Insufficient permissions." })
-    }
+  updateRole: wrapAction(
+    async ({ context, supabase, formData }) => {
+      const roleId = String(formData.get("role_id") ?? "").trim()
+      const draft = readRoleDraft(formData)
 
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const roleId = String(formData.get("role_id") ?? "").trim()
-    const draft = readRoleDraft(formData)
+      const failUpdate = (status: number, updateRoleError: string) =>
+        fail(status, {
+          updateRoleError,
+          roleNameDraft: draft.name,
+          roleDescriptionDraft: draft.description,
+          roleDescriptionRichDraft: draft.descriptionRichRaw,
+        })
 
-    const failUpdate = (status: number, updateRoleError: string) =>
-      fail(status, {
-        updateRoleError,
-        roleNameDraft: draft.name,
-        roleDescriptionDraft: draft.description,
-        roleDescriptionRichDraft: draft.descriptionRichRaw,
+      const result = await updateRoleRecord({
+        supabase,
+        orgId: context.orgId,
+        roleId,
+        draft,
       })
 
-    const result = await updateRoleRecord({
-      supabase,
-      orgId: context.orgId,
-      roleId,
-      draft,
-    })
+      if (!result.ok) {
+        return failUpdate(result.status, result.message)
+      }
 
-    if (!result.ok) {
-      return failUpdate(result.status, result.message)
-    }
+      redirect(303, `/app/roles/${result.slug}`)
+    },
+    { permission: canManageDirectory, forbiddenPayload: { updateRoleError: "Insufficient permissions." } },
+  ),
 
-    redirect(303, `/app/roles/${result.slug}`)
-  },
+  deleteRole: wrapAction(
+    async ({ context, supabase, formData }) => {
+      const roleId = String(formData.get("role_id") ?? "").trim()
+      const result = await deleteRoleRecord({
+        supabase,
+        orgId: context.orgId,
+        roleId,
+      })
 
-  deleteRole: async ({ request, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    if (!canManageDirectory(context.membershipRole)) {
-      return fail(403, { deleteRoleError: "Insufficient permissions." })
-    }
+      if (!result.ok) {
+        return fail(result.status, { deleteRoleError: result.message })
+      }
 
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const roleId = String(formData.get("role_id") ?? "").trim()
-    const result = await deleteRoleRecord({
-      supabase,
-      orgId: context.orgId,
-      roleId,
-    })
-
-    if (!result.ok) {
-      return fail(result.status, { deleteRoleError: result.message })
-    }
-
-    redirect(303, "/app/roles")
-  },
+      redirect(303, "/app/roles")
+    },
+    { permission: canManageDirectory, forbiddenPayload: { deleteRoleError: "Insufficient permissions." } },
+  ),
 }

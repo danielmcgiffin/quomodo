@@ -4,8 +4,7 @@ import {
   ensureOrgContext,
 } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
-import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
-import { createFlag } from "$lib/server/app/actions"
+import { wrapAction, createFlag } from "$lib/server/app/actions"
 import {
   mapActionTargets,
   mapFlagsDashboard,
@@ -114,12 +113,7 @@ export const load = async ({ locals }) => {
 }
 
 export const actions = {
-  createFlag: async ({ request, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    const supabase = locals.supabase
-    const formData = await request.formData()
+  createFlag: wrapAction(async ({ context, supabase, formData }) => {
     const result = await createFlag({
       supabase,
       orgId: context.orgId,
@@ -133,71 +127,61 @@ export const actions = {
     }
 
     return { ok: true }
-  },
+  }),
 
-  resolveFlag: async ({ request, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    if (!canModerateFlags(context.membershipRole)) {
-      return fail(403, { resolveFlagError: "Insufficient permissions." })
-    }
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const id = String(formData.get("id") ?? "").trim()
-    const resolution = String(formData.get("resolution_note") ?? "").trim()
+  resolveFlag: wrapAction(
+    async ({ context, supabase, formData }) => {
+      const id = String(formData.get("id") ?? "").trim()
+      const resolution = String(formData.get("resolution_note") ?? "").trim()
 
-    if (!id) {
-      return fail(400, { resolveFlagError: "Flag id is required." })
-    }
+      if (!id) {
+        return fail(400, { resolveFlagError: "Flag id is required." })
+      }
 
-    const { error } = await supabase
-      .from("flags")
-      .update({
-        status: "resolved",
-        resolved_at: new Date().toISOString(),
-        resolved_by: context.userId,
-        resolution_note: resolution || null,
-      })
-      .eq("id", id)
-      .eq("org_id", context.orgId)
+      const { error } = await supabase
+        .from("flags")
+        .update({
+          status: "resolved",
+          resolved_at: new Date().toISOString(),
+          resolved_by: context.userId,
+          resolution_note: resolution || null,
+        })
+        .eq("id", id)
+        .eq("org_id", context.orgId)
 
-    if (error) {
-      return fail(400, { resolveFlagError: error.message })
-    }
+      if (error) {
+        return fail(400, { resolveFlagError: error.message })
+      }
 
-    return { ok: true }
-  },
+      return { ok: true }
+    },
+    { permission: canModerateFlags, forbiddenPayload: { resolveFlagError: "Insufficient permissions." } },
+  ),
 
-  dismissFlag: async ({ request, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    if (!canModerateFlags(context.membershipRole)) {
-      return fail(403, { dismissFlagError: "Insufficient permissions." })
-    }
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const id = String(formData.get("id") ?? "").trim()
+  dismissFlag: wrapAction(
+    async ({ context, supabase, formData }) => {
+      const id = String(formData.get("id") ?? "").trim()
 
-    if (!id) {
-      return fail(400, { dismissFlagError: "Flag id is required." })
-    }
+      if (!id) {
+        return fail(400, { dismissFlagError: "Flag id is required." })
+      }
 
-    const { error } = await supabase
-      .from("flags")
-      .update({
-        status: "dismissed",
-        resolved_at: new Date().toISOString(),
-        resolved_by: context.userId,
-      })
-      .eq("id", id)
-      .eq("org_id", context.orgId)
+      const { error } = await supabase
+        .from("flags")
+        .update({
+          status: "dismissed",
+          resolved_at: new Date().toISOString(),
+          resolved_by: context.userId,
+        })
+        .eq("id", id)
+        .eq("org_id", context.orgId)
 
-    if (error) {
-      return fail(400, { dismissFlagError: error.message })
-    }
+      if (error) {
+        return fail(400, { dismissFlagError: error.message })
+      }
 
-    return { ok: true }
-  },
+      return { ok: true }
+    },
+    { permission: canModerateFlags, forbiddenPayload: { dismissFlagError: "Insufficient permissions." } },
+  ),
 }

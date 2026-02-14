@@ -6,7 +6,7 @@ import {
   richToHtml,
 } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
-import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
+import { wrapAction } from "$lib/server/app/actions"
 import {
   createFlagForEntity,
   createRoleRecord,
@@ -92,55 +92,39 @@ export const load = async ({ locals }) => {
 }
 
 export const actions = {
-  createRole: async ({ request, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    if (!canManageDirectory(context.membershipRole)) {
-      return fail(403, { createRoleError: "Insufficient permissions." })
-    }
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const draft = readRoleDraft(formData)
-
-    const failRole = (status: number, createRoleError: string) =>
-      fail(status, {
-        createRoleError,
-        roleNameDraft: draft.name,
-        roleDescriptionDraft: draft.description,
-        roleDescriptionRichDraft: draft.descriptionRichRaw,
+  createRole: wrapAction(
+    async ({ context, supabase, formData }) => {
+      const draft = readRoleDraft(formData)
+      const failRole = (status: number, createRoleError: string) =>
+        fail(status, {
+          createRoleError,
+          roleNameDraft: draft.name,
+          roleDescriptionDraft: draft.description,
+          roleDescriptionRichDraft: draft.descriptionRichRaw,
+        })
+      const result = await createRoleRecord({ supabase, orgId: context.orgId, draft })
+      if (!result.ok) {
+        return failRole(result.status, result.message)
+      }
+      redirect(303, `/app/roles/${result.slug}`)
+    },
+    { permission: canManageDirectory, forbiddenPayload: { createRoleError: "Insufficient permissions." } },
+  ),
+  createFlag: wrapAction(
+    async ({ context, supabase, formData }) => {
+      const result = await createFlagForEntity({
+        context,
+        supabase,
+        formData,
+        expectedTargetType: "role",
+        targetTable: "roles",
+        missingTargetMessage: "Role not found.",
       })
-    const result = await createRoleRecord({
-      supabase,
-      orgId: context.orgId,
-      draft,
-    })
-
-    if (!result.ok) {
-      return failRole(result.status, result.message)
-    }
-
-    redirect(303, `/app/roles/${result.slug}`)
-  },
-  createFlag: async ({ request, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const result = await createFlagForEntity({
-      context,
-      supabase,
-      formData,
-      expectedTargetType: "role",
-      targetTable: "roles",
-      missingTargetMessage: "Role not found.",
-    })
-
-    if (!result.ok) {
-      return fail(result.status, result.payload)
-    }
-
-    return { createFlagSuccess: true }
-  },
+      if (!result.ok) {
+        return fail(result.status, result.payload)
+      }
+      return { createFlagSuccess: true }
+    },
+    { forbiddenPayload: { createFlagError: "Insufficient permissions." } },
+  ),
 }

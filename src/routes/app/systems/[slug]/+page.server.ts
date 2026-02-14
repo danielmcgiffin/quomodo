@@ -6,7 +6,7 @@ import {
   richToHtml,
 } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
-import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
+import { wrapAction } from "$lib/server/app/actions"
 import {
   createFlagForEntity,
   deleteSystemRecord,
@@ -167,12 +167,7 @@ export const load = async ({ params, locals }) => {
 }
 
 export const actions = {
-  createFlag: async ({ request, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    const supabase = locals.supabase
-    const formData = await request.formData()
+  createFlag: wrapAction(async ({ context, supabase, formData }) => {
     const result = await createFlagForEntity({
       context,
       supabase,
@@ -181,72 +176,58 @@ export const actions = {
       targetTable: "systems",
       missingTargetMessage: "System not found.",
     })
-
     if (!result.ok) {
       return fail(result.status, result.payload)
     }
-
     return { createFlagSuccess: true }
-  },
+  }),
 
-  updateSystem: async ({ request, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    if (!canManageDirectory(context.membershipRole)) {
-      return fail(403, { updateSystemError: "Insufficient permissions." })
-    }
+  updateSystem: wrapAction(
+    async ({ context, supabase, formData }) => {
+      const systemId = String(formData.get("system_id") ?? "").trim()
+      const draft = readSystemDraft(formData)
 
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const systemId = String(formData.get("system_id") ?? "").trim()
-    const draft = readSystemDraft(formData)
+      const failSystem = (status: number, updateSystemError: string) =>
+        fail(status, {
+          updateSystemError,
+          systemNameDraft: draft.name,
+          systemDescriptionDraft: draft.description,
+          systemDescriptionRichDraft: draft.descriptionRichRaw,
+          systemLocationDraft: draft.location,
+          selectedOwnerRoleIdDraft: draft.ownerRoleIdRaw,
+        })
 
-    const failSystem = (status: number, updateSystemError: string) =>
-      fail(status, {
-        updateSystemError,
-        systemNameDraft: draft.name,
-        systemDescriptionDraft: draft.description,
-        systemDescriptionRichDraft: draft.descriptionRichRaw,
-        systemLocationDraft: draft.location,
-        selectedOwnerRoleIdDraft: draft.ownerRoleIdRaw,
+      const result = await updateSystemRecord({
+        supabase,
+        orgId: context.orgId,
+        systemId,
+        draft,
       })
 
-    const result = await updateSystemRecord({
-      supabase,
-      orgId: context.orgId,
-      systemId,
-      draft,
-    })
+      if (!result.ok) {
+        return failSystem(result.status, result.message)
+      }
 
-    if (!result.ok) {
-      return failSystem(result.status, result.message)
-    }
+      redirect(303, `/app/systems/${result.slug}`)
+    },
+    { permission: canManageDirectory, forbiddenPayload: { updateSystemError: "Insufficient permissions." } },
+  ),
 
-    redirect(303, `/app/systems/${result.slug}`)
-  },
+  deleteSystem: wrapAction(
+    async ({ context, supabase, formData }) => {
+      const systemId = String(formData.get("system_id") ?? "").trim()
+      const result = await deleteSystemRecord({
+        supabase,
+        orgId: context.orgId,
+        systemId,
+      })
 
-  deleteSystem: async ({ request, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    if (!canManageDirectory(context.membershipRole)) {
-      return fail(403, { deleteSystemError: "Insufficient permissions." })
-    }
+      if (!result.ok) {
+        return fail(result.status, { deleteSystemError: result.message })
+      }
 
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const systemId = String(formData.get("system_id") ?? "").trim()
-    const result = await deleteSystemRecord({
-      supabase,
-      orgId: context.orgId,
-      systemId,
-    })
-
-    if (!result.ok) {
-      return fail(result.status, { deleteSystemError: result.message })
-    }
-
-    redirect(303, "/app/systems")
-  },
+      redirect(303, "/app/systems")
+    },
+    { permission: canManageDirectory, forbiddenPayload: { deleteSystemError: "Insufficient permissions." } },
+  ),
 }

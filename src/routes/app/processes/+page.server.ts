@@ -6,7 +6,7 @@ import {
   richToHtml,
 } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
-import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
+import { wrapAction } from "$lib/server/app/actions"
 import {
   createFlagForEntity,
   createProcessRecord,
@@ -137,56 +137,29 @@ export const load = async ({ locals }) => {
 }
 
 export const actions = {
-  createProcess: async ({ request, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    if (!canEditAtlas(context.membershipRole)) {
-      return fail(403, { createProcessError: "Insufficient permissions." })
-    }
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const draft = readProcessDraft(formData)
-    const result = await createProcessRecord({
-      supabase,
-      orgId: context.orgId,
-      draft,
-    })
-
-    if (!result.ok) {
-      return fail(result.status, { createProcessError: result.message })
-    }
-
-    redirect(303, `/app/processes/${result.slug}`)
-  },
-  createRole: async ({ request, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    if (!canManageDirectory(context.membershipRole)) {
-      return fail(403, { createRoleError: "Insufficient permissions." })
-    }
-    const supabase = locals.supabase
-    const formData = await request.formData()
-    const draft = readRoleDraft(formData)
-    const result = await createRoleRecord({
-      supabase,
-      orgId: context.orgId,
-      draft,
-    })
-
-    if (!result.ok) {
-      return fail(result.status, { createRoleError: result.message })
-    }
-
-    return { createRoleSuccess: true, createdRoleId: result.id }
-  },
-  createFlag: async ({ request, locals }) => {
-    const context = await ensureOrgContext(locals)
-    const billing = await getOrgBillingSnapshot(locals, context.orgId)
-    assertWorkspaceWritable(billing)
-    const supabase = locals.supabase
-    const formData = await request.formData()
+  createProcess: wrapAction(
+    async ({ context, supabase, formData }) => {
+      const draft = readProcessDraft(formData)
+      const result = await createProcessRecord({ supabase, orgId: context.orgId, draft })
+      if (!result.ok) {
+        return fail(result.status, { createProcessError: result.message })
+      }
+      redirect(303, `/app/processes/${result.slug}`)
+    },
+    { permission: canEditAtlas, forbiddenPayload: { createProcessError: "Insufficient permissions." } },
+  ),
+  createRole: wrapAction(
+    async ({ context, supabase, formData }) => {
+      const draft = readRoleDraft(formData)
+      const result = await createRoleRecord({ supabase, orgId: context.orgId, draft })
+      if (!result.ok) {
+        return fail(result.status, { createRoleError: result.message })
+      }
+      return { createRoleSuccess: true, createdRoleId: result.id }
+    },
+    { permission: canManageDirectory, forbiddenPayload: { createRoleError: "Insufficient permissions." } },
+  ),
+  createFlag: wrapAction(async ({ context, supabase, formData }) => {
     const result = await createFlagForEntity({
       context,
       supabase,
@@ -195,11 +168,9 @@ export const actions = {
       targetTable: "processes",
       missingTargetMessage: "Process not found.",
     })
-
     if (!result.ok) {
       return fail(result.status, result.payload)
     }
-
     return { createFlagSuccess: true }
-  },
+  }),
 }
