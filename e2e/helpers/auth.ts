@@ -7,6 +7,6 @@ export async function signInViaEmailPassword(page: Page, opts: { email: string; 
   await page.getByLabel(/email/i).fill(opts.email)
   await page.getByLabel(/password/i).fill(opts.password)
 
-  await page.getByRole("button", { name: /sign in/i }).click()
+  // Avoid strict-mode ambiguity with "Sign in with Github".
+  await page.getByRole("button", { name: "Sign in", exact: true }).click()
 }
-
