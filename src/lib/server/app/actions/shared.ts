@@ -439,6 +439,101 @@ export const createFlagForEntity = async ({
   return { ok: true as const }
 }
 
+type ProcessDetailFlagTargetType = "process" | "action"
+
+export const createFlagForProcessDetail = async ({
+  context,
+  supabase,
+  formData,
+  processSlug,
+}: {
+  context: OrgContext
+  supabase: SupabaseClient
+  formData: FormData
+  processSlug: string
+}) => {
+  const targetTypeRaw = String(formData.get("target_type") ?? "").trim()
+  const targetId = String(formData.get("target_id") ?? "").trim()
+  const message = String(formData.get("message") ?? "").trim()
+  const flagTypeRaw = String(formData.get("flag_type") ?? "comment").trim()
+  const targetPath = String(formData.get("target_path") ?? "").trim()
+
+  const failForTarget = (status: number, createFlagError: string) => ({
+    ok: false as const,
+    status,
+    payload: {
+      createFlagError,
+      createFlagTargetType: targetTypeRaw,
+      createFlagTargetId: targetId,
+      createFlagTargetPath: targetPath,
+    },
+  })
+
+  if (!targetId) {
+    return failForTarget(400, "Invalid flag target.")
+  }
+  if (targetTypeRaw !== "process" && targetTypeRaw !== "action") {
+    return failForTarget(400, "Invalid flag target.")
+  }
+  if (!isScFlagType(flagTypeRaw)) {
+    return failForTarget(400, "Invalid flag type.")
+  }
+
+  const targetType: ProcessDetailFlagTargetType = targetTypeRaw
+
+  if (!message) {
+    return failForTarget(400, "Flag message is required.")
+  }
+  if (!canCreateFlagType(context.membershipRole, flagTypeRaw)) {
+    return failForTarget(403, "Members can only create comment flags.")
+  }
+
+  const { data: process, error: processError } = await supabase
+    .from("processes")
+    .select("id")
+    .eq("org_id", context.orgId)
+    .eq("slug", processSlug)
+    .maybeSingle()
+
+  if (processError || !process) {
+    return failForTarget(404, "Process not found.")
+  }
+
+  if (targetType === "process" && process.id !== targetId) {
+    return failForTarget(400, "Invalid process target.")
+  }
+
+  if (targetType === "action") {
+    const { data: actionTarget, error: actionTargetError } = await supabase
+      .from("actions")
+      .select("id")
+      .eq("org_id", context.orgId)
+      .eq("process_id", process.id)
+      .eq("id", targetId)
+      .maybeSingle()
+
+    if (actionTargetError || !actionTarget) {
+      return failForTarget(404, "Action not found.")
+    }
+  }
+
+  const { error } = await supabase.from("flags").insert({
+    org_id: context.orgId,
+    target_type: targetType,
+    target_id: targetId,
+    target_path: targetPath || null,
+    flag_type: flagTypeRaw,
+    message,
+    created_by: context.userId,
+  })
+
+  if (error) {
+    return failForTarget(400, error.message)
+  }
+
+  return { ok: true as const }
+}
+
 export const createRole = async ({
   supabase,
   orgId,

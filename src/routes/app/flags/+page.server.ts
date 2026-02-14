@@ -1,13 +1,11 @@
 import { fail } from "@sveltejs/kit"
 import {
-  canCreateFlagType,
   canModerateFlags,
   ensureOrgContext,
-  isScFlagType,
-  type ScFlagType,
 } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
 import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
+import { createFlag } from "$lib/server/app/actions"
 import {
   mapActionTargets,
   mapFlagsDashboard,
@@ -17,11 +15,7 @@ import {
   type FlagsRoleRow,
   type FlagsRow,
   type FlagsSystemRow,
-  type FlagTargetType,
 } from "$lib/server/app/mappers/flags"
-
-const isFlagTargetType = (value: string): value is FlagTargetType =>
-  ["process", "role", "system", "action"].includes(value)
 
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
@@ -126,47 +120,16 @@ export const actions = {
     assertWorkspaceWritable(billing)
     const supabase = locals.supabase
     const formData = await request.formData()
-
-    const targetToken = String(formData.get("target") ?? "").trim()
-    const [targetTypeRaw, targetId] = targetToken.split(":")
-    const flagTypeRaw = String(formData.get("flag_type") ?? "comment").trim()
-    const message = String(formData.get("message") ?? "").trim()
-    const targetPathRaw = String(formData.get("target_path") ?? "").trim()
-
-    if (!targetTypeRaw || !targetId) {
-      return fail(400, { createFlagError: "Target is required." })
-    }
-    if (!isFlagTargetType(targetTypeRaw)) {
-      return fail(400, { createFlagError: "Target type is invalid." })
-    }
-    if (!isScFlagType(flagTypeRaw)) {
-      return fail(400, { createFlagError: "Flag type is invalid." })
-    }
-
-    const targetType: FlagTargetType = targetTypeRaw
-    const flagType: ScFlagType = flagTypeRaw
-
-    if (!message) {
-      return fail(400, { createFlagError: "Message is required." })
-    }
-    if (!canCreateFlagType(context.membershipRole, flagType)) {
-      return fail(403, {
-        createFlagError: "Members can only create comment flags.",
-      })
-    }
-
-    const { error } = await supabase.from("flags").insert({
-      org_id: context.orgId,
-      target_type: targetType,
-      target_id: targetId,
-      target_path: targetPathRaw || null,
-      flag_type: flagType,
-      message,
-      created_by: context.userId,
+    const result = await createFlag({
+      supabase,
+      orgId: context.orgId,
+      formData,
+      userId: context.userId,
+      membershipRole: context.membershipRole,
     })
 
-    if (error) {
-      return fail(400, { createFlagError: error.message })
+    if (!result.success) {
+      return fail(400, { createFlagError: result.error })
     }
 
     return { ok: true }

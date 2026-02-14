@@ -1,19 +1,17 @@
 import { error as kitError, fail, redirect } from "@sveltejs/kit"
 import {
   canManageDirectory,
-  canCreateFlagType,
   canEditAtlas,
   ensureOrgContext,
-  isScFlagType,
   richToJsonString,
   richToHtml,
-  type ScFlagType,
 } from "$lib/server/atlas"
 import { readRichTextFormDraft } from "$lib/server/rich-text"
 import type { RichTextDocument } from "$lib/rich-text/document"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
 import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
 import {
+  createFlagForProcessDetail,
   createRoleRecord,
   createSystemRecord,
   readRoleDraft,
@@ -41,7 +39,6 @@ type ProcessRow = {
 }
 type RoleRow = { id: string; slug: string; name: string }
 type SystemRow = { id: string; slug: string; name: string }
-type FlagTargetType = "process" | "action"
 type ActionSequenceRow = { id: string; sequence: number }
 type ProcessDraft = {
   name: string
@@ -694,82 +691,19 @@ export const actions = {
     assertWorkspaceWritable(billing)
     const supabase = locals.supabase
     const formData = await request.formData()
-
-    const targetTypeRaw = String(formData.get("target_type") ?? "").trim()
-    const targetId = String(formData.get("target_id") ?? "").trim()
-    const message = String(formData.get("message") ?? "").trim()
-    const flagTypeRaw = String(formData.get("flag_type") ?? "comment").trim()
-    const targetPath = String(formData.get("target_path") ?? "").trim()
-
-    const failForTarget = (status: number, createFlagError: string) =>
-      fail(status, {
-        createFlagError,
-        createFlagTargetType: targetTypeRaw,
-        createFlagTargetId: targetId,
-        createFlagTargetPath: targetPath,
-      })
-
-    if (!targetId) {
-      return failForTarget(400, "Invalid flag target.")
-    }
-    if (targetTypeRaw !== "process" && targetTypeRaw !== "action") {
-      return failForTarget(400, "Invalid flag target.")
-    }
-    if (!isScFlagType(flagTypeRaw)) {
-      return failForTarget(400, "Invalid flag type.")
-    }
-
-    const targetType: FlagTargetType = targetTypeRaw
-    const flagType: ScFlagType = flagTypeRaw
-
-    if (!message) {
-      return failForTarget(400, "Flag message is required.")
-    }
-    if (!canCreateFlagType(context.membershipRole, flagType)) {
-      return failForTarget(403, "Members can only create comment flags.")
-    }
-
-    const { data: process, error: processError } = await supabase
-      .from("processes")
-      .select("id")
-      .eq("org_id", context.orgId)
-      .eq("slug", params.slug)
-      .maybeSingle()
-
-    if (processError || !process) {
-      return failForTarget(404, "Process not found.")
-    }
-
-    if (targetType === "process" && process.id !== targetId) {
-      return failForTarget(400, "Invalid process target.")
-    }
-
-    if (targetType === "action") {
-      const { data: actionTarget, error: actionTargetError } = await supabase
-        .from("actions")
-        .select("id")
-        .eq("org_id", context.orgId)
-        .eq("process_id", process.id)
-        .eq("id", targetId)
-        .maybeSingle()
-
-      if (actionTargetError || !actionTarget) {
-        return failForTarget(404, "Action not found.")
-      }
-    }
-
-    const { error } = await supabase.from("flags").insert({
-      org_id: context.orgId,
-      target_type: targetType,
-      target_id: targetId,
-      target_path: targetPath || null,
-      flag_type: flagType,
-      message,
-      created_by: context.userId,
+    const result = await createFlagForProcessDetail({
+      context: {
+        orgId: context.orgId,
+        userId: context.userId,
+        membershipRole: context.membershipRole,
+      },
+      supabase,
+      formData,
+      processSlug: params.slug,
     })
 
-    if (error) {
-      return failForTarget(400, error.message)
+    if (!result.ok) {
+      return fail(result.status, result.payload)
     }
 
     return { createFlagSuccess: true }
