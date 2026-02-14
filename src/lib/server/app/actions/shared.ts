@@ -14,6 +14,10 @@ type OrgContext = {
   membershipRole: "owner" | "admin" | "editor" | "member"
 }
 
+export type ActionResult =
+  | { success: true; data: { id: string; slug: string } }
+  | { success: false; error: string; field?: string }
+
 export type RoleDraft = {
   name: string
   description: string
@@ -433,4 +437,150 @@ export const createFlagForEntity = async ({
   }
 
   return { ok: true as const }
+}
+
+export const createRole = async ({
+  supabase,
+  orgId,
+  formData,
+}: {
+  supabase: SupabaseClient
+  orgId: string
+  formData: FormData
+}): Promise<ActionResult> => {
+  const draft = readRoleDraft(formData)
+  const result = await createRoleRecord({ supabase, orgId, draft })
+
+  if (!result.ok) {
+    return {
+      success: false,
+      error: result.message,
+      field: draft.name ? undefined : "name",
+    }
+  }
+
+  return { success: true, data: { id: result.id, slug: result.slug } }
+}
+
+export const createSystem = async ({
+  supabase,
+  orgId,
+  formData,
+}: {
+  supabase: SupabaseClient
+  orgId: string
+  formData: FormData
+}): Promise<ActionResult> => {
+  const draft = readSystemDraft(formData)
+  const result = await createSystemRecord({ supabase, orgId, draft })
+
+  if (!result.ok) {
+    return {
+      success: false,
+      error: result.message,
+      field: draft.name ? undefined : "name",
+    }
+  }
+
+  return { success: true, data: { id: result.id, slug: result.slug } }
+}
+
+type CreateFlagTargetType = "process" | "role" | "system" | "action"
+type CreateFlagTargetTable = "processes" | "roles" | "systems" | "actions"
+
+const flagTargetTableByType: Record<CreateFlagTargetType, CreateFlagTargetTable> =
+  {
+    process: "processes",
+    role: "roles",
+    system: "systems",
+    action: "actions",
+  }
+
+export const createFlag = async ({
+  supabase,
+  orgId,
+  formData,
+  userId,
+  membershipRole,
+}: {
+  supabase: SupabaseClient
+  orgId: string
+  formData: FormData
+  userId: string
+  membershipRole: OrgContext["membershipRole"]
+}): Promise<ActionResult> => {
+  const targetToken = String(formData.get("target") ?? "").trim()
+  const targetTypeRaw = String(formData.get("target_type") ?? "").trim()
+  const targetIdRaw = String(formData.get("target_id") ?? "").trim()
+
+  const [tokenType, tokenId] = targetToken ? targetToken.split(":") : ["", ""]
+  const rawType = targetTypeRaw || tokenType
+  const rawId = targetIdRaw || tokenId
+
+  if (!rawType || !rawId) {
+    return { success: false, error: "Target is required.", field: "target" }
+  }
+  if (
+    rawType !== "process" &&
+    rawType !== "role" &&
+    rawType !== "system" &&
+    rawType !== "action"
+  ) {
+    return { success: false, error: "Target type is invalid.", field: "target" }
+  }
+
+  const flagTypeRaw = String(formData.get("flag_type") ?? "comment").trim()
+  if (!isScFlagType(flagTypeRaw)) {
+    return { success: false, error: "Flag type is invalid.", field: "flag_type" }
+  }
+
+  const message = String(formData.get("message") ?? "").trim()
+  if (!message) {
+    return { success: false, error: "Message is required.", field: "message" }
+  }
+
+  if (!canCreateFlagType(membershipRole, flagTypeRaw)) {
+    return {
+      success: false,
+      error: "Members can only create comment flags.",
+      field: "flag_type",
+    }
+  }
+
+  const targetType: CreateFlagTargetType = rawType
+  const targetId = rawId
+  const targetTable = flagTargetTableByType[targetType]
+
+  const { data: target, error: targetError } = await supabase
+    .from(targetTable)
+    .select("id")
+    .eq("org_id", orgId)
+    .eq("id", targetId)
+    .maybeSingle()
+
+  if (targetError || !target) {
+    return { success: false, error: "Target not found.", field: "target" }
+  }
+
+  const targetPathRaw = String(formData.get("target_path") ?? "").trim()
+  const { data: createdFlag, error } = await supabase
+    .from("flags")
+    .insert({
+      org_id: orgId,
+      target_type: targetType,
+      target_id: targetId,
+      target_path: targetPathRaw || null,
+      flag_type: flagTypeRaw,
+      message,
+      created_by: userId,
+    })
+    .select("id")
+    .single()
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  // Flags don't have slugs; return id in both fields to satisfy the shared ActionResult contract.
+  return { success: true, data: { id: createdFlag.id, slug: createdFlag.id } }
 }
