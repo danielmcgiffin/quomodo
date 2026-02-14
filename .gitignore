@@ -9,3 +9,5 @@ node_modules
 !.env.local.sops
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+playwright-report/
+test-results/

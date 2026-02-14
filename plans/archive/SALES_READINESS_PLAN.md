@@ -110,6 +110,8 @@ A product is saleable when:
   7. Add `test-results/` and `playwright-report/` to `.gitignore`
 - **Verification**: `npm run test:e2e` runs (even with 0 tests) without errors
 - **Done when**: Playwright runs in CI and locally
+  Status:
+- Completed 2026-02-14 (added `@playwright/test`, `playwright.config.ts`, `e2e/` test dir, `test:e2e` scripts, `.gitignore` entries, and CI step in `.github/workflows/tests.yml`; local `npm run -s test:e2e` PASS).
 
 #### SR-04: E2E — Marketing pages load without errors
 - **What**: Smoke-test that public pages render (no 500s, key content visible)
@@ -121,6 +123,8 @@ A product is saleable when:
   - `GET /login/sign_in` → status 200, contains sign-in form
   - `GET /login/sign_up` → status 200, contains sign-up form
 - **Done when**: All assertions pass, test in CI
+  Status:
+- Completed 2026-02-14 (added `e2e/marketing.spec.ts`; local `npm run -s test:e2e` PASS).
 
 #### SR-05: E2E — Authenticated app smoke test
 - **What**: Log in with a test user, verify core app pages load
@@ -136,6 +140,10 @@ A product is saleable when:
   8. Navigate to `/app/workspace` → assert page loads
   9. Navigate to `/app/team` → assert page loads (if test user is owner/admin)
 - **Done when**: Full authenticated smoke passes in CI
+  Status:
+- Implemented 2026-02-14 (added `e2e/app-smoke.spec.ts` + `e2e/helpers/auth.ts`; test is skipped unless `E2E_EMAIL` and `E2E_PASSWORD` are set; wiring credentials into CI remains pending).
+- Temporary approach (approved 2026-02-14): run against production Supabase using a test user.
+  Follow-up (do soon): move to a dedicated E2E Supabase project with seeded fixture workspace + locked-down credentials.
 
 #### SR-06: E2E — CRUD happy path (create role, system, process)
 - **What**: Test the primary user workflow end-to-end

@@ -3,10 +3,15 @@ name: Tests
 on: [push, pull_request]
 
 env:
-  PUBLIC_SUPABASE_URL: "https://fake_test_url.supabase.co"
-  PUBLIC_SUPABASE_ANON_KEY: "fake_anon_key"
-  PRIVATE_SUPABASE_SERVICE_ROLE: "fake_service_role"
-  PRIVATE_STRIPE_API_KEY: "fake_strip_api_key"
+  # Prefer secrets; fall back to fake values so unit tests can still run in forks.
+  PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL || 'https://fake_test_url.supabase.co' }}
+  PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY || 'fake_anon_key' }}
+  PRIVATE_SUPABASE_SERVICE_ROLE: ${{ secrets.PRIVATE_SUPABASE_SERVICE_ROLE || 'fake_service_role' }}
+  PRIVATE_STRIPE_API_KEY: ${{ secrets.PRIVATE_STRIPE_API_KEY || 'fake_strip_api_key' }}
+
+  # E2E auth (SR-05): set these in repo secrets to enable authenticated Playwright tests.
+  E2E_EMAIL: ${{ secrets.E2E_EMAIL || '' }}
+  E2E_PASSWORD: ${{ secrets.E2E_PASSWORD || '' }}
 
 jobs:
   build_and_test:
@@ -19,5 +24,14 @@ jobs:
       - name: NPM install
         run: npm install
 
+      - name: Typecheck (svelte-check)
+        run: npm run check
+
       - name: Tests
         run: npm run test_run
+
+      - name: Install Playwright (Chromium)
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E (Playwright)
+        run: npm run test:e2e

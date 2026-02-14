@@ -32,3 +32,9 @@ Locked decisions remain: Cloudflare-only hosting, TipTap for rich text, and RBAC
 - [ ] `LP-072` Documentation generation v1 (template-based)
 - [ ] `LP-073` NLP search beta (hybrid lexical + semantic)
 - [ ] `LP-074` Documentation generation v2 (LLM-assisted with citations + review)
+
+## Sales Readiness (In Progress)
+
+- [x] `SR-03` Playwright infrastructure (config + CI hook) (completed 2026-02-14)
+- [x] `SR-04` E2E marketing-page smoke coverage (completed 2026-02-14)
+- [ ] `SR-05` E2E authenticated app smoke (implemented 2026-02-14; pending CI secrets + fixture user; currently approved to use prod Supabase temporarily)
