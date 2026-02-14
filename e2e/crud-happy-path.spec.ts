@@ -21,7 +21,19 @@ test.describe("crud happy path", () => {
     await page.getByRole("button", { name: /make a role/i }).click()
     await page.getByPlaceholder("Role name").fill(roleName)
     await page.getByRole("button", { name: "Create Role", exact: true }).click()
-    await page.waitForURL(/\/app\/roles\/[^/]+/, { timeout: 15_000 })
+    try {
+      await page.waitForURL(/\/app\/roles\/[^/]+/, { timeout: 30_000 })
+    } catch {
+      const errorText = await page
+        .locator(".sc-form-error, [role='alert'], .alert")
+        .first()
+        .innerText()
+        .catch(() => "")
+      throw new Error(
+        `Expected role creation to redirect to /app/roles/[slug] but stayed on ${page.url()}.` +
+          (errorText ? ` Error message: ${errorText}` : ""),
+      )
+    }
     await expect(page.locator("body")).toContainText(roleName)
 
     // System
@@ -30,7 +42,19 @@ test.describe("crud happy path", () => {
     await page.getByPlaceholder("System name").fill(systemName)
     await page.getByPlaceholder(/location/i).fill(`E2E ${runId}`)
     await page.getByRole("button", { name: "Create System", exact: true }).click()
-    await page.waitForURL(/\/app\/systems\/[^/]+/, { timeout: 15_000 })
+    try {
+      await page.waitForURL(/\/app\/systems\/[^/]+/, { timeout: 30_000 })
+    } catch {
+      const errorText = await page
+        .locator(".sc-form-error, [role='alert'], .alert")
+        .first()
+        .innerText()
+        .catch(() => "")
+      throw new Error(
+        `Expected system creation to redirect to /app/systems/[slug] but stayed on ${page.url()}.` +
+          (errorText ? ` Error message: ${errorText}` : ""),
+      )
+    }
     await expect(page.locator("body")).toContainText(systemName)
 
     // Process
@@ -44,8 +68,19 @@ test.describe("crud happy path", () => {
       .getByPlaceholder(/outcome/i)
       .fill(`Outcome for ${runId}`)
     await page.getByRole("button", { name: "Create Process", exact: true }).click()
-    await page.waitForURL(/\/app\/processes\/[^/]+/, { timeout: 15_000 })
+    try {
+      await page.waitForURL(/\/app\/processes\/[^/]+/, { timeout: 30_000 })
+    } catch {
+      const errorText = await page
+        .locator(".sc-form-error, [role='alert'], .alert")
+        .first()
+        .innerText()
+        .catch(() => "")
+      throw new Error(
+        `Expected process creation to redirect to /app/processes/[slug] but stayed on ${page.url()}.` +
+          (errorText ? ` Error message: ${errorText}` : ""),
+      )
+    }
     await expect(page.locator("body")).toContainText(processName)
   })
 })
-

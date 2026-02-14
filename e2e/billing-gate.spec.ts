@@ -16,12 +16,25 @@ test.describe("billing gate", () => {
 
     // Switch into the lapsed fixture workspace.
     await page.goto("/app/workspace")
-    const workspaceCard = page
-      .locator("section", { hasText: "Your memberships" })
-      .locator("div", { hasText: e2eConfig.lapsedWorkspaceName })
+    const membershipsSection = page
+      .locator("section")
+      .filter({ hasText: "Your memberships" })
       .first()
-    await expect(workspaceCard).toBeVisible()
-    await workspaceCard.getByRole("button", { name: "Switch", exact: true }).click()
+    await expect(membershipsSection).toBeVisible()
+
+    const nameEl = membershipsSection.getByText(e2eConfig.lapsedWorkspaceName, { exact: true })
+    await expect(nameEl).toBeVisible()
+
+    const row = nameEl.locator(
+      "xpath=ancestor::div[contains(concat(\" \", normalize-space(@class), \" \"), \" sc-form-row \")]",
+    )
+    await expect(row).toBeVisible()
+
+    await row
+      .locator('form[action="?/switchWorkspace"]')
+      .first()
+      .getByRole("button", { name: "Switch", exact: true })
+      .click()
     await page.waitForURL(/\/app\/workspace\\?switched=1/, { timeout: 15_000 })
 
     // Lapsed banner appears across /app.
@@ -43,4 +56,3 @@ test.describe("billing gate", () => {
     await expect(page.locator("body")).toContainText(LapsedMessage)
   })
 })
-
