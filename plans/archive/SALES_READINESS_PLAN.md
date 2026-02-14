@@ -143,9 +143,19 @@ A product is saleable when:
   Status:
 - Implemented 2026-02-14 (added `e2e/app-smoke.spec.ts` + `e2e/helpers/auth.ts`; test is skipped unless `E2E_EMAIL` and `E2E_PASSWORD` are set; wiring credentials into CI remains pending).
 - Temporary approach (approved 2026-02-14): run against production Supabase using a test user.
-  Follow-up (do soon): move to a dedicated E2E Supabase project with seeded fixture workspace + locked-down credentials.
   Notes:
 - CI requires valid production secrets for `PRIVATE_SUPABASE_SERVICE_ROLE` (and generally `PRIVATE_STRIPE_API_KEY`) or `/app` loads will 500 before the test can assert UI.
+- Completed 2026-02-14 (CI `npm run test:e2e` PASS with prod Supabase + test user credentials configured via GitHub Actions secrets).
+
+#### SR-05A: Dedicated E2E Supabase Project + Seeded Fixtures (P0)
+- **What**: Move Playwright E2E tests off production Supabase and onto a dedicated E2E Supabase project with seeded workspaces/users and deterministic fixtures.
+- **Why**: Avoid polluting prod data, avoid flaky tests due to billing/org state, and allow SR-07 (lapsed workspace) to be deterministic.
+- **Note for Claude**: Flesh this out into an executable runbook:
+  - Supabase project creation + env var wiring for CI
+  - A seed script that creates: `E2E_EMAIL` user, at least one workspace, and (later) a `lapsed` workspace fixture
+  - Secret naming conventions and rotation policy
+  - How to reset/cleanup test data safely per run
+- **Done when**: CI runs E2E suite against the dedicated E2E project (no prod secrets required).
 
 #### SR-06: E2E — CRUD happy path (create role, system, process)
 - **What**: Test the primary user workflow end-to-end
