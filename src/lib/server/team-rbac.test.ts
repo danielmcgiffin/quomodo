@@ -49,4 +49,29 @@ describe("team-rbac", () => {
     expect(canChangeMemberRole("owner", "admin", true)).toBe(false)
     expect(canRemoveMember("admin", "member", true)).toBe(false)
   })
+
+  it("prevents editor/member from managing anyone", () => {
+    for (const target of ["owner", "admin", "editor", "member"] as const) {
+      expect(canManageMemberRole("editor", target)).toBe(false)
+      expect(canManageMemberRole("member", target)).toBe(false)
+    }
+  })
+
+  it("prevents admin from removing owner and assigning admin/owner", () => {
+    expect(canRemoveMember("admin", "owner", false)).toBe(false)
+    expect(canAssignMemberRole("admin", "admin")).toBe(false)
+    expect(canAssignMemberRole("admin", "owner")).toBe(false)
+  })
+
+  it("prevents owner from assigning owner", () => {
+    expect(canAssignMemberRole("owner", "owner")).toBe(false)
+  })
+
+  it("cannot change own role regardless of role level", () => {
+    for (const actor of ["owner", "admin", "editor", "member"] as const) {
+      for (const target of ["owner", "admin", "editor", "member"] as const) {
+        expect(canChangeMemberRole(actor, target, true)).toBe(false)
+      }
+    }
+  })
 })

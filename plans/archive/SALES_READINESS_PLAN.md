@@ -273,6 +273,8 @@ A product is saleable when:
   5. `owner` can assign any role except `owner`
   6. Cannot change own role (all role levels)
 - **Done when**: RBAC edge cases locked down
+  Status:
+- Completed 2026-02-14 (expanded `src/lib/server/team-rbac.test.ts` to cover editor/member inability, admin restrictions, owner restrictions, and self-change across roles).
 
 ---
 

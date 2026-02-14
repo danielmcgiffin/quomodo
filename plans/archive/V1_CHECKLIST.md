@@ -45,3 +45,4 @@ Locked decisions remain: Cloudflare-only hosting, TipTap for rich text, and RBAC
 - [x] `SR-09` Unit tests for directory mapper (completed 2026-02-14)
 - [x] `SR-10` Unit tests for detail-relations mapper (completed 2026-02-14)
 - [x] `SR-11` Unit tests for process mapper (completed 2026-02-14)
+- [x] `SR-12` RBAC edge-case test coverage (completed 2026-02-14)
