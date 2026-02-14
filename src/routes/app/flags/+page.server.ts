@@ -113,7 +113,6 @@ export const load = async ({ locals }) => {
   })
 
   return {
-    org: context,
     viewerRole: context.membershipRole,
     flags,
     targetOptions,

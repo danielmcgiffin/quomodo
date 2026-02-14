@@ -1,4 +1,4 @@
-import { ensureOrgContext, makeInitials } from "$lib/server/atlas"
+import { ensureOrgContext } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
 import { getOrgBillingSnapshot } from "$lib/server/billing"
 
@@ -46,7 +46,6 @@ export const load = async ({ locals }) => {
     systemCount,
     flagCount,
     billing,
-    profileResult,
     membershipsResult,
   ] =
     await Promise.all([
@@ -56,26 +55,11 @@ export const load = async ({ locals }) => {
       countTable(supabase, "flags", context.orgId, locals.requestId),
       getOrgBillingSnapshot(locals, context.orgId),
       supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", context.userId)
-        .maybeSingle(),
-      supabase
         .from("org_members")
         .select("org_id, role, accepted_at")
         .eq("user_id", context.userId)
         .order("accepted_at", { ascending: false, nullsFirst: false }),
     ])
-
-  if (profileResult.error) {
-    throwRuntime500({
-      context: "app.layout.profileLookup",
-      error: profileResult.error,
-      requestId: locals.requestId,
-      route: "/app",
-      details: { userId: context.userId },
-    })
-  }
 
   if (membershipsResult.error) {
     throwRuntime500({
@@ -112,9 +96,6 @@ export const load = async ({ locals }) => {
     }
   }
 
-  const displayName =
-    profileResult?.data?.full_name || locals.user?.email || "SystemsCraft"
-
   return {
     org: {
       id: context.orgId,
@@ -133,6 +114,5 @@ export const load = async ({ locals }) => {
       name: orgById.get(membership.org_id)?.name ?? "Unknown workspace",
       role: membership.role,
     })),
-    viewerInitials: makeInitials(displayName),
   }
 }

@@ -131,7 +131,6 @@ export const load = async ({ locals }) => {
   return {
     org: context,
     roles,
-    systems,
     processes,
     openFlags,
   }
