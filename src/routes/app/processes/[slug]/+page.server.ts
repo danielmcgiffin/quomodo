@@ -6,16 +6,21 @@ import {
   richToJsonString,
   richToHtml,
 } from "$lib/server/atlas"
-import { readRichTextFormDraft } from "$lib/server/rich-text"
-import type { RichTextDocument } from "$lib/rich-text/document"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
 import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
 import {
+  createOrUpdateActionRecord,
+  deleteActionRecord,
   createFlagForProcessDetail,
+  deleteProcessRecord,
+  reorderActionRecord,
   createRoleRecord,
   createSystemRecord,
+  readActionDraft,
+  readProcessDraft,
   readRoleDraft,
   readSystemDraft,
+  updateProcessRecord,
 } from "$lib/server/app/actions/shared"
 import {
   mapRolePortals,
@@ -39,87 +44,6 @@ type ProcessRow = {
 }
 type RoleRow = { id: string; slug: string; name: string }
 type SystemRow = { id: string; slug: string; name: string }
-type ActionSequenceRow = { id: string; sequence: number }
-type ProcessDraft = {
-  name: string
-  description: string
-  descriptionRich: RichTextDocument
-  descriptionRichRaw: string
-  trigger: string
-  endState: string
-  ownerRoleIdRaw: string
-}
-
-const readProcessDraft = (formData: FormData): ProcessDraft => {
-  const descriptionDraft = readRichTextFormDraft({
-    formData,
-    richField: "description_rich",
-    textField: "description",
-  })
-  return {
-    name: String(formData.get("name") ?? "").trim(),
-    description: descriptionDraft.text,
-    descriptionRich: descriptionDraft.rich,
-    descriptionRichRaw: descriptionDraft.richRaw,
-    trigger: String(formData.get("trigger") ?? "").trim(),
-    endState: String(
-      formData.get("end_state") ?? formData.get("endstate") ?? "",
-    ).trim(),
-    ownerRoleIdRaw: String(formData.get("owner_role_id") ?? "").trim(),
-  }
-}
-
-const resequenceProcessActions = async ({
-  supabase,
-  orgId,
-  processId,
-  orderedActions,
-}: {
-  supabase: App.Locals["supabase"]
-  orgId: string
-  processId: string
-  orderedActions: ActionSequenceRow[]
-}): Promise<string | null> => {
-  if (orderedActions.length === 0) {
-    return null
-  }
-
-  const maxCurrentSequence = orderedActions.reduce(
-    (max, action) => Math.max(max, action.sequence),
-    0,
-  )
-  const stageBase = maxCurrentSequence + orderedActions.length + 50
-
-  for (const [index, action] of orderedActions.entries()) {
-    const stagedSequence = stageBase + index
-    const { error: stageError } = await supabase
-      .from("actions")
-      .update({ sequence: stagedSequence })
-      .eq("org_id", orgId)
-      .eq("process_id", processId)
-      .eq("id", action.id)
-
-    if (stageError) {
-      return stageError.message
-    }
-  }
-
-  for (const [index, action] of orderedActions.entries()) {
-    const finalSequence = index + 1
-    const { error: finalError } = await supabase
-      .from("actions")
-      .update({ sequence: finalSequence })
-      .eq("org_id", orgId)
-      .eq("process_id", processId)
-      .eq("id", action.id)
-
-    if (finalError) {
-      return finalError.message
-    }
-  }
-
-  return null
-}
 
 export const load = async ({ params, locals, url }) => {
   const context = await ensureOrgContext(locals)
@@ -263,48 +187,19 @@ export const actions = {
         selectedProcessOwnerRoleIdDraft: draft.ownerRoleIdRaw,
       })
 
-    if (!draft.name) {
-      return failProcess(400, "Process name is required.")
-    }
-    if (!draft.trigger) {
-      return failProcess(400, "Process trigger is required.")
-    }
-    if (!draft.endState) {
-      return failProcess(400, "Process end state is required.")
+    const result = await updateProcessRecord({
+      supabase,
+      orgId: context.orgId,
+      processSlug: params.slug,
+      expectedProcessId: processId,
+      draft,
+    })
+
+    if (!result.ok) {
+      return failProcess(result.status, result.message)
     }
 
-    const { data: process, error: processError } = await supabase
-      .from("processes")
-      .select("id, slug")
-      .eq("org_id", context.orgId)
-      .eq("slug", params.slug)
-      .maybeSingle()
-
-    if (processError || !process) {
-      return failProcess(404, "Process not found.")
-    }
-    if (processId && process.id !== processId) {
-      return failProcess(400, "Invalid process target.")
-    }
-
-    const ownerRoleId = draft.ownerRoleIdRaw || null
-    const { error: updateError } = await supabase
-      .from("processes")
-      .update({
-        name: draft.name,
-        description_rich: draft.descriptionRich,
-        trigger: draft.trigger,
-        end_state: draft.endState,
-        owner_role_id: ownerRoleId,
-      })
-      .eq("org_id", context.orgId)
-      .eq("id", process.id)
-
-    if (updateError) {
-      return failProcess(400, updateError.message)
-    }
-
-    redirect(303, `/app/processes/${process.slug}`)
+    redirect(303, `/app/processes/${result.slug}`)
   },
 
   deleteProcess: async ({ request, params, locals }) => {
@@ -320,29 +215,15 @@ export const actions = {
 
     const failDelete = (status: number, deleteProcessError: string) =>
       fail(status, { deleteProcessError })
+    const result = await deleteProcessRecord({
+      supabase,
+      orgId: context.orgId,
+      processSlug: params.slug,
+      expectedProcessId: processId,
+    })
 
-    const { data: process, error: processError } = await supabase
-      .from("processes")
-      .select("id")
-      .eq("org_id", context.orgId)
-      .eq("slug", params.slug)
-      .maybeSingle()
-
-    if (processError || !process) {
-      return failDelete(404, "Process not found.")
-    }
-    if (processId && process.id !== processId) {
-      return failDelete(400, "Invalid process target.")
-    }
-
-    const { error: deleteError } = await supabase
-      .from("processes")
-      .delete()
-      .eq("org_id", context.orgId)
-      .eq("id", process.id)
-
-    if (deleteError) {
-      return failDelete(400, deleteError.message)
+    if (!result.ok) {
+      return failDelete(result.status, result.message)
     }
 
     redirect(303, "/app/processes")
@@ -357,96 +238,27 @@ export const actions = {
     }
     const supabase = locals.supabase
     const formData = await request.formData()
-
-    const descriptionDraft = readRichTextFormDraft({
-      formData,
-      richField: "description_rich",
-      textField: "description",
-    })
-    const ownerRoleId = String(formData.get("owner_role_id") ?? "").trim()
-    const systemId = String(formData.get("system_id") ?? "").trim()
-    const actionId = String(formData.get("action_id") ?? "").trim()
-    const sequenceRaw = String(formData.get("sequence") ?? "").trim()
+    const draft = readActionDraft(formData)
 
     const failAction = (status: number, createActionError: string) =>
       fail(status, {
         createActionError,
-        actionDescriptionDraft: descriptionDraft.text,
-        actionDescriptionRichDraft: descriptionDraft.richRaw,
-        selectedOwnerRoleId: ownerRoleId,
-        selectedSystemId: systemId,
-        editingActionId: actionId || null,
+        actionDescriptionDraft: draft.description,
+        actionDescriptionRichDraft: draft.descriptionRichRaw,
+        selectedOwnerRoleId: draft.ownerRoleId,
+        selectedSystemId: draft.systemId,
+        editingActionId: draft.actionId || null,
       })
 
-    if (!descriptionDraft.text || !ownerRoleId || !systemId) {
-      return failAction(400, "Description, role, and system are required.")
-    }
-
-    const { data: process, error: processError } = await supabase
-      .from("processes")
-      .select("id")
-      .eq("org_id", context.orgId)
-      .eq("slug", params.slug)
-      .maybeSingle()
-
-    if (processError || !process) {
-      return failAction(404, "Process not found.")
-    }
-
-    if (actionId) {
-      const { data: actionTarget, error: actionTargetError } = await supabase
-        .from("actions")
-        .select("id")
-        .eq("org_id", context.orgId)
-        .eq("process_id", process.id)
-        .eq("id", actionId)
-        .maybeSingle()
-
-      if (actionTargetError || !actionTarget) {
-        return failAction(404, "Action not found.")
-      }
-
-      const { error: updateError } = await supabase
-        .from("actions")
-        .update({
-          description_rich: descriptionDraft.rich,
-          owner_role_id: ownerRoleId,
-          system_id: systemId,
-        })
-        .eq("org_id", context.orgId)
-        .eq("id", actionId)
-
-      if (updateError) {
-        return failAction(400, updateError.message)
-      }
-
-      redirect(303, `/app/processes/${params.slug}`)
-    }
-
-    let sequence = Number(sequenceRaw)
-    if (Number.isNaN(sequence) || sequence < 1) {
-      const { data: maxRow } = await supabase
-        .from("actions")
-        .select("sequence")
-        .eq("org_id", context.orgId)
-        .eq("process_id", process.id)
-        .order("sequence", { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      sequence = (maxRow?.sequence ?? 0) + 1
-    }
-
-    const { error } = await supabase.from("actions").insert({
-      org_id: context.orgId,
-      process_id: process.id,
-      sequence,
-      description_rich: descriptionDraft.rich,
-      owner_role_id: ownerRoleId,
-      system_id: systemId,
+    const result = await createOrUpdateActionRecord({
+      supabase,
+      orgId: context.orgId,
+      processSlug: params.slug,
+      draft,
     })
 
-    if (error) {
-      return failAction(400, error.message)
+    if (!result.ok) {
+      return failAction(result.status, result.message)
     }
 
     redirect(303, `/app/processes/${params.slug}`)
@@ -472,62 +284,15 @@ export const actions = {
     if (!actionId) {
       return failDelete(400, "Action id is required.")
     }
-
-    const { data: process, error: processError } = await supabase
-      .from("processes")
-      .select("id")
-      .eq("org_id", context.orgId)
-      .eq("slug", params.slug)
-      .maybeSingle()
-
-    if (processError || !process) {
-      return failDelete(404, "Process not found.")
-    }
-
-    const { data: actionTarget, error: actionTargetError } = await supabase
-      .from("actions")
-      .select("id")
-      .eq("org_id", context.orgId)
-      .eq("process_id", process.id)
-      .eq("id", actionId)
-      .maybeSingle()
-
-    if (actionTargetError || !actionTarget) {
-      return failDelete(404, "Action not found.")
-    }
-
-    const { error: deleteError } = await supabase
-      .from("actions")
-      .delete()
-      .eq("org_id", context.orgId)
-      .eq("id", actionId)
-
-    if (deleteError) {
-      return failDelete(400, deleteError.message)
-    }
-
-    const { data: remainingActions, error: remainingActionsError } =
-      await supabase
-        .from("actions")
-        .select("id, sequence")
-        .eq("org_id", context.orgId)
-        .eq("process_id", process.id)
-        .order("sequence")
-        .order("id")
-
-    if (remainingActionsError) {
-      return failDelete(400, remainingActionsError.message)
-    }
-
-    const resequenceError = await resequenceProcessActions({
+    const result = await deleteActionRecord({
       supabase,
       orgId: context.orgId,
-      processId: process.id,
-      orderedActions: (remainingActions ?? []) as ActionSequenceRow[],
+      processSlug: params.slug,
+      actionId,
     })
 
-    if (resequenceError) {
-      return failDelete(400, resequenceError)
+    if (!result.ok) {
+      return failDelete(result.status, result.message)
     }
 
     redirect(303, `/app/processes/${params.slug}`)
@@ -554,56 +319,16 @@ export const actions = {
     if (direction !== "up" && direction !== "down") {
       return failReorder(400, "Invalid reorder direction.")
     }
-
-    const { data: process, error: processError } = await supabase
-      .from("processes")
-      .select("id")
-      .eq("org_id", context.orgId)
-      .eq("slug", params.slug)
-      .maybeSingle()
-
-    if (processError || !process) {
-      return failReorder(404, "Process not found.")
-    }
-
-    const { data: actionRows, error: actionRowsError } = await supabase
-      .from("actions")
-      .select("id, sequence")
-      .eq("org_id", context.orgId)
-      .eq("process_id", process.id)
-      .order("sequence")
-      .order("id")
-
-    if (actionRowsError) {
-      return failReorder(400, actionRowsError.message)
-    }
-
-    const actionsInOrder = (actionRows ?? []) as ActionSequenceRow[]
-    const currentIndex = actionsInOrder.findIndex(
-      (action) => action.id === actionId,
-    )
-    if (currentIndex === -1) {
-      return failReorder(404, "Action not found.")
-    }
-
-    const nextIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1
-    if (nextIndex < 0 || nextIndex >= actionsInOrder.length) {
-      redirect(303, `/app/processes/${params.slug}`)
-    }
-
-    const reordered = [...actionsInOrder]
-    const [movedAction] = reordered.splice(currentIndex, 1)
-    reordered.splice(nextIndex, 0, movedAction)
-
-    const resequenceError = await resequenceProcessActions({
+    const result = await reorderActionRecord({
       supabase,
       orgId: context.orgId,
-      processId: process.id,
-      orderedActions: reordered,
+      processSlug: params.slug,
+      actionId,
+      direction,
     })
 
-    if (resequenceError) {
-      return failReorder(400, resequenceError)
+    if (!result.ok) {
+      return failReorder(result.status, result.message)
     }
 
     redirect(303, `/app/processes/${params.slug}`)

@@ -3,16 +3,16 @@ import {
   canManageDirectory,
   canEditAtlas,
   ensureOrgContext,
-  ensureUniqueSlug,
   richToHtml,
 } from "$lib/server/atlas"
-import { readRichTextFormDraft } from "$lib/server/rich-text"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
 import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
 import {
   createFlagForEntity,
+  createProcessRecord,
   createRoleRecord,
   readRoleDraft,
+  readProcessDraft,
 } from "$lib/server/app/actions/shared"
 import {
   mapRolePortals,
@@ -146,58 +146,18 @@ export const actions = {
     }
     const supabase = locals.supabase
     const formData = await request.formData()
-
-    const name = String(formData.get("name") ?? "").trim()
-    const trigger = String(formData.get("trigger") ?? "").trim()
-    const endState = String(
-      formData.get("end_state") ?? formData.get("endstate") ?? "",
-    ).trim()
-    const descriptionDraft = readRichTextFormDraft({
-      formData,
-      richField: "description_rich",
-      textField: "description",
-    })
-    const ownerRoleIdRaw = String(formData.get("owner_role_id") ?? "").trim()
-
-    if (!name) {
-      return fail(400, { createProcessError: "Process name is required." })
-    }
-    if (!trigger) {
-      return fail(400, { createProcessError: "Process trigger is required." })
-    }
-    if (!endState) {
-      return fail(400, { createProcessError: "Process end state is required." })
-    }
-
-    const slug = await ensureUniqueSlug(
+    const draft = readProcessDraft(formData)
+    const result = await createProcessRecord({
       supabase,
-      "processes",
-      context.orgId,
-      name,
-    )
-    const ownerRoleId = ownerRoleIdRaw || null
+      orgId: context.orgId,
+      draft,
+    })
 
-    const insertPayload = {
-      org_id: context.orgId,
-      slug,
-      name,
-      trigger,
-      end_state: endState,
-      owner_role_id: ownerRoleId,
-      description_rich: descriptionDraft.rich,
+    if (!result.ok) {
+      return fail(result.status, { createProcessError: result.message })
     }
 
-    const { data, error } = await supabase
-      .from("processes")
-      .insert(insertPayload)
-      .select("slug")
-      .single()
-
-    if (error) {
-      return fail(400, { createProcessError: error.message })
-    }
-
-    redirect(303, `/app/processes/${data.slug}`)
+    redirect(303, `/app/processes/${result.slug}`)
   },
   createRole: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
