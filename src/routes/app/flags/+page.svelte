@@ -1,7 +1,6 @@
 <script lang="ts">
   import FlagsCreateForm from "$lib/components/FlagsCreateForm.svelte"
   import FlagsCardList from "$lib/components/FlagsCardList.svelte"
-  import FlagSidebar from "$lib/components/FlagSidebar.svelte"
   import type { FlagsDashboardEntry } from "$lib/server/app/mappers/flags"
 
   type Props = {
@@ -17,10 +16,6 @@
 
   const canModerate = $derived.by(() =>
     ["owner", "admin", "editor"].includes(data.viewerRole),
-  )
-
-  const openFlags = $derived.by(() =>
-    data.flags.filter((flag) => flag.status === "open"),
   )
 </script>
 
@@ -39,30 +34,5 @@
 
       <FlagsCardList flags={data.flags} {canModerate} />
     </div>
-
-    <aside class="sc-process-sidebar">
-      <FlagSidebar
-        title="Flags"
-        flags={openFlags.map((flag) => ({
-          id: flag.id,
-          href: "/app/flags",
-          flagType: flag.flagType ?? "flag",
-          createdAt: flag.createdAt,
-          message: flag.message,
-          context:
-            flag.targetType === "process" && flag.target
-              ? flag.target.name
-              : flag.targetType === "role" && flag.target
-                ? flag.target.name
-                : flag.targetType === "system" && flag.target
-                  ? flag.target.name
-                  : flag.targetType === "action" && flag.target
-                    ? flag.target.label
-                    : "Unknown",
-          targetPath: flag.targetPath ?? undefined,
-        }))}
-        highlightedFlagId={null}
-      />
-    </aside>
   </div>
 </div>

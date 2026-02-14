@@ -46,3 +46,7 @@ Locked decisions remain: Cloudflare-only hosting, TipTap for rich text, and RBAC
 - [x] `SR-10` Unit tests for detail-relations mapper (completed 2026-02-14)
 - [x] `SR-11` Unit tests for process mapper (completed 2026-02-14)
 - [x] `SR-12` RBAC edge-case test coverage (completed 2026-02-14)
+- [x] `SR-13` Flag create button/modal UX (completed 2026-02-14)
+- [x] `SR-14` Flags page: remove flag sidebar (completed 2026-02-14)
+- [x] `SR-15` Flag sidebar empty state (completed 2026-02-14)
+- [ ] `SR-27` Flags dashboard centered + filterable grid (pending)

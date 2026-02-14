@@ -620,11 +620,20 @@ button[disabled].authBtn::before {
 }
 
 .sc-flags-sidebar.is-empty {
-  visibility: hidden;
+  visibility: visible;
 }
 
 .sc-flags-sidebar-placeholder {
   min-height: 120px;
+}
+
+.sc-flags-sidebar-empty {
+  border: 1px solid var(--sc-green);
+  border-radius: var(--sc-radius-lg);
+  background: var(--sc-bg);
+  color: var(--sc-green-dark);
+  box-shadow: none;
+  padding: 16px;
 }
 
 .sc-process-facts {

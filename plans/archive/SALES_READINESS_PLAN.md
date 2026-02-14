@@ -292,6 +292,8 @@ A product is saleable when:
   2. Align the trigger (button) and form (modal) to match the pattern used in `CreateProcessModal.svelte` and `InlineCreateRoleModal.svelte`
   3. Test: create a flag on a role, system, process, and action — all should work
 - **Done when**: Flag creation uses consistent button→modal UX
+  Status:
+- Completed 2026-02-14 (updated `src/lib/components/FlagsCreateForm.svelte` to use a button-triggered `ScModal` instead of an always-visible inline form; error state re-opens modal).
 
 #### SR-14: Fix flags page — remove flag sidebar from flags list
 - **What**: From todo.md — the flags index page (`/app/flags`) shouldn't show a flag sidebar (you can't flag a flag)
@@ -301,6 +303,8 @@ A product is saleable when:
   2. Remove or conditionally hide the `FlagSidebar` component on this page
   3. Verify the page still renders correctly
 - **Done when**: `/app/flags` has no self-referential flag sidebar
+  Status:
+- Completed 2026-02-14 (removed `FlagSidebar` from `src/routes/app/flags/+page.svelte`).
 
 #### SR-15: Add empty-state treatment for flag sidebars
 - **What**: From todo.md — when a flag sidebar has no flags, show a light green outline with a thumbs-up icon instead of empty space
@@ -310,6 +314,13 @@ A product is saleable when:
   2. Add a conditional empty state: when `flags.length === 0`, render a `border-success/20` outline with a centered thumbs-up outline icon and "No issues" or "All clear" text
   3. Use DaisyUI classes for consistency
 - **Done when**: Empty flag sidebars look intentional, not broken
+  Status:
+- Completed 2026-02-14 (updated `src/lib/components/FlagSidebar.svelte` empty state with a light-green outlined card + thumbs-up outline icon; unhid empty state via `.sc-flags-sidebar.is-empty` CSS fix).
+
+#### SR-27: Flags Dashboard Layout Refresh (Centered + Filterable Grid) (P1)
+- **What**: Make `/app/flags` main body centered and present flags as a filterable grid (status/type/target type).
+- **Why**: Current flags dashboard reads like a list page; demo/readability improves with a grid + quick filters.
+- **Done when**: `/app/flags` content is visually centered (matches other directory pages), flags are shown in a grid, and filters update the grid without breaking moderation actions.
 
 #### SR-16: Full screen audit — all ~40 routes
 - **What**: Systematically visit every screen listed in `plans/human/todo.md` and verify:
