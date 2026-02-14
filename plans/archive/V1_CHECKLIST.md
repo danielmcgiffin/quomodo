@@ -49,4 +49,5 @@ Locked decisions remain: Cloudflare-only hosting, TipTap for rich text, and RBAC
 - [x] `SR-13` Flag create button/modal UX (completed 2026-02-14)
 - [x] `SR-14` Flags page: remove flag sidebar (completed 2026-02-14)
 - [x] `SR-15` Flag sidebar empty state (completed 2026-02-14)
+- [x] `SR-16` Screen + route audit (broken flows + visual issues documented in `plans/SR-16_SCREEN_ROUTE_AUDIT.md`) (completed 2026-02-14)
 - [ ] `SR-27` Flags dashboard centered + filterable grid (pending)

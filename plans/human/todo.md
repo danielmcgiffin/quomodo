@@ -3,7 +3,7 @@
 - [x] light green outline for empty flag sidebars with just a thumbs-up outline icon
 - [ ] flags dashboard: center main body + filterable grid of flags
 - [ ] Claude IA convo solutioning
-- [ ] Screen Check
+- [x] Screen Check (`plans/SR-16_SCREEN_ROUTE_AUDIT.md`)
 Based on your project's file structure, here is the complete checklist of every screen (route) in your application.
 
 I have grouped them by their logical section (Marketing, App, Account) to make this list easier to review.
