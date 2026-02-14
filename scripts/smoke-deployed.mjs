@@ -826,7 +826,8 @@ const run = async () => {
       },
     })
 
-    if (processDeleteResponse.status === 400) {
+    // Delete can fail with 400 (bad request) or 409 (conflict: actions still linked).
+    if (processDeleteResponse.status === 400 || processDeleteResponse.status === 409) {
       const processHtml = await (await requestApp({
         session: ownerSession,
         path: artifacts.processPath,
