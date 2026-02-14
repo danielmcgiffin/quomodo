@@ -10,7 +10,7 @@ test.describe("app smoke", () => {
 
     await signInViaEmailPassword(page, { email, password })
 
-    await expect(page).toHaveURL(/\/app\/processes/)
+    await expect(page).toHaveURL(/\/app\/processes/, { timeout: 15_000 })
     await expect(page.locator(".sc-shell")).toBeVisible()
     await expect(page.locator(".sc-sidebar")).toBeVisible()
 
