@@ -11,26 +11,26 @@ test.describe("app smoke", () => {
     await signInViaEmailPassword(page, { email, password })
 
     await expect(page).toHaveURL(/\/app\/processes/)
-    await expect(page.locator("main")).toBeVisible()
+    await expect(page.locator(".sc-shell")).toBeVisible()
+    await expect(page.locator(".sc-sidebar")).toBeVisible()
 
     await page.goto("/app/roles")
-    await expect(page.locator("main")).toBeVisible()
+    await expect(page.locator(".sc-shell")).toBeVisible()
 
     await page.goto("/app/systems")
-    await expect(page.locator("main")).toBeVisible()
+    await expect(page.locator(".sc-shell")).toBeVisible()
 
     await page.goto("/app/processes")
-    await expect(page.locator("main")).toBeVisible()
+    await expect(page.locator(".sc-shell")).toBeVisible()
 
     await page.goto("/app/flags")
-    await expect(page.locator("main")).toBeVisible()
+    await expect(page.locator(".sc-shell")).toBeVisible()
 
     await page.goto("/app/workspace")
-    await expect(page.locator("main")).toBeVisible()
+    await expect(page.locator(".sc-shell")).toBeVisible()
 
     // Team page may be admin-only; still useful to smoke if accessible.
     await page.goto("/app/team")
     await expect(page.locator("body")).toBeVisible()
   })
 })
-

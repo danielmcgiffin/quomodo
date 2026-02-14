@@ -144,6 +144,8 @@ A product is saleable when:
 - Implemented 2026-02-14 (added `e2e/app-smoke.spec.ts` + `e2e/helpers/auth.ts`; test is skipped unless `E2E_EMAIL` and `E2E_PASSWORD` are set; wiring credentials into CI remains pending).
 - Temporary approach (approved 2026-02-14): run against production Supabase using a test user.
   Follow-up (do soon): move to a dedicated E2E Supabase project with seeded fixture workspace + locked-down credentials.
+  Notes:
+- CI requires valid production secrets for `PRIVATE_SUPABASE_SERVICE_ROLE` (and generally `PRIVATE_STRIPE_API_KEY`) or `/app` loads will 500 before the test can assert UI.
 
 #### SR-06: E2E — CRUD happy path (create role, system, process)
 - **What**: Test the primary user workflow end-to-end
