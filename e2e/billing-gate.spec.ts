@@ -35,7 +35,7 @@ test.describe("billing gate", () => {
       .first()
       .getByRole("button", { name: "Switch", exact: true })
       .click()
-    await page.waitForURL(/\/app\/workspace\\?switched=1/, { timeout: 15_000 })
+    await page.waitForURL(/\/app\/workspace\?switched=1/, { timeout: 15_000 })
 
     // Lapsed banner appears across /app.
     await page.goto("/app/processes")
