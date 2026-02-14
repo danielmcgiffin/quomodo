@@ -203,6 +203,7 @@ A product is saleable when:
 - Parameterize entitlement/billing-fixture constants for tests (e.g. free-tier max users, lapsed vs active org IDs) via a single `e2e` config module + env vars, so SR-07 isn’t brittle when plan limits change.
   Status:
 - Implemented 2026-02-14 (added `e2e/billing-gate.spec.ts`, `e2e/config.ts`, and seeded a deterministic lapsed fixture workspace via `scripts/seed-e2e.mjs`; CI validation pending).
+- Completed 2026-02-14 (CI `npm run test:e2e` PASS with lapsed fixture workspace).
 
 ---
 
@@ -223,6 +224,8 @@ A product is saleable when:
 - **File**: `src/lib/server/app/actions/wrapAction.test.ts`
 - **How**: Mock `ensureOrgContext` to return controlled context objects. Mock the inner handler. Assert return shapes.
 - **Done when**: 5+ tests pass covering the permission/billing/success/error paths
+  Status:
+- Completed 2026-02-14 (added `src/lib/server/app/actions/wrapAction.test.ts`; covers permission denial, lapsed enforcement (default + disabled), and handler wiring).
 
 #### SR-09: Unit tests for directory mapper
 - **What**: Test `src/lib/server/app/mappers/directory.ts`
@@ -234,6 +237,8 @@ A product is saleable when:
   5. Generates correct slugs
 - **File**: `src/lib/server/app/mappers/directory.test.ts`
 - **Done when**: Each mapper function has at least 2 test cases
+  Status:
+- Completed 2026-02-14 (added `src/lib/server/app/mappers/directory.test.ts`; covers role + system mapping and null/unknown owner handling).
 
 #### SR-10: Unit tests for detail-relations mapper
 - **What**: Test `src/lib/server/app/mappers/detail-relations.ts`
@@ -243,6 +248,8 @@ A product is saleable when:
   3. Returns correct structure for role/system/process portals
 - **File**: `src/lib/server/app/mappers/detail-relations.test.ts`
 - **Done when**: Core transform logic covered
+  Status:
+- Completed 2026-02-14 (added `src/lib/server/app/mappers/detail-relations.test.ts`; covers grouping/filtering and open-flag mapping).
 
 #### SR-11: Unit tests for process mapper
 - **What**: Test `src/lib/server/app/mappers/processes.ts`
@@ -253,6 +260,8 @@ A product is saleable when:
   4. Includes trigger and end_state in output
 - **File**: `src/lib/server/app/mappers/processes.test.ts`
 - **Done when**: 4+ tests pass
+  Status:
+- Completed 2026-02-14 (added `src/lib/server/app/mappers/processes.test.ts`; covers cards sorting/deduping, open flags filtering, and detail action/flag mapping).
 
 #### SR-12: Expand RBAC test coverage
 - **What**: Add edge cases to `src/lib/server/team-rbac.test.ts`
