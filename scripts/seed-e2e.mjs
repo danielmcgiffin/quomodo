@@ -29,6 +29,17 @@ const supabase = createClient(supabaseUrl, supabaseServiceRole, {
   },
 })
 
+const slugify = (value) =>
+  String(value ?? "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\\s-]/g, "")
+    .replace(/\\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+
+const randomSuffix = () => Math.random().toString(36).slice(2, 8)
+
 const ensureE2EUser = async () => {
   const preferredUserId = process.env.E2E_USER_ID
   if (preferredUserId) {
@@ -73,6 +84,86 @@ const ensureE2EUser = async () => {
   return { userId: createdData.user.id, created: true }
 }
 
+const ensureLapsedWorkspace = async ({ userId }) => {
+  const workspaceName = process.env.E2E_LAPSED_WORKSPACE_NAME || "E2E Lapsed Workspace"
+
+  const existingOrg = await supabase
+    .from("orgs")
+    .select("id")
+    .eq("owner_id", userId)
+    .eq("name", workspaceName)
+    .maybeSingle()
+
+  if (existingOrg.error) {
+    throw new Error(`Unable to lookup lapsed org: ${existingOrg.error.message}`)
+  }
+
+  let orgId = existingOrg.data?.id
+  if (!orgId) {
+    const baseSlug = slugify(workspaceName) || "e2e-lapsed"
+
+    let inserted = null
+    for (let i = 0; i < 6; i += 1) {
+      const attemptSlug = `${baseSlug}-${randomSuffix()}`
+      const insertResult = await supabase
+        .from("orgs")
+        .insert({ name: workspaceName, slug: attemptSlug, owner_id: userId })
+        .select("id")
+        .single()
+
+      if (!insertResult.error && insertResult.data?.id) {
+        inserted = insertResult.data
+        break
+      }
+      if (insertResult.error?.code !== "23505") {
+        throw new Error(`Unable to create lapsed org: ${insertResult.error.message}`)
+      }
+    }
+
+    if (!inserted?.id) {
+      throw new Error("Unable to create lapsed org: slug generation exhausted")
+    }
+
+    orgId = inserted.id
+
+    // Ensure owner membership exists.
+    const upsertMemberResult = await supabase
+      .from("org_members")
+      .upsert(
+        {
+          org_id: orgId,
+          user_id: userId,
+          role: "owner",
+          accepted_at: new Date().toISOString(),
+        },
+        { onConflict: "org_id,user_id" },
+      )
+
+    if (upsertMemberResult.error) {
+      throw new Error(`Unable to upsert lapsed org member: ${upsertMemberResult.error.message}`)
+    }
+  }
+
+  const upsertBillingResult = await supabase.from("org_billing").upsert(
+    {
+      org_id: orgId,
+      stripe_customer_id: null,
+      plan_id: "free",
+      billing_state: "lapsed",
+      has_ever_paid: true,
+      last_checked_at: null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "org_id" },
+  )
+
+  if (upsertBillingResult.error) {
+    throw new Error(`Unable to mark org as lapsed: ${upsertBillingResult.error.message}`)
+  }
+
+  return { orgId, workspaceName }
+}
+
 const main = async () => {
   const user = await ensureE2EUser()
 
@@ -93,13 +184,15 @@ const main = async () => {
     throw new Error("Seed succeeded but no org id was returned.")
   }
 
+  const lapsed = await ensureLapsedWorkspace({ userId: user.userId })
+
   console.log("SystemsCraft E2E seed complete.")
   console.log(`e2e_user_id=${user.userId} (${user.created ? "created" : "reused"})`)
   console.log(`org_id=${seededOrgId}`)
+  console.log(`lapsed_org_id=${lapsed.orgId} (${lapsed.workspaceName})`)
 }
 
 main().catch((error) => {
   console.error(String(error?.message ?? error))
   process.exit(1)
 })
-

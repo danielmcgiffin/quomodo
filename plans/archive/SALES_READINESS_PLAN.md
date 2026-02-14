@@ -169,6 +169,8 @@ A product is saleable when:
   - How to seed a deterministic `lapsed` workspace fixture for SR-07
   - Reset/cleanup policy (wipe workspace vs. append-only) and secret rotation
 - **Done when**: CI runs E2E suite against the dedicated E2E project (no prod secrets required).
+  Status:
+- Completed 2026-02-14 (migrations applied to dedicated E2E Supabase via `E2E Supabase Setup` workflow; `Tests` workflow seeds E2E fixtures and runs Playwright against E2E secrets).
 
 #### SR-06: E2E — CRUD happy path (create role, system, process)
 - **What**: Test the primary user workflow end-to-end
@@ -199,6 +201,8 @@ A product is saleable when:
 - **Done when**: Lapsed enforcement verified in browser
   Notes:
 - Parameterize entitlement/billing-fixture constants for tests (e.g. free-tier max users, lapsed vs active org IDs) via a single `e2e` config module + env vars, so SR-07 isn’t brittle when plan limits change.
+  Status:
+- Implemented 2026-02-14 (added `e2e/billing-gate.spec.ts`, `e2e/config.ts`, and seeded a deterministic lapsed fixture workspace via `scripts/seed-e2e.mjs`; CI validation pending).
 
 ---
 
