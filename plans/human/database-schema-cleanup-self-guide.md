@@ -10,7 +10,7 @@ This guide covers your requested changes:
 
 Create:
 
-- `supabase/migrations/20260213_schema_cleanup_fields.sql`
+- `supabase/migrations/20260213000000_schema_cleanup_fields.sql`
 
 Paste this SQL:
 

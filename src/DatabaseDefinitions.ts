@@ -376,8 +376,8 @@ export interface Database {
           slug: string
           name: string
           description_rich?: Json
-          trigger?: string
-          end_state?: string
+          trigger: string
+          end_state: string
           owner_role_id?: string | null
           created_at?: string
           updated_at?: string

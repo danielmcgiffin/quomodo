@@ -1,5 +1,6 @@
 - [ ] fix Flag to follow button/modal pattern
 - [ ] fix flag page so it doesn't have a flag sidebar (can't flag flags?)
+- [ ] light green outline for empty flag sidebars with just a thumbs-up outline icon
 - [ ] Claude IA convo solutioning
 - [ ] Screen Check
 Based on your project's file structure, here is the complete checklist of every screen (route) in your application.
