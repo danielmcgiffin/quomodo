@@ -1,0 +1,20 @@
+I have set up sops to securely sync your .env.local file. Here is what
+  was done:
+
+
+   1. Configured `sops`: Created a .sops.yaml file using your age public
+      key (age1u8v...).
+   2. Encrypted Secrets: Generated .env.local.sops, an encrypted version
+      of your environment variables that is safe to commit to Git.
+   3. Updated Git: Modified .gitignore to allow tracking .env.local.sops
+      while continuing to ignore the plain-text .env.local.
+   4. Added Scripts: Added npm run secrets:encrypt and npm run
+      secrets:decrypt to your package.json for easy syncing.
+
+
+  To use this on your other host machine:
+   1. Ensure sops is installed on that machine.
+   2. Copy your age secret key to ~/.config/sops/age/keys.txt on the new
+      host (since it was derived from your SSH key, you might already
+      have it or can re-derive it).
+   3. Run npm run secrets:decrypt to create the local .env.local file.

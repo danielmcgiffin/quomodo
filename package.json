@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "vite dev",
+    "secrets:encrypt": "sops --encrypt --output .env.local.sops .env.local",
+    "secrets:decrypt": "sops --decrypt --output .env.local .env.local.sops",
     "seed:dev": "node --env-file-if-exists=.env.local scripts/seed-dev.mjs",
     "cleanup:test-data": "node --env-file-if-exists=.env.local scripts/cleanup-test-data.mjs",
     "cf:secrets:sync": "bash scripts/cloudflare-sync-secrets.sh",
