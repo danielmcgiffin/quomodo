@@ -38,5 +38,5 @@ Locked decisions remain: Cloudflare-only hosting, TipTap for rich text, and RBAC
 - [x] `SR-03` Playwright infrastructure (config + CI hook) (completed 2026-02-14)
 - [x] `SR-04` E2E marketing-page smoke coverage (completed 2026-02-14)
 - [x] `SR-05` E2E authenticated app smoke (completed 2026-02-14; temporarily using prod Supabase via GitHub Actions secrets)
-- [ ] `SR-05A` Dedicated E2E Supabase project + seeded fixtures (pending)
-- [ ] `SR-06` E2E CRUD happy path (create role/system/process) (pending)
+- [ ] `SR-05A` Dedicated E2E Supabase project + seeded fixtures (in progress: CI seed script + step-level env override + setup workflow added)
+- [x] `SR-06` E2E CRUD happy path (create role/system/process) (completed 2026-02-14)

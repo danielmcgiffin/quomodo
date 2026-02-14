@@ -1,0 +1,22 @@
+name: E2E Supabase Setup
+
+on:
+  workflow_dispatch:
+
+jobs:
+  apply_migrations:
+    name: Apply migrations to E2E Supabase
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: NPM install
+        run: npm install
+
+      - name: Apply DB migrations (E2E Supabase)
+        run: npm run supabase:e2e:setup
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          E2E_SUPABASE_PROJECT_REF: ${{ secrets.E2E_SUPABASE_PROJECT_REF }}
+          E2E_SUPABASE_DB_PASSWORD: ${{ secrets.E2E_SUPABASE_DB_PASSWORD }}
+

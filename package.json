@@ -7,6 +7,8 @@
     "secrets:encrypt": "sops --encrypt --output .env.local.sops .env.local",
     "secrets:decrypt": "sops --decrypt --output .env.local .env.local.sops",
     "seed:dev": "node --env-file-if-exists=.env.local scripts/seed-dev.mjs",
+    "seed:e2e": "node scripts/seed-e2e.mjs",
+    "supabase:e2e:setup": "bash scripts/setup-e2e-supabase.sh",
     "cleanup:test-data": "node --env-file-if-exists=.env.local scripts/cleanup-test-data.mjs",
     "cf:secrets:sync": "bash scripts/cloudflare-sync-secrets.sh",
     "provision:workspace": "node --env-file-if-exists=.env.local scripts/provision-workspace-members.mjs",

@@ -150,11 +150,24 @@ A product is saleable when:
 #### SR-05A: Dedicated E2E Supabase Project + Seeded Fixtures (P0)
 - **What**: Move Playwright E2E tests off production Supabase and onto a dedicated E2E Supabase project with seeded workspaces/users and deterministic fixtures.
 - **Why**: Avoid polluting prod data, avoid flaky tests due to billing/org state, and allow SR-07 (lapsed workspace) to be deterministic.
-- **Note for Claude**: Flesh this out into an executable runbook:
-  - Supabase project creation + env var wiring for CI
-  - A seed script that creates: `E2E_EMAIL` user, at least one workspace, and (later) a `lapsed` workspace fixture
-  - Secret naming conventions and rotation policy
-  - How to reset/cleanup test data safely per run
+- **Current implementation**:
+  - CI supports dedicated E2E Supabase secrets (step-level env override in `.github/workflows/tests.yml`)
+  - `npm run seed:e2e` (`scripts/seed-e2e.mjs`) ensures the E2E user exists and that a demo workspace is seeded via `sc_seed_demo`
+  - `npm run supabase:e2e:setup` (`scripts/setup-e2e-supabase.sh`) links a Supabase project and runs `supabase db push --include-all`
+- **Secrets to add**:
+  - `SUPABASE_ACCESS_TOKEN` (workspace-wide or repo secret)
+  - `E2E_SUPABASE_PROJECT_REF`
+  - `E2E_SUPABASE_DB_PASSWORD`
+  - `E2E_PUBLIC_SUPABASE_URL`
+  - `E2E_PUBLIC_SUPABASE_ANON_KEY`
+  - `E2E_PRIVATE_SUPABASE_SERVICE_ROLE`
+  - `E2E_PRIVATE_STRIPE_API_KEY` (can be a test key for the E2E project)
+- **Workflow**:
+  - Run GitHub Actions workflow `E2E Supabase Setup` (manual) to apply migrations to the E2E project.
+- **Note for Claude**: Flesh this out into a full runbook:
+  - Supabase project creation clicks + where to find `project_ref` + DB password
+  - How to seed a deterministic `lapsed` workspace fixture for SR-07
+  - Reset/cleanup policy (wipe workspace vs. append-only) and secret rotation
 - **Done when**: CI runs E2E suite against the dedicated E2E project (no prod secrets required).
 
 #### SR-06: E2E — CRUD happy path (create role, system, process)
@@ -172,6 +185,8 @@ A product is saleable when:
   10. Assert redirect to new process detail page, trigger + end_state visible
   11. **Cleanup**: Delete created entities (or use a fresh workspace per test run via seed script)
 - **Done when**: Full CRUD cycle passes
+  Status:
+- Completed 2026-02-14 (CI `npm run test:e2e` PASS; note local runs require `E2E_EMAIL`/`E2E_PASSWORD` env vars or the authenticated specs will skip).
 
 #### SR-07: E2E — Billing gate enforcement
 - **What**: Verify lapsed workspaces are read-only
@@ -182,6 +197,8 @@ A product is saleable when:
   4. Navigate to `/app/team` → assert invite button is disabled/hidden
 - **Note**: This test needs a workspace with `billing_state = 'lapsed'` in the test DB. Add this to the seed script.
 - **Done when**: Lapsed enforcement verified in browser
+  Notes:
+- Parameterize entitlement/billing-fixture constants for tests (e.g. free-tier max users, lapsed vs active org IDs) via a single `e2e` config module + env vars, so SR-07 isn’t brittle when plan limits change.
 
 ---
 
