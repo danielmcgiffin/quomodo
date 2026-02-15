@@ -29,6 +29,7 @@ export type SystemDirectoryRow = {
   description_rich: unknown
   location: string | null
   owner_role_id: string | null
+  logo_url: string | null
 }
 
 type OwnerRole = { id: string; slug: string; name: string; initials: string }
@@ -48,6 +49,7 @@ export const mapSystemDirectory = ({
     name: row.name,
     descriptionHtml: richToHtml(row.description_rich),
     location: row.location ?? "",
+    logoUrl: row.logo_url ?? null,
     ownerRole: row.owner_role_id
       ? (roleById.get(row.owner_role_id) ?? null)
       : null,

@@ -39,7 +39,7 @@ export const load = async ({ locals }) => {
       .order("name"),
     supabase
       .from("systems")
-      .select("id, slug, name, description_rich, location, owner_role_id")
+      .select("id, slug, name, description_rich, location, owner_role_id, logo_url")
       .eq("org_id", context.orgId)
       .order("name"),
     supabase

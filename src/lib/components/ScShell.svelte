@@ -112,7 +112,7 @@
       <a class="sc-sidebar-brand" href={resolve("/app/processes")}>
         <span class="sc-sidebar-brand-pill">
           <img
-            src="/images/1746823640049.jpeg"
+            src="/images/quaestor-full.png"
             alt="SystemsCraft"
             width="36"
             height="36"

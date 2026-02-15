@@ -127,11 +127,11 @@ button[disabled].authBtn::before {
 }
 
 :root {
-  --sc-green: #294939;
-  --sc-green-dark: #1f362c;
-  --sc-green-light: #e7eeec;
-  --sc-green-border: #c4d3cd;
-  --sc-green-shadow: rgba(41, 73, 57, 0.2);
+  --sc-green: #b91c1c;
+  --sc-green-dark: #991b1b;
+  --sc-green-light: #fef2f2;
+  --sc-green-border: #fca5a5;
+  --sc-green-shadow: rgba(185, 28, 28, 0.2);
 
   --sc-flag: #fff8e1;
   --sc-flag-border: #ffe082;
