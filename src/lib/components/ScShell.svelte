@@ -110,14 +110,12 @@
   <aside class="sc-sidebar">
     <div class="sc-sidebar-inner">
       <a class="sc-sidebar-brand" href={resolve("/app/processes")}>
-        <span class="sc-sidebar-brand-pill">
+        <span class="sc-sidebar-brand-pill justify-center">
           <img
             src="/images/quaestor-full.png"
-            alt="SystemsCraft"
-            width="36"
-            height="36"
+            alt="Quaestor"
+            style="max-width: 180px; height: auto; display: block;"
           />
-          <span>SystemsCraft</span>
         </span>
       </a>
 

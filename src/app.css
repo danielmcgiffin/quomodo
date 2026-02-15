@@ -127,11 +127,11 @@ button[disabled].authBtn::before {
 }
 
 :root {
-  --sc-green: #b91c1c;
-  --sc-green-dark: #991b1b;
+  --sc-green: #991b1b;
+  --sc-green-dark: #7f1d1d;
   --sc-green-light: #fef2f2;
   --sc-green-border: #fca5a5;
-  --sc-green-shadow: rgba(185, 28, 28, 0.2);
+  --sc-green-shadow: rgba(153, 27, 27, 0.2);
 
   --sc-flag: #fff8e1;
   --sc-flag-border: #ffe082;
@@ -224,8 +224,8 @@ button[disabled].authBtn::before {
 .sc-sidebar-brand-pill img {
   border-radius: 9999px;
   display: block;
-  width: 36px;
-  height: 36px;
+  width: 360px;
+  height: 360px;
   object-fit: cover;
 }
 
