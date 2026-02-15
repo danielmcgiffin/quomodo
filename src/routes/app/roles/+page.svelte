@@ -127,7 +127,7 @@
 
       <div class="sc-section">
         {#each data.roles as role}
-          <div class="sc-card sc-entity-card">
+          <div class="sc-card sc-entity-card sc-card-interactive">
             <InlineEntityFlagControl
               action="?/createFlag"
               targetType="role"
@@ -145,7 +145,18 @@
               class="block"
               aria-label={`Open role ${role.name}`}
             >
-              <div class="sc-copy-md">
+              <div
+                class="sc-section-title flex items-center gap-3"
+                style="margin-bottom: 0;"
+              >
+                <span
+                  class="sc-avatar"
+                  style="--avatar-size:36px;--avatar-font:14px;"
+                  >{role.initials}</span
+                >
+                <span class="min-w-0 truncate">{role.name}</span>
+              </div>
+              <div class="sc-page-subtitle sc-stack-top-8">
                 <RichText html={role.descriptionHtml} />
               </div>
             </a>

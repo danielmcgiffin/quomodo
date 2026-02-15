@@ -208,38 +208,48 @@
 
       <div class="sc-section">
         {#each data.systems as system}
-          <div class="sc-card sc-entity-card">
-            <InlineEntityFlagControl
-              action="?/createFlag"
-              targetType="system"
-              targetId={system.id}
-              entityLabel={system.name}
-              viewerRole={data.org.membershipRole}
-              fieldTargets={systemFieldTargets}
-              errorMessage={form?.createFlagError}
-              errorTargetType={form?.createFlagTargetType}
-              errorTargetId={form?.createFlagTargetId}
-              errorTargetPath={form?.createFlagTargetPath}
-            />
+          <div class="sc-card sc-entity-card relative group">
+            <div class="relative z-10">
+              <InlineEntityFlagControl
+                action="?/createFlag"
+                targetType="system"
+                targetId={system.id}
+                entityLabel={system.name}
+                viewerRole={data.org.membershipRole}
+                fieldTargets={systemFieldTargets}
+                errorMessage={form?.createFlagError}
+                errorTargetType={form?.createFlagTargetType}
+                errorTargetId={form?.createFlagTargetId}
+                errorTargetPath={form?.createFlagTargetPath}
+              />
+            </div>
+
             <a
               href={`/app/systems/${system.slug}`}
-              class="block"
+              class="absolute inset-0 z-0 focus:outline-none"
               aria-label={`Open system ${system.name}`}
-            >
-              <div class="sc-byline">
-                <SystemPortal {system} size="lg" />
+              tabindex="-1"
+            ></a>
+
+            <div class="block">
+              <div class="sc-byline relative pointer-events-none">
+                <div class="relative z-10 pointer-events-auto">
+                  <SystemPortal {system} size="lg" />
+                </div>
                 {#if system.ownerRole}
                   <span>Owner</span>
-                  <RolePortal role={system.ownerRole} size="sm" />
+                  <div class="relative z-10 pointer-events-auto">
+                    <RolePortal role={system.ownerRole} size="sm" />
+                  </div>
                 {/if}
                 {#if system.location}
-                  <span class="sc-pill">{system.location}</span>
+                  <span class="sc-pill relative z-10">{system.location}</span>
                 {/if}
               </div>
-              <div class="sc-copy-md">
+              <div class="sc-copy-md relative z-0">
                 <RichText html={system.descriptionHtml} />
               </div>
-            </a>
+            </div>
           </div>
         {/each}
       </div>

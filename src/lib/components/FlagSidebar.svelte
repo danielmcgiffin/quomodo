@@ -26,7 +26,7 @@
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="1.5"
+          stroke-width="1"
           class="h-7 w-7"
           aria-hidden="true"
         >
