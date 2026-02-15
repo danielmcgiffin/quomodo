@@ -32,6 +32,44 @@ const normalizeError = (error: unknown) => {
     }
   }
 
+  if (typeof error === "string") {
+    return { message: error }
+  }
+
+  if (typeof error === "object" && error !== null) {
+    const candidate = error as Record<string, unknown>
+    const message = typeof candidate.message === "string" ? candidate.message : null
+    const name = typeof candidate.name === "string" ? candidate.name : null
+    const code =
+      typeof candidate.code === "string" || typeof candidate.code === "number"
+        ? candidate.code
+        : null
+    const status =
+      typeof candidate.status === "number" || typeof candidate.status === "string"
+        ? candidate.status
+        : null
+    const details = candidate.details
+    const hint = candidate.hint
+
+    // Common shape for Supabase/Postgrest errors and other SDK error objects.
+    if (message || name || code || status) {
+      return {
+        ...(name ? { name } : {}),
+        ...(message ? { message } : { message: "[non-Error object thrown]" }),
+        ...(code !== null ? { code } : {}),
+        ...(status !== null ? { status } : {}),
+        ...(details !== undefined ? { details } : {}),
+        ...(hint !== undefined ? { hint } : {}),
+      }
+    }
+
+    try {
+      return { message: JSON.stringify(candidate) }
+    } catch {
+      return { message: "[non-serializable object thrown]" }
+    }
+  }
+
   return {
     message: String(error),
   }
