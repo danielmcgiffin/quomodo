@@ -64,8 +64,11 @@ export const load = async ({ locals }) => {
   const roles = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
   const roleById = new Map(roles.map((role) => [role.id, role]))
 
+  const systemsData = systemsResult.data ?? []
+  console.log("Fetched systems:", JSON.stringify(systemsData, null, 2))
+  
   const systems = mapSystemDirectory({
-    rows: (systemsResult.data ?? []) as SystemDirectoryRow[],
+    rows: systemsData as SystemDirectoryRow[],
     roleById,
     richToHtml,
   })

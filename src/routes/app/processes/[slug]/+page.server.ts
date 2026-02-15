@@ -43,7 +43,7 @@ type ProcessRow = {
   owner_role_id: string | null
 }
 type RoleRow = { id: string; slug: string; name: string }
-type SystemRow = { id: string; slug: string; name: string }
+type SystemRow = { id: string; slug: string; name: string; logo_url: string | null }
 
 export const load = async ({ params, locals, url }) => {
   const context = await ensureOrgContext(locals)
@@ -90,7 +90,7 @@ export const load = async ({ params, locals, url }) => {
         .order("name"),
       supabase
         .from("systems")
-        .select("id, slug, name")
+        .select("id, slug, name, logo_url")
         .eq("org_id", context.orgId)
         .order("name"),
       supabase

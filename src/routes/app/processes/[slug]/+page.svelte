@@ -15,6 +15,7 @@
     id: string
     slug: string
     name: string
+    logoUrl: string | null
   }
   type ActionEntry = {
     id: string

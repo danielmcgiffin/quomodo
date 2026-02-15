@@ -24,7 +24,7 @@ export type ProcessFlagLinkRow = {
 }
 
 type RoleEntity = { id: string; slug: string; name: string; initials: string }
-type SystemEntity = { id: string; slug: string; name: string }
+type SystemEntity = { id: string; slug: string; name: string; logoUrl: string | null }
 
 const isDefined = <T>(value: T | null): value is T => value !== null
 

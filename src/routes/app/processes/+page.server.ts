@@ -29,7 +29,7 @@ import {
 } from "$lib/server/app/mappers/processes"
 
 type RoleRow = { id: string; slug: string; name: string }
-type SystemRow = { id: string; slug: string; name: string }
+type SystemRow = { id: string; slug: string; name: string; logo_url: string | null }
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
@@ -55,7 +55,7 @@ export const load = async ({ locals }) => {
       .order("name"),
     supabase
       .from("systems")
-      .select("id, slug, name")
+      .select("id, slug, name, logo_url")
       .eq("org_id", context.orgId)
       .order("name"),
     supabase
