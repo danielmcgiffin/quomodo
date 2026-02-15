@@ -15,7 +15,7 @@
     "provision:workspace:rollback": "node --env-file-if-exists=.env.local scripts/provision-workspace-members.mjs --rollback",
     "smoke:deployed": "node --env-file-if-exists=.env.local scripts/smoke-deployed.mjs",
     "onboarding:deployed": "node --env-file-if-exists=.env.local scripts/onboarding-deployed.mjs",
-    "build": "vite build",
+    "build": "svelte-kit sync && ADAPTER_CLOUDFLARE=1 vite build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
