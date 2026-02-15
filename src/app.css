@@ -141,9 +141,9 @@ button[disabled].authBtn::before {
   --sc-success: #1a7f37;
   --sc-danger: #d63b30;
 
-  --sc-bg: #f4f1ec;
+  --sc-bg: #ebe7e0;
   --sc-white: #ffffff;
-  --sc-bg-inset: #f0ede8;
+  --sc-bg-inset: #e5e2dd;
 
   --sc-border: #e0ddd7;
   --sc-border-light: #eae8e3;
