@@ -298,7 +298,6 @@ export interface Database {
           slug: string
           name: string
           description_rich: Json
-          reports_to: string | null
           created_at: string
           updated_at: string
         }
@@ -308,7 +307,6 @@ export interface Database {
           slug: string
           name: string
           description_rich?: Json
-          reports_to?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -318,7 +316,6 @@ export interface Database {
           slug?: string
           name?: string
           description_rich?: Json
-          reports_to?: string | null
           created_at?: string
           updated_at?: string
         }

@@ -37,12 +37,10 @@ create table roles (
   person_name text,
   hourly_cost numeric(10,2) check (hourly_cost is null or hourly_cost >= 0),
   hours_per_week numeric(5,1) check (hours_per_week is null or hours_per_week >= 0),
-  reports_to uuid,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (org_id, name),
-  unique (org_id, id),
-  foreign key (org_id, reports_to) references roles(org_id, id)
+  unique (org_id, id)
 );
 
 -- Systems

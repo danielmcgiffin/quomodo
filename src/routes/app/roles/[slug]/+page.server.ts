@@ -31,7 +31,6 @@ type RoleRow = {
   slug: string
   name: string
   description_rich: unknown
-  reports_to: string | null
 }
 type SystemRow = {
   id: string
@@ -60,7 +59,7 @@ export const load = async ({ params, locals, url }) => {
 
   const { data: role, error: roleError } = await supabase
     .from("roles")
-    .select("id, slug, name, description_rich, reports_to")
+  .select("id, slug, name, description_rich")
     .eq("org_id", context.orgId)
     .eq("slug", params.slug)
     .maybeSingle()
@@ -167,7 +166,6 @@ export const load = async ({ params, locals, url }) => {
     roleFlags: mapOpenFlags(roleFlagRows as OpenFlagRow[]),
     openFlags,
     highlightedFlagId: url.searchParams.get("flagId") ?? null,
-    reportsTo: null,
     org: context,
   }
 }

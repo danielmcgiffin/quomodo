@@ -18,7 +18,6 @@
         descriptionHtml: string
       }
       org: { membershipRole: "owner" | "admin" | "editor" | "member" }
-      reportsTo: { slug: string; name: string; initials: string } | null
       ownedProcesses: { slug: string; name: string }[]
       actionsByProcess: {
         process: { slug: string; name: string }

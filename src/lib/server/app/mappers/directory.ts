@@ -3,7 +3,6 @@ export type RoleDirectoryRow = {
   slug: string
   name: string
   description_rich: unknown
-  reports_to: string | null
 }
 
 export const mapRoleDirectory = ({
@@ -19,18 +18,6 @@ export const mapRoleDirectory = ({
   processData: { id: string; owner_role_id: string | null }[]
   actionData: { process_id: string; owner_role_id: string; system_id: string }[]
 }) => {
-  const roleById = new Map(
-    rows.map((row) => [
-      row.id,
-      {
-        id: row.id,
-        slug: row.slug,
-        name: row.name,
-        initials: makeInitials(row.name),
-      },
-    ]),
-  )
-
   return rows.map((row) => {
     // Process count: owned processes + processes where they own at least one action
     const ownedProcessIds = new Set(
@@ -61,7 +48,6 @@ export const mapRoleDirectory = ({
       descriptionHtml: richToHtml(row.description_rich),
       processCount: involvedProcessCount,
       systemCount: touchedSystemCount,
-      ownerRole: row.reports_to ? (roleById.get(row.reports_to) ?? null) : null,
     }
   })
 }

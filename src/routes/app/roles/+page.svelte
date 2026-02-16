@@ -14,12 +14,6 @@
     descriptionHtml: string
     processCount: number
     systemCount: number
-    ownerRole: {
-      id: string
-      slug: string
-      name: string
-      initials: string
-    } | null
   }
   type Props = {
     data: {
@@ -166,12 +160,6 @@
                 <span class="min-w-0 truncate">{role.name}</span>
               </div>
               <div class="sc-byline sc-stack-top-12">
-                {#if role.ownerRole}
-                  <span>Reports to</span>
-                  <div class="relative z-10 pointer-events-auto">
-                    <RolePortal role={role.ownerRole} size="sm" />
-                  </div>
-                {/if}
                 <span class="sc-pill">{role.processCount} processes</span>
                 <span class="sc-pill">{role.systemCount} systems</span>
               </div>

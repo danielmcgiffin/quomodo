@@ -9,7 +9,6 @@ describe("mapRoleDirectory", () => {
         slug: "ops-manager",
         name: "Ops Manager",
         description_rich: { type: "doc" },
-        reports_to: null,
       },
     ]
 
@@ -30,7 +29,6 @@ describe("mapRoleDirectory", () => {
         descriptionHtml: "<p>desc</p>",
         processCount: 0,
         systemCount: 0,
-        ownerRole: null,
       },
     ])
   })

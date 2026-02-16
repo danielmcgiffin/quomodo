@@ -31,7 +31,7 @@ export const load = async ({ locals }) => {
     await Promise.all([
       supabase
         .from("roles")
-        .select("id, slug, name, description_rich, reports_to")
+        .select("id, slug, name, description_rich")
         .eq("org_id", context.orgId)
         .order("name"),
       supabase

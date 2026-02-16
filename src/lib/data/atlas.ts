@@ -6,7 +6,6 @@ export type Role = {
   descriptionHtml: string
   personName?: string
   hoursPerWeek?: number
-  reportsTo?: string
 }
 
 export type System = {
@@ -71,7 +70,6 @@ export const roles: Role[] = [
       "<p>Owns operational consistency, keeps the atlas current.</p>",
     personName: "Jordan Lee",
     hoursPerWeek: 30,
-    reportsTo: "role-founder",
   },
   {
     id: "role-cs",
@@ -82,7 +80,6 @@ export const roles: Role[] = [
       "<p>Runs onboarding and renewals, keeps clients moving.</p>",
     personName: "Priya Shah",
     hoursPerWeek: 25,
-    reportsTo: "role-ops",
   },
 ]
 
