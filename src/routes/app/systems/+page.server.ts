@@ -68,8 +68,8 @@ export const load = async ({ locals }) => {
     failLoad("app.systems.load.actions", actionsResult.error)
   }
 
-  const rolesList = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
-  const roleById = new Map(rolesList.map((role) => [role.id, role]))
+  const rolesResultData = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
+  const roleById = new Map(rolesResultData.map((role) => [role.id, role]))
 
   const systemsData = systemsResult.data ?? []
   const actionData = (actionsResult.data ?? []) as { process_id: string, owner_role_id: string, system_id: string }[]
@@ -112,7 +112,7 @@ export const load = async ({ locals }) => {
 
   return {
     org: context,
-    roles,
+    roles: rolesResultData,
     systems,
     openFlags,
   }

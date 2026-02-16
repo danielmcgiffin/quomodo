@@ -13,8 +13,8 @@ describe("process mappers", () => {
       ["r2", { id: "r2", slug: "eng", name: "Eng", initials: "EN" }],
     ])
     const systemById = new Map([
-      ["s1", { id: "s1", slug: "slack", name: "Slack" }],
-      ["s2", { id: "s2", slug: "asana", name: "Asana" }],
+      ["s1", { id: "s1", slug: "slack", name: "Slack", logoUrl: null }],
+      ["s2", { id: "s2", slug: "asana", name: "Asana", logoUrl: null }],
     ])
 
     const cards = mapProcessCards({
@@ -101,7 +101,7 @@ describe("process mappers", () => {
       ["r1", { id: "r1", slug: "ops", name: "Ops", initials: "OP" }],
     ])
     const systemById = new Map([
-      ["s1", { id: "s1", slug: "slack", name: "Slack" }],
+      ["s1", { id: "s1", slug: "slack", name: "Slack", logoUrl: null }],
     ])
 
     const actions = mapProcessDetailActions({

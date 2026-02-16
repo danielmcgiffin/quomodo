@@ -31,8 +31,9 @@ type RoleRow = {
   slug: string
   name: string
   description_rich: unknown
+  reports_to: string | null
 }
-type SystemRow = { id: string; slug: string; name: string }
+type SystemRow = { id: string; slug: string; name: string; logo_url: string | null }
 type RoleFlagRow = {
   id: string
   flag_type: string
@@ -54,7 +55,7 @@ export const load = async ({ params, locals, url }) => {
 
   const { data: role, error: roleError } = await supabase
     .from("roles")
-    .select("id, slug, name, description_rich")
+    .select("id, slug, name, description_rich, reports_to")
     .eq("org_id", context.orgId)
     .eq("slug", params.slug)
     .maybeSingle()
@@ -84,7 +85,7 @@ export const load = async ({ params, locals, url }) => {
         .order("sequence"),
       supabase
         .from("systems")
-        .select("id, slug, name")
+        .select("id, slug, name, logo_url")
         .eq("org_id", context.orgId)
         .order("name"),
       supabase

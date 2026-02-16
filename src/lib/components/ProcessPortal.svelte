@@ -8,10 +8,12 @@
     process,
     showName = true,
     query = "",
+    size = "md",
   }: {
     process: ProcessPortalModel
     showName?: boolean
     query?: string
+    size?: "sm" | "md" | "lg"
   } = $props()
 
   const href = $derived.by(() => {

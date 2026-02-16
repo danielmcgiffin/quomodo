@@ -1,7 +1,22 @@
 <script lang="ts">
   import RolePortal from "$lib/components/RolePortal.svelte"
 
-  let { data } = $props()
+  interface Props {
+    data: {
+      org: {
+        name: string
+        role: string
+      }
+      navCounts: {
+        processes: number
+        systems: number
+        roles: number
+        flags: number
+      }
+    }
+  }
+
+  let { data }: Props = $props()
 </script>
 
 <svelte:head>

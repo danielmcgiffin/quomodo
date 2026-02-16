@@ -117,7 +117,9 @@ export const load = async ({ params, locals, url }) => {
   }
 
   const roles = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
-  const systems = mapSystemPortals((systemsResult.data ?? []) as SystemRow[])
+  const systems = mapSystemPortals(
+    (systemsResult.data ?? []) as unknown as SystemRow[],
+  )
   const roleById = new Map(roles.map((role) => [role.id, role]))
   const systemById = new Map(systems.map((system) => [system.id, system]))
 

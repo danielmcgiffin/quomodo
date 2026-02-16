@@ -21,13 +21,13 @@ describe("app portal mappers", () => {
 
   it("maps system rows into system portal models", () => {
     const systems = mapSystemPortals([
-      { id: "s1", slug: "stripe", name: "Stripe" },
-      { id: "s2", slug: "hubspot", name: "HubSpot" },
+      { id: "s1", slug: "stripe", name: "Stripe", logo_url: null },
+      { id: "s2", slug: "hubspot", name: "HubSpot", logo_url: "/img.png" },
     ])
 
     expect(systems).toEqual([
-      { id: "s1", slug: "stripe", name: "Stripe" },
-      { id: "s2", slug: "hubspot", name: "HubSpot" },
+      { id: "s1", slug: "stripe", name: "Stripe", logoUrl: null },
+      { id: "s2", slug: "hubspot", name: "HubSpot", logoUrl: "/img.png" },
     ])
   })
 

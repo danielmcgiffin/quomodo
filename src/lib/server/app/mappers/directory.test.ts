@@ -9,6 +9,7 @@ describe("mapRoleDirectory", () => {
         slug: "ops-manager",
         name: "Ops Manager",
         description_rich: { type: "doc" },
+        reports_to: null,
       },
     ]
 
@@ -16,6 +17,8 @@ describe("mapRoleDirectory", () => {
       rows,
       makeInitials: (name) => (name === "Ops Manager" ? "OM" : "??"),
       richToHtml: (value) => (value ? "<p>desc</p>" : ""),
+      processData: [],
+      actionData: [],
     })
 
     expect(result).toEqual([
@@ -25,6 +28,9 @@ describe("mapRoleDirectory", () => {
         name: "Ops Manager",
         initials: "OM",
         descriptionHtml: "<p>desc</p>",
+        processCount: 0,
+        systemCount: 0,
+        ownerRole: null,
       },
     ])
   })
@@ -43,6 +49,7 @@ describe("mapSystemDirectory", () => {
         description_rich: null,
         location: null,
         owner_role_id: "r1",
+        logo_url: null,
       },
     ]
 
@@ -50,6 +57,7 @@ describe("mapSystemDirectory", () => {
       rows,
       roleById,
       richToHtml: () => "",
+      actionData: [],
     })
 
     expect(result).toEqual([
@@ -59,7 +67,10 @@ describe("mapSystemDirectory", () => {
         name: "Asana",
         descriptionHtml: "",
         location: "",
+        logoUrl: null,
         ownerRole,
+        processCount: 0,
+        roleCount: 0,
       },
     ])
   })
@@ -73,6 +84,7 @@ describe("mapSystemDirectory", () => {
         description_rich: { any: "value" },
         location: "Communication",
         owner_role_id: null,
+        logo_url: null,
       },
       {
         id: "s2",
@@ -81,6 +93,7 @@ describe("mapSystemDirectory", () => {
         description_rich: { any: "value" },
         location: "Engineering",
         owner_role_id: "missing",
+        logo_url: null,
       },
     ]
 
@@ -88,6 +101,7 @@ describe("mapSystemDirectory", () => {
       rows,
       roleById: new Map(),
       richToHtml: () => "<p>x</p>",
+      actionData: [],
     })
 
     expect(result).toEqual([
@@ -97,7 +111,10 @@ describe("mapSystemDirectory", () => {
         name: "Slack",
         descriptionHtml: "<p>x</p>",
         location: "Communication",
+        logoUrl: null,
         ownerRole: null,
+        processCount: 0,
+        roleCount: 0,
       },
       {
         id: "s2",
@@ -105,7 +122,10 @@ describe("mapSystemDirectory", () => {
         name: "GitHub",
         descriptionHtml: "<p>x</p>",
         location: "Engineering",
+        logoUrl: null,
         ownerRole: null,
+        processCount: 0,
+        roleCount: 0,
       },
     ])
   })

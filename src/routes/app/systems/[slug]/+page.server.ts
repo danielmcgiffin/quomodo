@@ -33,6 +33,7 @@ type SystemRow = {
   description_rich: unknown
   location: string | null
   owner_role_id: string | null
+  logo_url: string | null
 }
 type RoleRow = { id: string; slug: string; name: string }
 type ProcessRow = { id: string; slug: string; name: string }
@@ -57,7 +58,7 @@ export const load = async ({ params, locals }) => {
 
   const { data: system, error: systemError } = await supabase
     .from("systems")
-    .select("id, slug, name, description_rich, location, owner_role_id")
+    .select("id, slug, name, description_rich, location, owner_role_id, logo_url")
     .eq("org_id", context.orgId)
     .eq("slug", params.slug)
     .maybeSingle()
@@ -116,7 +117,7 @@ export const load = async ({ params, locals }) => {
   const roles = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
   const roleById = new Map(roles.map((role) => [role.id, role]))
   const processes = mapSystemPortals(
-    (processesResult.data ?? []) as ProcessRow[],
+    (processesResult.data ?? []).map((p) => ({ ...p, logo_url: null })),
   )
   const actionsUsing = mapSystemActionsUsing({
     rows: (actionsResult.data ?? []) as SystemDetailActionRow[],

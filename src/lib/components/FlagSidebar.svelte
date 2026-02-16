@@ -9,7 +9,7 @@
     targetPath?: string
   }
 
-  export let title = "Flags"
+  export const title = "Flags"
   export let flags: FlagSidebarItem[] = []
   export let highlightedFlagId: string | null = null
 </script>

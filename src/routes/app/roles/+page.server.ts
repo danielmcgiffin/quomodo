@@ -63,7 +63,7 @@ export const load = async ({ locals }) => {
     failLoad("app.roles.load.actions", actionsResult.error)
   }
 
-  const rolesData = (rolesResult.data ?? []) as RoleDirectoryRow[]
+  const rolesData = (rolesResult.data ?? []) as unknown as RoleDirectoryRow[]
   const processData = (processesResult.data ?? []) as { id: string, owner_role_id: string | null }[]
   const actionData = (actionsResult.data ?? []) as { process_id: string, owner_role_id: string, system_id: string }[]
 
