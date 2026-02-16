@@ -8,7 +8,6 @@
     process,
     showName = true,
     query = "",
-    size = "md",
   }: {
     process: ProcessPortalModel
     showName?: boolean

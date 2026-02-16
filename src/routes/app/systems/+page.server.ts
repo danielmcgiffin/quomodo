@@ -31,29 +31,32 @@ export const load = async ({ locals }) => {
       route: "/app/systems",
     })
 
-  const [rolesResult, systemsResult, flagsResult, actionsResult] = await Promise.all([
-    supabase
-      .from("roles")
-      .select("id, slug, name")
-      .eq("org_id", context.orgId)
-      .order("name"),
-    supabase
-      .from("systems")
-      .select("id, slug, name, description_rich, location, owner_role_id, logo_url")
-      .eq("org_id", context.orgId)
-      .order("name"),
-    supabase
-      .from("flags")
-      .select("id, target_id, target_path, flag_type, message, created_at")
-      .eq("org_id", context.orgId)
-      .eq("target_type", "system")
-      .eq("status", "open")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("actions")
-      .select("process_id, owner_role_id, system_id")
-      .eq("org_id", context.orgId),
-  ])
+  const [rolesResult, systemsResult, flagsResult, actionsResult] =
+    await Promise.all([
+      supabase
+        .from("roles")
+        .select("id, slug, name")
+        .eq("org_id", context.orgId)
+        .order("name"),
+      supabase
+        .from("systems")
+        .select(
+          "id, slug, name, description_rich, location, owner_role_id, logo_url",
+        )
+        .eq("org_id", context.orgId)
+        .order("name"),
+      supabase
+        .from("flags")
+        .select("id, target_id, target_path, flag_type, message, created_at")
+        .eq("org_id", context.orgId)
+        .eq("target_type", "system")
+        .eq("status", "open")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("actions")
+        .select("process_id, owner_role_id, system_id")
+        .eq("org_id", context.orgId),
+    ])
 
   if (rolesResult.error) {
     failLoad("app.systems.load.roles", rolesResult.error)
@@ -72,7 +75,11 @@ export const load = async ({ locals }) => {
   const roleById = new Map(rolesResultData.map((role) => [role.id, role]))
 
   const systemsData = systemsResult.data ?? []
-  const actionData = (actionsResult.data ?? []) as { process_id: string, owner_role_id: string, system_id: string }[]
+  const actionData = (actionsResult.data ?? []) as {
+    process_id: string
+    owner_role_id: string
+    system_id: string
+  }[]
 
   const systems = mapSystemDirectory({
     rows: systemsData as SystemDirectoryRow[],

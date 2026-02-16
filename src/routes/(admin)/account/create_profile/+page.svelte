@@ -74,7 +74,9 @@
             name="fullName"
             type="text"
             placeholder="Your full name"
-            class="sc-search sc-field w-full {fieldError(form, 'fullName') ? 'sc-field--error' : ''}"
+            class="sc-search sc-field w-full {fieldError(form, 'fullName')
+              ? 'sc-field--error'
+              : ''}"
             value={form?.fullName ?? fullName}
             maxlength="50"
             required
@@ -84,13 +86,17 @@
 
       <div class="sc-form-row">
         <div class="flex-1">
-          <label for="companyName" class="sc-meta mb-1 block">Company Name</label>
+          <label for="companyName" class="sc-meta mb-1 block"
+            >Company Name</label
+          >
           <input
             id="companyName"
             name="companyName"
             type="text"
             placeholder="Company name"
-            class="sc-search sc-field w-full {fieldError(form, 'companyName') ? 'sc-field--error' : ''}"
+            class="sc-search sc-field w-full {fieldError(form, 'companyName')
+              ? 'sc-field--error'
+              : ''}"
             value={form?.companyName ?? companyName}
             maxlength="50"
             required
@@ -100,13 +106,16 @@
 
       <div class="sc-form-row">
         <div class="flex-1">
-          <label for="website" class="sc-meta mb-1 block">Company Website</label>
+          <label for="website" class="sc-meta mb-1 block">Company Website</label
+          >
           <input
             id="website"
             name="website"
             type="text"
             placeholder="https://example.com"
-            class="sc-search sc-field w-full {fieldError(form, 'website') ? 'sc-field--error' : ''}"
+            class="sc-search sc-field w-full {fieldError(form, 'website')
+              ? 'sc-field--error'
+              : ''}"
             value={form?.website ?? website}
             maxlength="50"
           />
@@ -120,11 +129,7 @@
       {/if}
 
       <div class="sc-form-actions">
-        <button
-          type="submit"
-          class="sc-btn w-full"
-          disabled={loading}
-        >
+        <button type="submit" class="sc-btn w-full" disabled={loading}>
           {loading ? "Updating..." : "Create Profile"}
         </button>
       </div>
@@ -133,7 +138,9 @@
     <div class="sc-muted-line sc-stack-top-12 text-center text-sm">
       Logged in as <strong>{data.user?.email}</strong>.
       <br />
-      <a class="text-[var(--sc-green)] hover:underline" href="/account/sign_out">Sign out</a>
+      <a class="text-[var(--sc-green)] hover:underline" href="/account/sign_out"
+        >Sign out</a
+      >
     </div>
   </div>
 </div>

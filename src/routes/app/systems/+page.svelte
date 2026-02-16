@@ -1,7 +1,6 @@
 <script lang="ts">
   import SystemPortal from "$lib/components/SystemPortal.svelte"
   import RolePortal from "$lib/components/RolePortal.svelte"
-  import RichText from "$lib/components/RichText.svelte"
   import RichTextEditor from "$lib/components/RichTextEditor.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
   import InlineCreateRoleModal from "$lib/components/InlineCreateRoleModal.svelte"

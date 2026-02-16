@@ -27,28 +27,29 @@ export const load = async ({ locals }) => {
       requestId: locals.requestId,
       route: "/app/roles",
     })
-  const [rolesResult, flagsResult, processesResult, actionsResult] = await Promise.all([
-    supabase
-      .from("roles")
-      .select("id, slug, name, description_rich, reports_to")
-      .eq("org_id", context.orgId)
-      .order("name"),
-    supabase
-      .from("flags")
-      .select("id, target_id, target_path, flag_type, message, created_at")
-      .eq("org_id", context.orgId)
-      .eq("target_type", "role")
-      .eq("status", "open")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("processes")
-      .select("id, owner_role_id")
-      .eq("org_id", context.orgId),
-    supabase
-      .from("actions")
-      .select("process_id, owner_role_id, system_id")
-      .eq("org_id", context.orgId),
-  ])
+  const [rolesResult, flagsResult, processesResult, actionsResult] =
+    await Promise.all([
+      supabase
+        .from("roles")
+        .select("id, slug, name, description_rich, reports_to")
+        .eq("org_id", context.orgId)
+        .order("name"),
+      supabase
+        .from("flags")
+        .select("id, target_id, target_path, flag_type, message, created_at")
+        .eq("org_id", context.orgId)
+        .eq("target_type", "role")
+        .eq("status", "open")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("processes")
+        .select("id, owner_role_id")
+        .eq("org_id", context.orgId),
+      supabase
+        .from("actions")
+        .select("process_id, owner_role_id, system_id")
+        .eq("org_id", context.orgId),
+    ])
 
   if (rolesResult.error) {
     failLoad("app.roles.load.roles", rolesResult.error)
@@ -64,8 +65,15 @@ export const load = async ({ locals }) => {
   }
 
   const rolesData = (rolesResult.data ?? []) as unknown as RoleDirectoryRow[]
-  const processData = (processesResult.data ?? []) as { id: string, owner_role_id: string | null }[]
-  const actionData = (actionsResult.data ?? []) as { process_id: string, owner_role_id: string, system_id: string }[]
+  const processData = (processesResult.data ?? []) as {
+    id: string
+    owner_role_id: string | null
+  }[]
+  const actionData = (actionsResult.data ?? []) as {
+    process_id: string
+    owner_role_id: string
+    system_id: string
+  }[]
 
   const roles = mapRoleDirectory({
     rows: rolesData,

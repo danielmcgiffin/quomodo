@@ -36,7 +36,6 @@ type SystemRow = {
   logo_url: string | null
 }
 type RoleRow = { id: string; slug: string; name: string }
-type ProcessRow = { id: string; slug: string; name: string }
 type SystemFlagRow = {
   id: string
   flag_type: string
@@ -58,7 +57,9 @@ export const load = async ({ params, locals }) => {
 
   const { data: system, error: systemError } = await supabase
     .from("systems")
-    .select("id, slug, name, description_rich, location, owner_role_id, logo_url")
+    .select(
+      "id, slug, name, description_rich, location, owner_role_id, logo_url",
+    )
     .eq("org_id", context.orgId)
     .eq("slug", params.slug)
     .maybeSingle()

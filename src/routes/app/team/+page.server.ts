@@ -190,7 +190,9 @@ export const load = async ({ locals, url }) => {
         .from("profiles")
         .select("id, full_name")
         .in("id", userIds),
-      ...userIds.map((id) => locals.supabaseServiceRole.auth.admin.getUserById(id)),
+      ...userIds.map((id) =>
+        locals.supabaseServiceRole.auth.admin.getUserById(id),
+      ),
     ])
 
     if (profilesResult.error) {

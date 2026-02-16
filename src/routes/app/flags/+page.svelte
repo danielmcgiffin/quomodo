@@ -22,7 +22,9 @@
 <div class="sc-process-page">
   <div class="grid grid-cols-1 md:grid-cols-4 items-center gap-4 mb-8">
     <div class="md:col-span-3">
-      <div class="sc-page-title text-2xl font-bold" style="margin-bottom: 0;">Flags</div>
+      <div class="sc-page-title text-2xl font-bold" style="margin-bottom: 0;">
+        Flags
+      </div>
       <div class="sc-page-subtitle">
         Maintenance dashboard for rot across the atlas.
       </div>

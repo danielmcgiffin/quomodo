@@ -40,14 +40,16 @@ const normalizeError = (error: unknown) => {
 
   if (typeof error === "object" && error !== null) {
     const candidate = error as Record<string, unknown>
-    const message = typeof candidate.message === "string" ? candidate.message : null
+    const message =
+      typeof candidate.message === "string" ? candidate.message : null
     const name = typeof candidate.name === "string" ? candidate.name : null
     const code =
       typeof candidate.code === "string" || typeof candidate.code === "number"
         ? candidate.code
         : null
     const status =
-      typeof candidate.status === "number" || typeof candidate.status === "string"
+      typeof candidate.status === "number" ||
+      typeof candidate.status === "string"
         ? candidate.status
         : null
     const details = candidate.details
@@ -123,7 +125,10 @@ Details: ${JSON.stringify(details, null, 2)}
     `.trim()
 
     sendAdminEmail({ subject, body }).catch((err) => {
-      console.error("[runtime-error] Failed to send admin email notification:", err)
+      console.error(
+        "[runtime-error] Failed to send admin email notification:",
+        err,
+      )
     })
 
     // Clean up cache occasionally

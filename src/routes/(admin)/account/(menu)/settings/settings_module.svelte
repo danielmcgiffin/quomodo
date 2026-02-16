@@ -65,7 +65,12 @@
 
 <div class="sc-card p-6 pb-7 mt-8 max-w-2xl flex flex-col md:flex-row gap-6">
   {#if title}
-    <div class="sc-section-title w-48 md:pr-8 flex-none" style="margin-bottom: 0;">{title}</div>
+    <div
+      class="sc-section-title w-48 md:pr-8 flex-none"
+      style="margin-bottom: 0;"
+    >
+      {title}
+    </div>
   {/if}
 
   <div class="w-full min-w-48">
@@ -98,12 +103,19 @@
               type={field.inputType ?? "text"}
               disabled={!editable}
               placeholder={field.placeholder ?? field.label ?? ""}
-              class="sc-search sc-field w-full mb-4 {fieldError($page?.form, field.id) ? 'sc-field--error' : ''}"
+              class="sc-search sc-field w-full mb-4 {fieldError(
+                $page?.form,
+                field.id,
+              )
+                ? 'sc-field--error'
+                : ''}"
               value={$page.form ? $page.form[field.id] : field.initialValue}
               maxlength={field.maxlength ? field.maxlength : null}
             />
           {:else}
-            <div class="sc-copy-md mb-4 font-semibold">{field.initialValue}</div>
+            <div class="sc-copy-md mb-4 font-semibold">
+              {field.initialValue}
+            </div>
           {/if}
         {/each}
 
@@ -126,7 +138,10 @@
         {:else if editButtonTitle && editLink}
           <!-- !editable -->
           <div class="mt-1">
-            <a href={editLink} class="sc-btn secondary min-w-[145px] block text-center">
+            <a
+              href={editLink}
+              class="sc-btn secondary min-w-[145px] block text-center"
+            >
               {editButtonTitle}
             </a>
           </div>
@@ -135,7 +150,9 @@
     {:else}
       <!-- showSuccess -->
       <div class="sc-section">
-        <div class="sc-section-title text-[var(--sc-green)]">{successTitle}</div>
+        <div class="sc-section-title text-[var(--sc-green)]">
+          {successTitle}
+        </div>
         <div class="sc-copy-md mb-6">{successBody}</div>
         <a href="/account/settings" class="sc-btn secondary">
           Return to Settings

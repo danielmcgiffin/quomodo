@@ -1,6 +1,4 @@
 <script lang="ts">
-  import RolePortal from "$lib/components/RolePortal.svelte"
-
   interface Props {
     data: {
       org: {
@@ -41,7 +39,9 @@
       <span class="sc-pill">{data.org.role}</span>
     </div>
     <div class="sc-stack-top-8">
-      <a href="/app/workspace" class="sc-btn secondary w-full text-center block">View Workspace</a>
+      <a href="/app/workspace" class="sc-btn secondary w-full text-center block"
+        >View Workspace</a
+      >
     </div>
   </section>
 
@@ -62,7 +62,9 @@
       </div>
       <div class="sc-card bg-[var(--sc-bg-inset)] border-none p-3">
         <div class="sc-meta text-xs uppercase opacity-60">Active Flags</div>
-        <div class="text-2xl font-bold text-[var(--sc-green)]">{data.navCounts.flags}</div>
+        <div class="text-2xl font-bold text-[var(--sc-green)]">
+          {data.navCounts.flags}
+        </div>
       </div>
     </div>
   </section>
@@ -74,7 +76,9 @@
     <div class="flex flex-wrap gap-3">
       <a href="/account/settings" class="sc-btn secondary">Edit Profile</a>
       <a href="/account/billing" class="sc-btn secondary">Manage Billing</a>
-      <a href="/account/settings/change_password" class="sc-btn secondary">Security</a>
+      <a href="/account/settings/change_password" class="sc-btn secondary"
+        >Security</a
+      >
     </div>
   </section>
 </div>

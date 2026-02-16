@@ -33,7 +33,12 @@ type RoleRow = {
   description_rich: unknown
   reports_to: string | null
 }
-type SystemRow = { id: string; slug: string; name: string; logo_url: string | null }
+type SystemRow = {
+  id: string
+  slug: string
+  name: string
+  logo_url: string | null
+}
 type RoleFlagRow = {
   id: string
   flag_type: string

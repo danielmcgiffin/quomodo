@@ -29,7 +29,12 @@ import {
 } from "$lib/server/app/mappers/processes"
 
 type RoleRow = { id: string; slug: string; name: string }
-type SystemRow = { id: string; slug: string; name: string; logo_url: string | null }
+type SystemRow = {
+  id: string
+  slug: string
+  name: string
+  logo_url: string | null
+}
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase

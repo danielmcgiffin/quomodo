@@ -43,7 +43,12 @@ type ProcessRow = {
   owner_role_id: string | null
 }
 type RoleRow = { id: string; slug: string; name: string }
-type SystemRow = { id: string; slug: string; name: string; logo_url: string | null }
+type SystemRow = {
+  id: string
+  slug: string
+  name: string
+  logo_url: string | null
+}
 
 export const load = async ({ params, locals, url }) => {
   const context = await ensureOrgContext(locals)

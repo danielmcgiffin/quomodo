@@ -1,5 +1,4 @@
 <script lang="ts">
-  import RichText from "$lib/components/RichText.svelte"
   import RichTextEditor from "$lib/components/RichTextEditor.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
@@ -15,7 +14,12 @@
     descriptionHtml: string
     processCount: number
     systemCount: number
-    ownerRole: { id: string; slug: string; name: string; initials: string } | null
+    ownerRole: {
+      id: string
+      slug: string
+      name: string
+      initials: string
+    } | null
   }
   type Props = {
     data: {
