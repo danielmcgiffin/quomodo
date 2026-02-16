@@ -31,7 +31,7 @@ export const load = async ({ locals }) => {
       route: "/app/systems",
     })
 
-  const [rolesResult, systemsResult, flagsResult] = await Promise.all([
+  const [rolesResult, systemsResult, flagsResult, actionsResult] = await Promise.all([
     supabase
       .from("roles")
       .select("id, slug, name")
@@ -49,6 +49,10 @@ export const load = async ({ locals }) => {
       .eq("target_type", "system")
       .eq("status", "open")
       .order("created_at", { ascending: false }),
+    supabase
+      .from("actions")
+      .select("process_id, owner_role_id, system_id")
+      .eq("org_id", context.orgId),
   ])
 
   if (rolesResult.error) {
@@ -60,17 +64,21 @@ export const load = async ({ locals }) => {
   if (flagsResult.error) {
     failLoad("app.systems.load.flags", flagsResult.error)
   }
+  if (actionsResult.error) {
+    failLoad("app.systems.load.actions", actionsResult.error)
+  }
 
-  const roles = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
-  const roleById = new Map(roles.map((role) => [role.id, role]))
+  const rolesList = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
+  const roleById = new Map(rolesList.map((role) => [role.id, role]))
 
   const systemsData = systemsResult.data ?? []
-  console.log("Fetched systems:", JSON.stringify(systemsData, null, 2))
-  
+  const actionData = (actionsResult.data ?? []) as { process_id: string, owner_role_id: string, system_id: string }[]
+
   const systems = mapSystemDirectory({
     rows: systemsData as SystemDirectoryRow[],
     roleById,
     richToHtml,
+    actionData,
   })
   const systemById = new Map(systems.map((system) => [system.id, system]))
   const openFlags = (

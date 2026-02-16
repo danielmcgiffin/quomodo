@@ -89,9 +89,6 @@
 <div class="flex justify-between items-start gap-4 flex-wrap">
   <div class="flex flex-col">
     <div class="sc-page-title">{role.name}</div>
-    <div class="sc-page-subtitle">
-      <RichText html={role.descriptionHtml} />
-    </div>
   </div>
 
   {#if canEdit}

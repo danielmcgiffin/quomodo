@@ -27,10 +27,10 @@ export const load = async ({ locals }) => {
       requestId: locals.requestId,
       route: "/app/roles",
     })
-  const [rolesResult, flagsResult] = await Promise.all([
+  const [rolesResult, flagsResult, processesResult, actionsResult] = await Promise.all([
     supabase
       .from("roles")
-      .select("id, slug, name, description_rich")
+      .select("id, slug, name, description_rich, reports_to")
       .eq("org_id", context.orgId)
       .order("name"),
     supabase
@@ -40,6 +40,14 @@ export const load = async ({ locals }) => {
       .eq("target_type", "role")
       .eq("status", "open")
       .order("created_at", { ascending: false }),
+    supabase
+      .from("processes")
+      .select("id, owner_role_id")
+      .eq("org_id", context.orgId),
+    supabase
+      .from("actions")
+      .select("process_id, owner_role_id, system_id")
+      .eq("org_id", context.orgId),
   ])
 
   if (rolesResult.error) {
@@ -48,11 +56,23 @@ export const load = async ({ locals }) => {
   if (flagsResult.error) {
     failLoad("app.roles.load.flags", flagsResult.error)
   }
+  if (processesResult.error) {
+    failLoad("app.roles.load.processes", processesResult.error)
+  }
+  if (actionsResult.error) {
+    failLoad("app.roles.load.actions", actionsResult.error)
+  }
+
+  const rolesData = (rolesResult.data ?? []) as RoleDirectoryRow[]
+  const processData = (processesResult.data ?? []) as { id: string, owner_role_id: string | null }[]
+  const actionData = (actionsResult.data ?? []) as { process_id: string, owner_role_id: string, system_id: string }[]
 
   const roles = mapRoleDirectory({
-    rows: (rolesResult.data ?? []) as RoleDirectoryRow[],
+    rows: rolesData,
     makeInitials,
     richToHtml,
+    processData,
+    actionData,
   })
   const roleById = new Map(roles.map((role) => [role.id, role]))
   const openFlags = (

@@ -20,19 +20,21 @@
 </script>
 
 <div class="sc-process-page">
-  <div class="sc-process-layout">
-    <div class="sc-process-main sc-rail-main">
-      <div class="sc-page-title">Flags</div>
+  <div class="grid grid-cols-1 md:grid-cols-4 items-center gap-4 mb-8">
+    <div class="md:col-span-3">
+      <div class="sc-page-title text-2xl font-bold" style="margin-bottom: 0;">Flags</div>
       <div class="sc-page-subtitle">
         Maintenance dashboard for rot across the atlas.
       </div>
+    </div>
 
+    <div class="flex md:justify-end">
       <FlagsCreateForm
         targetOptions={data.targetOptions}
         createFlagError={form?.createFlagError}
       />
-
-      <FlagsCardList flags={data.flags} {canModerate} />
     </div>
   </div>
+
+  <FlagsCardList flags={data.flags} {canModerate} />
 </div>

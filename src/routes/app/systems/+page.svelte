@@ -24,6 +24,8 @@
           name: string
           initials: string
         } | null
+        processCount: number
+        roleCount: number
       }[]
       openFlags: {
         id: string
@@ -66,6 +68,16 @@
     { path: "location", label: "Location" },
     { path: "owner_role_id", label: "Owner role" },
   ]
+
+  function isValidUrl(str: string) {
+    if (!str) return false
+    try {
+      const url = new URL(str)
+      return url.protocol === "http:" || url.protocol === "https:"
+    } catch {
+      return str.startsWith("http://") || str.startsWith("https://")
+    }
+  }
 
   const openCreateSystemModal = () => {
     systemNameDraft = ""
@@ -222,6 +234,31 @@
                 errorTargetId={form?.createFlagTargetId}
                 errorTargetPath={form?.createFlagTargetPath}
               />
+              {#if isValidUrl(system.location)}
+                <a
+                  href={system.location}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="sc-location-btn"
+                  title="Visit system"
+                >
+                  <svg
+                    viewBox="0 0 16 16"
+                    width="14"
+                    height="14"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M10 3H13V6" />
+                    <path d="M8 8L13 3" />
+                    <path
+                      d="M9 13H4C3.44772 13 3 12.5523 3 12V7C3 6.44772 3.44772 6 4 6H6"
+                    />
+                  </svg>
+                  <span>Link</span>
+                </a>
+              {/if}
             </div>
 
             <a
@@ -242,12 +279,12 @@
                     <RolePortal role={system.ownerRole} size="sm" />
                   </div>
                 {/if}
-                {#if system.location}
-                  <span class="sc-pill relative z-10">{system.location}</span>
-                {/if}
-              </div>
-              <div class="sc-copy-md relative z-0">
-                <RichText html={system.descriptionHtml} />
+                <span class="sc-pill relative z-10 pointer-events-auto"
+                  >{system.processCount} processes</span
+                >
+                <span class="sc-pill relative z-10 pointer-events-auto"
+                  >{system.roleCount} roles</span
+                >
               </div>
             </div>
           </div>

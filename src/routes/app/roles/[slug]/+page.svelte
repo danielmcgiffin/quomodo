@@ -118,6 +118,9 @@
             errorTargetId={form?.createFlagTargetId}
             errorTargetPath={form?.createFlagTargetPath}
           />
+          <div class="sc-copy-md">
+            <RichText html={data.role.descriptionHtml} />
+          </div>
         </div>
       </div>
 

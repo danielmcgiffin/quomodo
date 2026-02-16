@@ -14,44 +14,56 @@
 </script>
 
 <div class="sc-section">
-  {#each flags as flag}
-    <div class="sc-card sc-card-flag">
-      <div class="sc-byline">
-        <div class="sc-flag-banner">⚑ {flag.flagType.replace("_", " ")}</div>
-        <span class="sc-pill">Flagged {flag.createdAt}</span>
-        <span class="sc-pill">Status: {flag.status}</span>
-      </div>
-      <div class="sc-copy-md">
-        {flag.message}
-      </div>
-      <div class="sc-byline sc-byline-stack">
-        <span>Target</span>
-        {#if flag.targetType === "process" && flag.target}
-          <ProcessPortal process={flag.target} />
-        {:else if flag.targetType === "system" && flag.target}
-          <SystemPortal system={flag.target} />
-        {:else if flag.targetType === "role" && flag.target}
-          <RolePortal role={flag.target} />
-        {:else if flag.targetType === "action" && flag.target}
-          <span>{flag.target.label}</span>
-        {/if}
-        {#if flag.targetPath}
-          <span>·</span>
-          <span>Path: {flag.targetPath}</span>
-        {/if}
-      </div>
-      {#if canModerate}
-        <div class="sc-actions sc-actions-stack">
-          <form method="POST" action="?/resolveFlag">
-            <input type="hidden" name="id" value={flag.id} />
-            <button class="sc-btn" type="submit">Resolve</button>
-          </form>
-          <form method="POST" action="?/dismissFlag">
-            <input type="hidden" name="id" value={flag.id} />
-            <button class="sc-btn secondary" type="submit">Dismiss</button>
-          </form>
+  <div class="sc-flag-grid">
+    {#each flags as flag}
+      <div class="sc-card sc-card-flag sc-postit-card">
+        <div class="sc-postit-header">
+          <div class="sc-flag-banner">⚑ {flag.flagType.replace("_", " ")}</div>
+          {#if canModerate}
+            <div class="sc-postit-actions">
+              <form method="POST" action="?/resolveFlag">
+                <input type="hidden" name="id" value={flag.id} />
+                <button class="sc-icon-btn" type="submit" title="Resolve">
+                  <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </form>
+              <form method="POST" action="?/dismissFlag">
+                <input type="hidden" name="id" value={flag.id} />
+                <button class="sc-icon-btn" type="submit" title="Dismiss">
+                  <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </form>
+            </div>
+          {/if}
         </div>
-      {/if}
-    </div>
-  {/each}
+
+        <div class="sc-postit-body">
+          <div class="sc-postit-message">
+            {flag.message}
+          </div>
+        </div>
+
+        <div class="sc-postit-footer">
+          <div class="sc-postit-meta">
+            <span class="text-xs opacity-60">{flag.createdAt}</span>
+            <div class="sc-postit-target">
+              {#if flag.targetType === "process" && flag.target}
+                <ProcessPortal process={flag.target} size="sm" />
+              {:else if flag.targetType === "system" && flag.target}
+                <SystemPortal system={flag.target} size="sm" />
+              {:else if flag.targetType === "role" && flag.target}
+                <RolePortal role={flag.target} size="sm" />
+              {:else if flag.targetType === "action" && flag.target}
+                <span class="text-xs font-semibold truncate">{flag.target.label}</span>
+              {/if}
+            </div>
+          </div>
+        </div>
+      </div>
+    {/each}
+  </div>
 </div>

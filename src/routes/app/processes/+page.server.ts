@@ -39,6 +39,7 @@ export const load = async ({ locals }) => {
       error,
       requestId: locals.requestId,
       route: "/app/processes",
+      userId: context.userId,
     })
 
   const [

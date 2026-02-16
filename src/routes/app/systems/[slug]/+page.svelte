@@ -74,6 +74,16 @@
   const canManageSystem = () =>
     data.org.membershipRole === "owner" || data.org.membershipRole === "admin"
 
+  function isValidUrl(str: string) {
+    if (!str) return false
+    try {
+      const url = new URL(str)
+      return url.protocol === "http:" || url.protocol === "https:"
+    } catch {
+      return str.startsWith("http://") || str.startsWith("https://")
+    }
+  }
+
   const filteredActionsUsing = $derived.by(() =>
     data.actionsUsing.filter((action) => {
       if (
@@ -156,15 +166,40 @@
             errorTargetId={form?.createFlagTargetId}
             errorTargetPath={form?.createFlagTargetPath}
           />
-          <div class="sc-byline">
+          <div class="sc-byline sc-stack-top-12">
             <SystemPortal system={data.system} size="lg" />
             {#if data.system.ownerRole}
               <span>Owner</span>
               <RolePortal role={data.system.ownerRole} size="sm" />
             {/if}
-            {#if data.system.location}
-              <span class="sc-pill">{data.system.location}</span>
-            {/if}
+          </div>
+          {#if isValidUrl(data.system.location)}
+            <a
+              href={data.system.location}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="sc-location-btn"
+              title="Visit system"
+            >
+              <svg
+                viewBox="0 0 16 16"
+                width="14"
+                height="14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M10 3H13V6" />
+                <path d="M8 8L13 3" />
+                <path
+                  d="M9 13H4C3.44772 13 3 12.5523 3 12V7C3 6.44772 3.44772 6 4 6H6"
+                />
+              </svg>
+              <span>Link</span>
+            </a>
+          {/if}
+          <div class="sc-copy-md">
+            <RichText html={data.system.descriptionHtml} />
           </div>
         </div>
       </div>

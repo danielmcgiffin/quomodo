@@ -32,6 +32,7 @@
         id: string
         userId: string
         displayName: string
+        displayEmail: string | null
         role: WorkspaceRole
         invitedAt: string
         acceptedAt: string
@@ -358,11 +359,25 @@
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div class="min-w-0 flex-1">
                 <div class="truncate font-semibold">{member.displayName}</div>
-                <div class="sc-muted-line sc-stack-top-6">
-                  {member.userId}
-                </div>
+                {#if member.displayEmail && member.displayEmail !== member.displayName}
+                  <div class="sc-muted-line sc-stack-top-2 text-sm">
+                    {member.displayEmail}
+                  </div>
+                {/if}
                 <div class="sc-muted-line sc-stack-top-6">
                   Invited: {member.invitedAt} • Joined: {member.acceptedAt}
+                </div>
+                <div class="sc-stack-top-6">
+                  <button
+                    class="text-xs text-[var(--sc-text-muted)] hover:text-[var(--sc-green)] transition-colors"
+                    type="button"
+                    onclick={() => {
+                      navigator.clipboard.writeText(member.userId)
+                      alert("User ID copied to clipboard")
+                    }}
+                  >
+                    Copy ID
+                  </button>
                 </div>
               </div>
               <div class="flex items-center gap-2">

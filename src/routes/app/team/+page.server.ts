@@ -182,12 +182,16 @@ export const load = async ({ locals, url }) => {
     ]),
   ]
   const profileById = new Map<string, ProfileRow>()
+  const emailById = new Map<string, string>()
 
   if (userIds.length > 0) {
-    const profilesResult = await locals.supabaseServiceRole
-      .from("profiles")
-      .select("id, full_name")
-      .in("id", userIds)
+    const [profilesResult, ...authUsersResults] = await Promise.all([
+      locals.supabaseServiceRole
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", userIds),
+      ...userIds.map((id) => locals.supabaseServiceRole.auth.admin.getUserById(id)),
+    ])
 
     if (profilesResult.error) {
       throwRuntime500({
@@ -202,6 +206,12 @@ export const load = async ({ locals, url }) => {
     for (const profile of (profilesResult.data ?? []) as ProfileRow[]) {
       profileById.set(profile.id, profile)
     }
+
+    for (const res of authUsersResults) {
+      if (res.data.user) {
+        emailById.set(res.data.user.id, res.data.user.email ?? "")
+      }
+    }
   }
 
   const transferRecipientOptions = members
@@ -214,9 +224,13 @@ export const load = async ({ locals, url }) => {
     })
     .map((member) => {
       const profile = profileById.get(member.user_id)
+      const email = emailById.get(member.user_id)
       return {
         userId: member.user_id,
-        displayName: profile?.full_name?.trim() || member.user_id,
+        displayName:
+          profile?.full_name?.trim() ||
+          email ||
+          `User ${member.user_id.slice(0, 8)}`,
       }
     })
 
@@ -234,7 +248,11 @@ export const load = async ({ locals, url }) => {
       url.searchParams.get("ownershipTransferAccepted") === "1",
     members: members.map((member) => {
       const profile = profileById.get(member.user_id)
-      const displayName = profile?.full_name?.trim() || member.user_id
+      const email = emailById.get(member.user_id)
+      const displayName =
+        profile?.full_name?.trim() ||
+        email ||
+        `User ${member.user_id.slice(0, 8)}`
       const isSelf = member.user_id === context.userId
       const canChange = canChangeMemberRole(
         context.membershipRole,
@@ -246,6 +264,7 @@ export const load = async ({ locals, url }) => {
         id: member.id,
         userId: member.user_id,
         displayName,
+        displayEmail: email || null,
         role: member.role,
         invitedAt: formatMembershipDate(member.invited_at),
         acceptedAt: formatMembershipDate(member.accepted_at),
@@ -269,6 +288,7 @@ export const load = async ({ locals, url }) => {
         expiresAt: invite.expires_at,
       })
       const invitedByProfile = profileById.get(invite.invited_by_user_id)
+      const invitedByEmail = emailById.get(invite.invited_by_user_id)
 
       return {
         id: invite.id,
@@ -280,7 +300,9 @@ export const load = async ({ locals, url }) => {
         acceptedAt: formatDateTime(invite.accepted_at),
         revokedAt: formatDateTime(invite.revoked_at),
         invitedBy:
-          invitedByProfile?.full_name?.trim() || invite.invited_by_user_id,
+          invitedByProfile?.full_name?.trim() ||
+          invitedByEmail ||
+          `User ${invite.invited_by_user_id.slice(0, 8)}`,
         canRevoke:
           status === "pending" &&
           canManageMemberRole(context.membershipRole, invite.role),
@@ -292,7 +314,8 @@ export const load = async ({ locals, url }) => {
           id: pendingTransfer.id,
           recipientName:
             profileById.get(pendingTransfer.to_owner_id)?.full_name?.trim() ||
-            pendingTransfer.to_owner_id,
+            emailById.get(pendingTransfer.to_owner_id) ||
+            `User ${pendingTransfer.to_owner_id.slice(0, 8)}`,
           recipientUserId: pendingTransfer.to_owner_id,
           createdAt: formatDateTime(pendingTransfer.created_at),
           expiresAt: formatDateTime(pendingTransfer.expires_at),

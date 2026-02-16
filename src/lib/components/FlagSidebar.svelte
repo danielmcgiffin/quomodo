@@ -17,7 +17,6 @@
 <section
   class={`sc-section sc-flags-sidebar ${flags.length === 0 ? "is-empty" : ""}`}
 >
-  <div class="sc-section-title sc-sidebar-title">{title}</div>
   {#if flags.length === 0}
     <div
       class="sc-flags-sidebar-empty sc-flags-sidebar-placeholder"

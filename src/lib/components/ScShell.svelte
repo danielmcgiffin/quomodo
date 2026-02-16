@@ -33,6 +33,7 @@
 
   let { data, children }: Props = $props()
   let isSearchOpen = $state(false)
+  let isMobileMenuOpen = $state(false)
 
   type NavHref =
     | "/app/processes"
@@ -106,7 +107,71 @@
 
 <svelte:window onkeydown={onWindowKeydown} />
 
-<div class="sc-app sc-shell">
+<div class="sc-app sc-shell" class:is-mobile-menu-open={isMobileMenuOpen}>
+  <header class="sc-mobile-header">
+    <button
+      class="sc-hamburger"
+      type="button"
+      onclick={() => (isMobileMenuOpen = !isMobileMenuOpen)}
+      aria-label="Toggle menu"
+    >
+      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+
+    <a class="sc-mobile-logo" href={resolve("/app/processes")}>
+      <img
+        src="/images/quaestor-full.png"
+        alt="Quaestor"
+        style="max-width: 120px; height: auto; display: block;"
+      />
+    </a>
+
+    <div class="sc-mobile-actions">
+      {#if data.workspaceOptions.length > 1}
+        <form
+          method="POST"
+          action={`${resolve("/app/workspace")}?/switchWorkspace`}
+        >
+          <input
+            type="hidden"
+            name="redirectTo"
+            value={$page.url.pathname + $page.url.search}
+          />
+          <select
+            class="sc-search sc-field text-xs p-1 h-8"
+            name="workspaceId"
+            value={data.org.id}
+            onchange={(event) => {
+              const form = event.currentTarget.form
+              if (form) {
+                form.requestSubmit()
+              }
+            }}
+          >
+            {#each data.workspaceOptions as workspace (workspace.id)}
+              <option value={workspace.id}>
+                {workspace.name.substring(0, 10)}...
+              </option>
+            {/each}
+          </select>
+        </form>
+      {/if}
+    </div>
+  </header>
+
+  {#if isMobileMenuOpen}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+      class="sc-sidebar-overlay"
+      onclick={() => (isMobileMenuOpen = false)}
+    ></div>
+  {/if}
+
   <aside class="sc-sidebar">
     <div class="sc-sidebar-inner">
       <a class="sc-sidebar-brand" href={resolve("/app/processes")}>
@@ -216,6 +281,19 @@
     {/if}
 
     {@render children?.()}
+    
+    <button
+      class="sc-floating-search"
+      type="button"
+      onclick={() => (isSearchOpen = true)}
+      aria-label="Open search"
+    >
+      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+    </button>
+
     <AppSearchOverlay bind:open={isSearchOpen} />
   </div>
 </div>

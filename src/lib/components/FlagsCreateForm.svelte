@@ -18,26 +18,22 @@
   })
 </script>
 
-<div class="sc-section">
-  <div class="flex justify-between items-center gap-4 flex-wrap">
-    <div class="sc-section-title">Flags</div>
-    <button
-      class="sc-btn secondary"
-      type="button"
-      onclick={() => {
-        open = true
-      }}
-    >
-      Create Flag
-    </button>
-  </div>
+<button
+  class="sc-btn secondary"
+  type="button"
+  onclick={() => {
+    open = true
+  }}
+>
+  Create Flag
+</button>
 
-  <ScModal
-    bind:open
-    title="Create Flag"
-    description="Report stale, incorrect, or questionable details."
-    maxWidth="760px"
-  >
+<ScModal
+  bind:open
+  title="Create Flag"
+  description="Report stale, incorrect, or questionable details."
+  maxWidth="760px"
+>
     <form class="sc-form" method="POST" action="?/createFlag">
       {#if createFlagError}
         <div class="sc-form-error">{createFlagError}</div>
@@ -82,4 +78,3 @@
       </div>
     </form>
   </ScModal>
-</div>

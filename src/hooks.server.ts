@@ -213,10 +213,10 @@ export const handleError: HandleServerError = ({ error, event, status }) => {
     error,
     requestId,
     route: path,
+    userId: event.locals.user?.id ?? null,
     details: {
       status,
       method: event.request.method,
-      userId: event.locals.user?.id ?? null,
     },
   })
 

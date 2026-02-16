@@ -63,43 +63,32 @@
   }
 </script>
 
-<div class="card p-6 pb-7 mt-8 max-w-xl flex flex-col md:flex-row shadow-sm">
+<div class="sc-card p-6 pb-7 mt-8 max-w-2xl flex flex-col md:flex-row gap-6">
   {#if title}
-    <div class="text-xl font-bold mb-3 w-48 md:pr-8 flex-none">{title}</div>
+    <div class="sc-section-title w-48 md:pr-8 flex-none" style="margin-bottom: 0;">{title}</div>
   {/if}
 
   <div class="w-full min-w-48">
     {#if !showSuccess}
       {#if message}
-        <div class="mb-6 {dangerous ? 'alert alert-warning' : ''}">
+        <div class="mb-6 {dangerous ? 'sc-form-error' : 'sc-page-subtitle'}">
           {#if dangerous}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="stroke-current shrink-0 h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              ><path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              /></svg
-            >
+            <span class="mr-2">⚠️</span>
           {/if}
 
           <span>{message}</span>
         </div>
       {/if}
       <form
-        class="form-widget flex flex-col"
+        class="sc-form flex flex-col"
         method="POST"
         action={formTarget}
         use:enhance={handleSubmit}
       >
         {#each fields as field}
           {#if field.label}
-            <label for={field.id}>
-              <span class="text-sm text-gray-500">{field.label}</span>
+            <label for={field.id} class="sc-meta mb-1 block">
+              {field.label}
             </label>
           {/if}
           {#if editable}
@@ -109,65 +98,49 @@
               type={field.inputType ?? "text"}
               disabled={!editable}
               placeholder={field.placeholder ?? field.label ?? ""}
-              class="{fieldError($page?.form, field.id)
-                ? 'input-error'
-                : ''} input-sm mt-1 input input-bordered w-full max-w-xs mb-3 text-base py-4"
+              class="sc-search sc-field w-full mb-4 {fieldError($page?.form, field.id) ? 'sc-field--error' : ''}"
               value={$page.form ? $page.form[field.id] : field.initialValue}
               maxlength={field.maxlength ? field.maxlength : null}
             />
           {:else}
-            <div class="text-lg mb-3">{field.initialValue}</div>
+            <div class="sc-copy-md mb-4 font-semibold">{field.initialValue}</div>
           {/if}
         {/each}
 
         {#if $page?.form?.errorMessage}
-          <p class="text-red-700 text-sm font-bold mt-1">
+          <div class="sc-form-error mb-4">
             {$page?.form?.errorMessage}
-          </p>
+          </div>
         {/if}
 
         {#if editable}
-          <div>
+          <div class="sc-form-actions">
             <button
               type="submit"
-              class="ml-auto btn btn-sm mt-3 min-w-[145px] {dangerous
-                ? 'btn-error'
-                : 'btn-primary btn-outline'}"
+              class="sc-btn {dangerous ? 'secondary' : ''} min-w-[145px]"
               disabled={loading}
             >
-              {#if loading}
-                <span
-                  class="loading loading-spinner loading-md align-middle mx-3"
-                ></span>
-              {:else}
-                {saveButtonTitle}
-              {/if}
+              {loading ? "Saving..." : saveButtonTitle}
             </button>
           </div>
         {:else if editButtonTitle && editLink}
           <!-- !editable -->
-          <a href={editLink} class="mt-1">
-            <button
-              class="btn btn-outline btn-sm {dangerous
-                ? 'btn-error'
-                : ''} min-w-[145px]"
-            >
+          <div class="mt-1">
+            <a href={editLink} class="sc-btn secondary min-w-[145px] block text-center">
               {editButtonTitle}
-            </button>
-          </a>
+            </a>
+          </div>
         {/if}
       </form>
     {:else}
       <!-- showSuccess -->
-      <div>
-        <div class="text-l font-bold">{successTitle}</div>
-        <div class="text-base">{successBody}</div>
-      </div>
-      <a href="/account/settings">
-        <button class="btn btn-outline btn-sm mt-3 min-w-[145px]">
+      <div class="sc-section">
+        <div class="sc-section-title text-[var(--sc-green)]">{successTitle}</div>
+        <div class="sc-copy-md mb-6">{successBody}</div>
+        <a href="/account/settings" class="sc-btn secondary">
           Return to Settings
-        </button>
-      </a>
+        </a>
+      </div>
     {/if}
   </div>
 </div>
