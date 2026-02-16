@@ -1,35 +1,22 @@
-<p class="lead">How to use this template you to bootstrap your own site.</p>
+<p class="lead">How we optimized the SystemsCraft marketing experience for speed and clarity.</p>
 
 <p>
-  We've written a detailed blog post about how we took this template, and
-  created a real <a href="https://criticalmoments.io" target="_blank"
-    >SaaS company website</a
-  >. Topics include:
+  SystemsCraft is built on a high-performance stack designed for both speed and developer productivity. We focused on several key areas to ensure a world-class experience:
 </p>
 
 <ul>
-  <li>Optimizing the stack for performance and developer productivity</li>
-  <li>Creating rich interactive animations with Svelte</li>
-  <li>Creating pixel perfect designs without rasterization</li>
-  <li>Speed measurements: how we kept it small and lightning fast</li>
+  <li>Optimizing the stack for performance and developer productivity using SvelteKit.</li>
+  <li>Creating rich interactive components that feel snappy and responsive.</li>
+  <li>Maintaining a small bundle size for lightning-fast initial loads.</li>
+  <li>Leveraging modern CSS techniques for pixel-perfect, scalable designs.</li>
 </ul>
 
-<a
-  href="https://criticalmoments.io/blog/how_we_built_our_marketing_page"
-  target="_blank"
->
-  <button class="btn btn-primary">Read the Blog Post</button>
-</a>
-
 <p>
-  The blog post is over on <a href="https://criticalmoments.io" target="_blank"
-    >criticalmoments.io</a
-  >, a page which uses this boilerplate as a starting point.
+  This architecture allows us to deliver a rich, interactive experience without the bloat typical of modern web applications. By prioritizing efficiency from day one, we've built a foundation that scales with our content and features.
 </p>
 
 <p>
-  If you are looking for examples of blog posts with rich content rendered
-  inside this template, checkout the other demo posts <a
+  For more examples of how we use these principles in our documentation and product updates, check out our other posts <a
     href="/blog"
     class="link">here</a
   >.

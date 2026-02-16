@@ -278,7 +278,7 @@
           {#each data.systemFlags as flag}
             <div class="sc-card sc-card-flag">
               <div class="sc-flag-banner">
-                ⚑ {flag.flagType.replace("_", " ")}
+                <span aria-hidden="true">⚑</span> {flag.flagType.replace("_", " ")}
               </div>
               <div class="sc-stack-top-10">{flag.message}</div>
             </div>

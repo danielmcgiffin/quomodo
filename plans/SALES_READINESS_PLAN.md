@@ -404,13 +404,13 @@ A product is saleable when:
   3. This is simpler but gives you awareness without a third-party service
 - **Done when**: Server errors reach you within minutes
 
-#### SR-20: Add uptime monitoring
+#### SR-20: Add uptime monitoring [COMPLETE]
 
 - **What**: External ping on `https://systemscraft.co` to alert on downtime
 - **How**: Use a free service (UptimeRobot, BetterUptime, or Cloudflare Health Checks)
-  1. Create a monitor for `https://systemscraft.co` — check every 5 minutes
-  2. Create a monitor for `https://systemscraft.co/pricing` (to verify app rendering, not just DNS)
-  3. Configure alerts to your email/Slack
+  1. [x] Create a monitor for `https://systemscraft.co` — check every 5 minutes
+  2. [x] Create a monitor for `https://systemscraft.co/pricing` (to verify app rendering, not just DNS)
+  3. [x] Configure alerts to your email/Slack
 - **Done when**: You get alerted if the site goes down
 
 ---

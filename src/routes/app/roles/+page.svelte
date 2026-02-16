@@ -4,8 +4,6 @@
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
   import FlagSidebar from "$lib/components/FlagSidebar.svelte"
 
-  import RolePortal from "$lib/components/RolePortal.svelte"
-
   type RoleEntry = {
     id: string
     slug: string

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { Snippet } from "svelte"
+
   type FlagSidebarItem = {
     id: string
     href: string
@@ -9,19 +11,26 @@
     targetPath?: string
   }
 
-  export const title = "Flags"
-  export let flags: FlagSidebarItem[] = []
-  export let highlightedFlagId: string | null = null
+  interface Props {
+    title?: string
+    flags?: FlagSidebarItem[]
+    highlightedFlagId?: string | null
+    flagContext?: Snippet<[{ flag: FlagSidebarItem }]>
+  }
+
+  let {
+    title = "Flags",
+    flags = [],
+    highlightedFlagId = null,
+    flagContext,
+  }: Props = $props()
 </script>
 
 <section
   class={`sc-section sc-flags-sidebar ${flags.length === 0 ? "is-empty" : ""}`}
 >
   {#if flags.length === 0}
-    <div
-      class="sc-flags-sidebar-empty sc-flags-sidebar-placeholder"
-      aria-hidden="true"
-    >
+    <div class="sc-flags-sidebar-empty sc-flags-sidebar-placeholder">
       <div class="flex flex-col items-center justify-center gap-2 py-10">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -54,12 +63,12 @@
       >
         <div class="sc-byline">
           <div class="sc-flag-banner">
-            ⚑
-            <slot name="flag-context" {flag}>
-              {#if flag.context}
-                <span class="sc-portal-name">{flag.context}</span>
-              {/if}
-            </slot>
+            <span aria-hidden="true">⚑</span>
+            {#if flagContext}
+              {@render flagContext({ flag })}
+            {:else if flag.context}
+              <span class="sc-portal-name">{flag.context}</span>
+            {/if}
           </div>
         </div>
         <div class="sc-copy-md">

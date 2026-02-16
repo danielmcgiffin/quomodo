@@ -18,7 +18,9 @@
     {#each flags as flag}
       <div class="sc-card sc-card-flag sc-postit-card">
         <div class="sc-postit-header">
-          <div class="sc-flag-banner">⚑ {flag.flagType.replace("_", " ")}</div>
+          <div class="sc-flag-banner">
+            <span aria-hidden="true">⚑</span> {flag.flagType.replace("_", " ")}
+          </div>
           {#if canModerate}
             <div class="sc-postit-actions">
               <form method="POST" action="?/resolveFlag">

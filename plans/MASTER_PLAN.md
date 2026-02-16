@@ -405,10 +405,10 @@ There are uncommitted changes on `master`:
 **What**: External health check on `https://systemscraft.co`.
 **Steps**:
 
-1. Set up free monitor (UptimeRobot, BetterUptime, or Cloudflare Health Checks)
-2. Monitor `https://systemscraft.co` every 5 minutes
-3. Monitor `https://systemscraft.co/pricing` (verifies rendering, not just DNS)
-4. Alert to email/Slack
+1. [x] Set up free monitor (UptimeRobot, BetterUptime, or Cloudflare Health Checks)
+2. [x] Monitor `https://systemscraft.co` every 5 minutes
+3. [x] Monitor `https://systemscraft.co/pricing` (verifies rendering, not just DNS)
+4. [x] Alert to email/Slack
 
 **Done when**: You get alerted if the site goes down.
 

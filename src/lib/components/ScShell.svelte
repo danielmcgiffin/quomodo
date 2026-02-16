@@ -171,12 +171,16 @@
   </header>
 
   {#if isMobileMenuOpen}
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div
+    <button
       class="sc-sidebar-overlay"
       onclick={() => (isMobileMenuOpen = false)}
-    ></div>
+      onkeydown={(event) => {
+        if (event.key === "Escape" || event.key === "Enter" || event.key === " ") {
+          isMobileMenuOpen = false
+        }
+      }}
+      aria-label="Close menu"
+    ></button>
   {/if}
 
   <aside class="sc-sidebar">

@@ -1,8 +1,16 @@
 <script lang="ts">
   import { Auth } from "@supabase/auth-ui-svelte"
   import { sharedAppearance, oauthProviders } from "../login_config"
+  import { onMount } from "svelte"
 
   let { data } = $props()
+
+  onMount(() => {
+    // SR16-011: Clear focus before Supabase Auth UI mounts to prevent "Autofocus processing was blocked" warnings.
+    if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
+  })
 </script>
 
 <svelte:head>

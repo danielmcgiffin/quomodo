@@ -2,8 +2,16 @@
   import { Auth } from "@supabase/auth-ui-svelte"
   import { sharedAppearance, oauthProviders } from "../login_config"
   import { page } from "$app/stores"
+  import { onMount } from "svelte"
 
   let { data } = $props()
+
+  onMount(() => {
+    // SR16-011: Clear focus before Supabase Auth UI mounts to prevent "Autofocus processing was blocked" warnings.
+    if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
+  })
 
   const resolveNextPath = (): string => {
     const rawNext = $page.url.searchParams.get("next") ?? ""

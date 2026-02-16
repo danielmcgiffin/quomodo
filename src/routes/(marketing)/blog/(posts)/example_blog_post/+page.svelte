@@ -1,26 +1,22 @@
-<p class="lead">A sample post</p>
+<p class="lead">The importance of operational excellence.</p>
 
 <p>
-  This is a sample blog post to demonstrate the blog engine. It shows some of
-  the formatting options included in the template.
+  Building a great product is only half the battle. Maintaining operational excellence ensures that your product continues to deliver value to your users over time.
 </p>
 
-<h3>Section Titles are great</h3>
+<h3>Systems as Assets</h3>
 
-<p>As are more paragraphs.</p>
+<p>Every process in your organization is an asset. When properly documented and optimized, these processes become the engine of your growth.</p>
 
 <blockquote>
-  <p>Block quotes are styled</p>
+  <p>"Operations is where the strategy meets the reality."</p>
 </blockquote>
 
 <pre><code class="language-bash"
-    ># Code blocks work too!
-npm install 
+    ># Run your operational checks
+./checks.sh
 </code></pre>
 
 <p>
-  Check out more formatting options like lists, headers, and more in <a
-    href="https://play.tailwindcss.com/uj1vGACRJA?layout=preview"
-    >the tailwind/typograpy docs</a
-  >.
+  We are committed to providing the tools and insights necessary to help you achieve operational excellence in every facet of your business.
 </p>
