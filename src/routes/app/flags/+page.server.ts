@@ -1,8 +1,5 @@
 import { fail } from "@sveltejs/kit"
-import {
-  canModerateFlags,
-  ensureOrgContext,
-} from "$lib/server/atlas"
+import { canModerateFlags, ensureOrgContext } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
 import { wrapAction, createFlag } from "$lib/server/app/actions"
 import {
@@ -155,7 +152,10 @@ export const actions = {
 
       return { ok: true }
     },
-    { permission: canModerateFlags, forbiddenPayload: { resolveFlagError: "Insufficient permissions." } },
+    {
+      permission: canModerateFlags,
+      forbiddenPayload: { resolveFlagError: "Insufficient permissions." },
+    },
   ),
 
   dismissFlag: wrapAction(
@@ -182,6 +182,9 @@ export const actions = {
 
       return { ok: true }
     },
-    { permission: canModerateFlags, forbiddenPayload: { dismissFlagError: "Insufficient permissions." } },
+    {
+      permission: canModerateFlags,
+      forbiddenPayload: { dismissFlagError: "Insufficient permissions." },
+    },
   ),
 }

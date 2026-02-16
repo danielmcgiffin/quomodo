@@ -19,7 +19,10 @@
 >
   <div class="sc-section-title sc-sidebar-title">{title}</div>
   {#if flags.length === 0}
-    <div class="sc-flags-sidebar-empty sc-flags-sidebar-placeholder" aria-hidden="true">
+    <div
+      class="sc-flags-sidebar-empty sc-flags-sidebar-placeholder"
+      aria-hidden="true"
+    >
       <div class="flex flex-col items-center justify-center gap-2 py-10">
         <svg
           xmlns="http://www.w3.org/2000/svg"

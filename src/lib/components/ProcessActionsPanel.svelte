@@ -54,8 +54,14 @@
     form?: ProcessForm
   }
 
-  let { actions, allRoles, allSystems, viewerRole, highlightedActionId, form }: Props =
-    $props()
+  let {
+    actions,
+    allRoles,
+    allSystems,
+    viewerRole,
+    highlightedActionId,
+    form,
+  }: Props = $props()
 
   const htmlToDraftText = (html: string): string =>
     html
@@ -89,10 +95,16 @@
   let selectedActionSystemId = $state("")
   const filteredActions = $derived.by(() =>
     actions.filter((action: ActionEntry) => {
-      if (selectedActionRoleId && action.ownerRole?.id !== selectedActionRoleId) {
+      if (
+        selectedActionRoleId &&
+        action.ownerRole?.id !== selectedActionRoleId
+      ) {
         return false
       }
-      if (selectedActionSystemId && action.system?.id !== selectedActionSystemId) {
+      if (
+        selectedActionSystemId &&
+        action.system?.id !== selectedActionSystemId
+      ) {
         return false
       }
       return true
@@ -113,7 +125,9 @@
   const isInteractiveTarget = (target: EventTarget | null): boolean =>
     target instanceof Element &&
     Boolean(
-      target.closest("a, button, input, textarea, select, label, [role='button']"),
+      target.closest(
+        "a, button, input, textarea, select, label, [role='button']",
+      ),
     )
 
   const openCreateActionModal = () => {
@@ -276,4 +290,3 @@
     {actionToastMessage}
   </div>
 {/if}
-

@@ -174,4 +174,3 @@ describe("wrapAction", () => {
     expect(callArg.formData.get("name")).toBe("x")
   })
 })
-

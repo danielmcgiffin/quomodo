@@ -47,9 +47,16 @@ describe("detail-relations mappers", () => {
     })
 
     // Includes p1 because role owns it; includes p2 because it has an action performed by the role.
-    expect(grouped.map((entry) => entry.process.id).sort()).toEqual(["p1", "p2"])
-    expect(grouped.find((x) => x.process.id === "p1")?.actions.map((a) => a.id)).toEqual(["a1"])
-    expect(grouped.find((x) => x.process.id === "p2")?.actions.map((a) => a.id)).toEqual(["a2"])
+    expect(grouped.map((entry) => entry.process.id).sort()).toEqual([
+      "p1",
+      "p2",
+    ])
+    expect(
+      grouped.find((x) => x.process.id === "p1")?.actions.map((a) => a.id),
+    ).toEqual(["a1"])
+    expect(
+      grouped.find((x) => x.process.id === "p2")?.actions.map((a) => a.id),
+    ).toEqual(["a2"])
   })
 
   it("filters systems/processes/roles based on actions and maps open flags", () => {
@@ -59,10 +66,18 @@ describe("detail-relations mappers", () => {
     ]
 
     const actionsPerformed = [
-      { id: "a1", processId: "p1", sequence: 1, descriptionHtml: "", system: systems[0]! },
+      {
+        id: "a1",
+        processId: "p1",
+        sequence: 1,
+        descriptionHtml: "",
+        system: systems[0]!,
+      },
     ]
 
-    expect(mapSystemsAccessed({ systems, actionsPerformed }).map((s) => s.id)).toEqual(["s1"])
+    expect(
+      mapSystemsAccessed({ systems, actionsPerformed }).map((s) => s.id),
+    ).toEqual(["s1"])
 
     const roles = [
       { id: "r1", slug: "ops", name: "Ops", initials: "OP" },
@@ -90,12 +105,15 @@ describe("detail-relations mappers", () => {
       { id: "p2", slug: "p2", name: "P2" },
     ]
 
-    expect(filterProcessesUsing({ processes, actionsUsing }).map((p) => p.id)).toEqual(["p1"])
-    expect(filterRolesUsing({ roles, actionsUsing }).map((r) => r.id)).toEqual(["r1"])
+    expect(
+      filterProcessesUsing({ processes, actionsUsing }).map((p) => p.id),
+    ).toEqual(["p1"])
+    expect(filterRolesUsing({ roles, actionsUsing }).map((r) => r.id)).toEqual([
+      "r1",
+    ])
 
     expect(
       mapOpenFlags([{ id: "f1", flag_type: "question", message: "?" }]),
     ).toEqual([{ id: "f1", flagType: "question", message: "?" }])
   })
 })
-

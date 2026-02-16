@@ -106,7 +106,9 @@ const countByOrg = async (table, orgId) => {
     .eq("org_id", orgId)
 
   if (error) {
-    throw new Error(`Failed to count ${table} for org ${orgId}: ${error.message}`)
+    throw new Error(
+      `Failed to count ${table} for org ${orgId}: ${error.message}`,
+    )
   }
   return count ?? 0
 }
@@ -196,16 +198,23 @@ const run = async () => {
         continue
       }
 
-      const [rolesCount, systemsCount, processesCount, actionsCount, flagsCount, accessCount, memberCount] =
-        await Promise.all([
-          countByOrg("roles", org.id),
-          countByOrg("systems", org.id),
-          countByOrg("processes", org.id),
-          countByOrg("actions", org.id),
-          countByOrg("flags", org.id),
-          countByOrg("role_system_access", org.id),
-          countMembers(org.id),
-        ])
+      const [
+        rolesCount,
+        systemsCount,
+        processesCount,
+        actionsCount,
+        flagsCount,
+        accessCount,
+        memberCount,
+      ] = await Promise.all([
+        countByOrg("roles", org.id),
+        countByOrg("systems", org.id),
+        countByOrg("processes", org.id),
+        countByOrg("actions", org.id),
+        countByOrg("flags", org.id),
+        countByOrg("role_system_access", org.id),
+        countMembers(org.id),
+      ])
 
       const hasAtlasData =
         rolesCount > 0 ||

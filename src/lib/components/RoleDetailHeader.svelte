@@ -73,7 +73,8 @@
     if (form?.updateRoleError) {
       isEditRoleModalOpen = true
     }
-    roleNameDraft = typeof form?.roleNameDraft === "string" ? form.roleNameDraft : role.name
+    roleNameDraft =
+      typeof form?.roleNameDraft === "string" ? form.roleNameDraft : role.name
     roleDescriptionDraft =
       typeof form?.roleDescriptionDraft === "string"
         ? form.roleDescriptionDraft
@@ -95,7 +96,11 @@
 
   {#if canEdit}
     <div class="sc-actions">
-      <button class="sc-btn secondary" type="button" onclick={openEditRoleModal}>
+      <button
+        class="sc-btn secondary"
+        type="button"
+        onclick={openEditRoleModal}
+      >
         Edit Role
       </button>
       <form method="POST" action="?/deleteRole" onsubmit={confirmDeleteRole}>
@@ -147,4 +152,3 @@
     </div>
   </form>
 </ScModal>
-

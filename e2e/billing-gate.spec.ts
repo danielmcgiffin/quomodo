@@ -10,7 +10,10 @@ const LapsedMessage =
 
 test.describe("billing gate", () => {
   test("lapsed workspace is read-only and blocks invites", async ({ page }) => {
-    test.skip(!email || !password, "Set E2E_EMAIL and E2E_PASSWORD to run authenticated E2E tests.")
+    test.skip(
+      !email || !password,
+      "Set E2E_EMAIL and E2E_PASSWORD to run authenticated E2E tests.",
+    )
 
     await signInViaEmailPassword(page, { email, password })
 
@@ -22,11 +25,13 @@ test.describe("billing gate", () => {
       .first()
     await expect(membershipsSection).toBeVisible()
 
-    const nameEl = membershipsSection.getByText(e2eConfig.lapsedWorkspaceName, { exact: true })
+    const nameEl = membershipsSection.getByText(e2eConfig.lapsedWorkspaceName, {
+      exact: true,
+    })
     await expect(nameEl).toBeVisible()
 
     const row = nameEl.locator(
-      "xpath=ancestor::div[contains(concat(\" \", normalize-space(@class), \" \"), \" sc-form-row \")]",
+      'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " sc-form-row ")]',
     )
     await expect(row).toBeVisible()
 
@@ -43,15 +48,21 @@ test.describe("billing gate", () => {
 
     // Attempting a write should fail with a 403 error page message.
     await page.getByRole("button", { name: /write a process/i }).click()
-    await page.getByPlaceholder("Process name").fill("E2E Lapsed Process Attempt")
+    await page
+      .getByPlaceholder("Process name")
+      .fill("E2E Lapsed Process Attempt")
     await page.getByPlaceholder(/trigger/i).fill("Trigger")
     await page.getByPlaceholder(/outcome/i).fill("Outcome")
-    await page.getByRole("button", { name: "Create Process", exact: true }).click()
+    await page
+      .getByRole("button", { name: "Create Process", exact: true })
+      .click()
     await expect(page.locator("body")).toContainText(LapsedMessage)
 
     // Invites should also be blocked while lapsed.
     await page.goto("/app/team")
-    await page.getByPlaceholder("teammate@example.com").fill("e2e-invitee@example.com")
+    await page
+      .getByPlaceholder("teammate@example.com")
+      .fill("e2e-invitee@example.com")
     await page.getByRole("button", { name: /send invite/i }).click()
     await expect(page.locator("body")).toContainText(LapsedMessage)
   })

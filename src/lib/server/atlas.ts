@@ -85,7 +85,11 @@ export const setActiveWorkspaceCookie = (
   cookies: Cookies,
   workspaceId: string,
 ): void => {
-  cookies.set(ACTIVE_WORKSPACE_COOKIE, workspaceId, ACTIVE_WORKSPACE_COOKIE_OPTIONS)
+  cookies.set(
+    ACTIVE_WORKSPACE_COOKIE,
+    workspaceId,
+    ACTIVE_WORKSPACE_COOKIE_OPTIONS,
+  )
 }
 
 export const slugify = (value: string): string =>
@@ -256,7 +260,9 @@ const resolveOrgContext = async (locals: App.Locals): Promise<OrgContext> => {
 
   const membership =
     (preferredWorkspaceId &&
-      memberships.find((candidate) => candidate.org_id === preferredWorkspaceId)) ||
+      memberships.find(
+        (candidate) => candidate.org_id === preferredWorkspaceId,
+      )) ||
     memberships[0]
 
   if (!membership) {

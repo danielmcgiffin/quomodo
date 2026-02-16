@@ -49,7 +49,9 @@
     </div>
   {:else}
     {#each processes as process}
-      <article class="sc-card sc-entity-card sc-process-card sc-card-interactive">
+      <article
+        class="sc-card sc-entity-card sc-process-card sc-card-interactive"
+      >
         <InlineEntityFlagControl
           action="?/createFlag"
           targetType="process"
@@ -64,7 +66,10 @@
         />
         <div class="sc-process-card-content">
           <div class="sc-process-card-info">
-            <a class="sc-process-card-link" href={`/app/processes/${process.slug}`}>
+            <a
+              class="sc-process-card-link"
+              href={`/app/processes/${process.slug}`}
+            >
               <div class="sc-section-title">
                 <span class="sc-portal sc-portal-process">{process.name}</span>
               </div>

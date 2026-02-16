@@ -89,7 +89,9 @@
       isEditSystemModalOpen = true
     }
     systemNameDraft =
-      typeof form?.systemNameDraft === "string" ? form.systemNameDraft : system.name
+      typeof form?.systemNameDraft === "string"
+        ? form.systemNameDraft
+        : system.name
     systemDescriptionDraft =
       typeof form?.systemDescriptionDraft === "string"
         ? form.systemDescriptionDraft
@@ -99,7 +101,9 @@
         ? form.systemDescriptionRichDraft
         : system.descriptionRich
     systemLocationDraft =
-      typeof form?.systemLocationDraft === "string" ? form.systemLocationDraft : system.location
+      typeof form?.systemLocationDraft === "string"
+        ? form.systemLocationDraft
+        : system.location
     selectedOwnerRoleId =
       typeof form?.selectedOwnerRoleIdDraft === "string"
         ? form.selectedOwnerRoleIdDraft
@@ -117,10 +121,18 @@
 
   {#if canEdit}
     <div class="sc-actions">
-      <button class="sc-btn secondary" type="button" onclick={openEditSystemModal}>
+      <button
+        class="sc-btn secondary"
+        type="button"
+        onclick={openEditSystemModal}
+      >
         Edit System
       </button>
-      <form method="POST" action="?/deleteSystem" onsubmit={confirmDeleteSystem}>
+      <form
+        method="POST"
+        action="?/deleteSystem"
+        onsubmit={confirmDeleteSystem}
+      >
         <input type="hidden" name="system_id" value={system.id} />
         <button class="sc-btn secondary" type="submit">Delete System</button>
       </form>
@@ -161,7 +173,11 @@
       />
     </div>
     <div class="sc-form-row">
-      <select class="sc-search sc-field" name="owner_role_id" bind:value={selectedOwnerRoleId}>
+      <select
+        class="sc-search sc-field"
+        name="owner_role_id"
+        bind:value={selectedOwnerRoleId}
+      >
         <option value="">Owner role (optional)</option>
         {#each allRoles as role}
           <option value={role.id}>{role.name}</option>
@@ -185,4 +201,3 @@
     </div>
   </form>
 </ScModal>
-

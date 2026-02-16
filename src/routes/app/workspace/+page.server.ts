@@ -7,7 +7,10 @@ import {
   type MembershipRole,
 } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
-import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
+import {
+  assertWorkspaceWritable,
+  getOrgBillingSnapshot,
+} from "$lib/server/billing"
 
 const WORKSPACE_NAME_MAX_LENGTH = 80
 const APP_DEFAULT_REDIRECT = "/app/processes"
@@ -63,7 +66,9 @@ export const load = async ({ locals, url }) => {
   }
 
   const memberships = (membershipsResult.data ?? []) as MembershipRow[]
-  const uniqueOrgIds = [...new Set(memberships.map((membership) => membership.org_id))]
+  const uniqueOrgIds = [
+    ...new Set(memberships.map((membership) => membership.org_id)),
+  ]
   const orgById = new Map<string, OrgRow>()
 
   if (uniqueOrgIds.length > 0) {
@@ -141,7 +146,8 @@ export const actions = {
     assertWorkspaceWritable(billing)
     if (!canManageDirectory(context.membershipRole)) {
       return fail(403, {
-        renameWorkspaceError: "Only workspace owners and admins can rename this workspace.",
+        renameWorkspaceError:
+          "Only workspace owners and admins can rename this workspace.",
       })
     }
 

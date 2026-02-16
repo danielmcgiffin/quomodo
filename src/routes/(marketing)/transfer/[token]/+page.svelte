@@ -11,7 +11,12 @@
         fromOwnerUserId: string
         expiresAt: string
       } | null
-      transferStatus: "pending" | "accepted" | "cancelled" | "expired" | "invalid"
+      transferStatus:
+        | "pending"
+        | "accepted"
+        | "cancelled"
+        | "expired"
+        | "invalid"
       signInUrl: string
       canAccept: boolean
       userAuthenticated: boolean
@@ -74,7 +79,9 @@
         </div>
         <div class="sc-actions sc-stack-top-10">
           <a class="sc-btn secondary" href="/account/sign_out">Sign out</a>
-          <a class="sc-btn" href={data.signInUrl}>Sign in with the recipient account</a>
+          <a class="sc-btn" href={data.signInUrl}
+            >Sign in with the recipient account</a
+          >
         </div>
       </section>
     {/if}
@@ -83,10 +90,14 @@
       <section class="sc-card sc-stack-top-12">
         <div class="font-semibold">Ready to accept?</div>
         <div class="sc-muted-line sc-stack-top-6">
-          Accepting will make you the workspace owner and open the app in that workspace
-          context.
+          Accepting will make you the workspace owner and open the app in that
+          workspace context.
         </div>
-        <form class="sc-stack-top-10" method="POST" action="?/acceptOwnershipTransfer">
+        <form
+          class="sc-stack-top-10"
+          method="POST"
+          action="?/acceptOwnershipTransfer"
+        >
           <button class="sc-btn" type="submit">Accept transfer</button>
         </form>
       </section>
@@ -96,7 +107,9 @@
       <section class="sc-card sc-stack-top-12">
         <div class="font-semibold">Transfer already accepted.</div>
         <div class="sc-actions sc-stack-top-10">
-          <a class="sc-btn" href="/app/team?ownershipTransferAccepted=1">Open team settings</a>
+          <a class="sc-btn" href="/app/team?ownershipTransferAccepted=1"
+            >Open team settings</a
+          >
         </div>
       </section>
     {/if}
@@ -111,4 +124,3 @@
     {/if}
   {/if}
 </div>
-

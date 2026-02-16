@@ -2,12 +2,12 @@
 
 This doc operationalizes the open V1 blockers in:
 
-- `plans/V1_CHECKLIST.md` (Customer Onboarding Readiness section)
-- `plans/LAUNCH_PLAN.md` (`LP-065` through `LP-069`)
+- `plans/archive/V1_CHECKLIST.md` (Customer Onboarding Readiness section)
+- `plans/archive/LAUNCH_PLAN.md` (`LP-065` through `LP-069`)
 
 ## LP-065: Production Domain + Auth Callback Alignment
 
-Acceptance reference: `plans/LAUNCH_PLAN.md` (`LP-065`).
+Acceptance reference: `plans/archive/LAUNCH_PLAN.md` (`LP-065`).
 
 1. Confirm Cloudflare custom domain `systemscraft.co` is attached to the production worker and serving HTTPS.
 2. Confirm `WebsiteBaseUrl` matches canonical domain in `src/config.ts`.
@@ -24,7 +24,7 @@ Check off `LP-065` only after all four steps are verified.
 
 ## LP-066: Stripe Catalog + Pricing Mapping Hardening
 
-Acceptance reference: `plans/LAUNCH_PLAN.md` (`LP-066`).
+Acceptance reference: `plans/archive/LAUNCH_PLAN.md` (`LP-066`).
 
 1. Replace demo/test plan copy and placeholders in:
    - `src/routes/(marketing)/pricing/pricing_plans.ts`
@@ -45,7 +45,7 @@ Check off `LP-066` only after all six steps pass.
 
 ## LP-067: Production Email Deliverability + Branding
 
-Acceptance reference: `plans/LAUNCH_PLAN.md` (`LP-067`).
+Acceptance reference: `plans/archive/LAUNCH_PLAN.md` (`LP-067`).
 
 1. Configure Supabase Auth SMTP for production-domain auth emails.
 2. Configure Resend with verified sending domain and production sender identity.
@@ -65,7 +65,7 @@ Check off `LP-067` only after all six steps pass.
 
 ## LP-068: First-Customer Onboarding Runbook + Validation
 
-Acceptance reference: `plans/LAUNCH_PLAN.md` (`LP-068`).
+Acceptance reference: `plans/archive/LAUNCH_PLAN.md` (`LP-068`).
 
 1. Create one runbook doc that covers the complete external user path:
    - sign up
@@ -85,7 +85,7 @@ Check off `LP-068` only when documentation and one full validation run are compl
 
 ## LP-069: Multi-User Workspace Provisioning Path
 
-Acceptance reference: `plans/LAUNCH_PLAN.md` (`LP-069`).
+Acceptance reference: `plans/archive/LAUNCH_PLAN.md` (`LP-069`).
 
 1. Define a tested provisioning path to add non-owner users to an existing org and assign:
    - `admin`
@@ -103,5 +103,5 @@ Check off `LP-069` only when provisioning procedure and non-owner validation are
 
 Per repo instructions in `AGENTS.md`, whenever scope/progress changes:
 
-1. Update `plans/V1_CHECKLIST.md` checkbox status for each completed LP.
-2. Update `plans/LAUNCH_PLAN.md` with completion status, date, and verification evidence.
+1. Update `plans/archive/V1_CHECKLIST.md` checkbox status for each completed LP.
+2. Update `plans/archive/LAUNCH_PLAN.md` with completion status, date, and verification evidence.

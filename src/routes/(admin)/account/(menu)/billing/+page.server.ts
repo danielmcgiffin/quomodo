@@ -3,9 +3,7 @@ import { ensureOrgContext } from "$lib/server/atlas"
 import { getOrgBillingSnapshot } from "$lib/server/billing"
 import type { PageServerLoad } from "./$types"
 
-export const load: PageServerLoad = async ({
-  locals,
-}) => {
+export const load: PageServerLoad = async ({ locals }) => {
   const { session } = await locals.safeGetSession()
   if (!session || !locals.user?.id) {
     redirect(303, "/login")

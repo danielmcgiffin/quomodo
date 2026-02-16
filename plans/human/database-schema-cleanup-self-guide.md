@@ -117,5 +117,4 @@ Do a quick manual app pass:
 
 If this scope is completed/changed, update in the same change:
 
-- `plans/V1_CHECKLIST.md`
-- `plans/LAUNCH_PLAN.md`
+- `plans/MASTER_PLAN.md`

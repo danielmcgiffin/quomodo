@@ -210,7 +210,10 @@ export const actions = {
 
       redirect(303, `/app/systems/${result.slug}`)
     },
-    { permission: canManageDirectory, forbiddenPayload: { updateSystemError: "Insufficient permissions." } },
+    {
+      permission: canManageDirectory,
+      forbiddenPayload: { updateSystemError: "Insufficient permissions." },
+    },
   ),
 
   deleteSystem: wrapAction(
@@ -228,6 +231,9 @@ export const actions = {
 
       redirect(303, "/app/systems")
     },
-    { permission: canManageDirectory, forbiddenPayload: { deleteSystemError: "Insufficient permissions." } },
+    {
+      permission: canManageDirectory,
+      forbiddenPayload: { deleteSystemError: "Insufficient permissions." },
+    },
   ),
 }

@@ -47,19 +47,18 @@ export const load = async ({ locals }) => {
     flagCount,
     billing,
     membershipsResult,
-  ] =
-    await Promise.all([
-      countTable(supabase, "processes", context.orgId, locals.requestId),
-      countTable(supabase, "roles", context.orgId, locals.requestId),
-      countTable(supabase, "systems", context.orgId, locals.requestId),
-      countTable(supabase, "flags", context.orgId, locals.requestId),
-      getOrgBillingSnapshot(locals, context.orgId),
-      supabase
-        .from("org_members")
-        .select("org_id, role, accepted_at")
-        .eq("user_id", context.userId)
-        .order("accepted_at", { ascending: false, nullsFirst: false }),
-    ])
+  ] = await Promise.all([
+    countTable(supabase, "processes", context.orgId, locals.requestId),
+    countTable(supabase, "roles", context.orgId, locals.requestId),
+    countTable(supabase, "systems", context.orgId, locals.requestId),
+    countTable(supabase, "flags", context.orgId, locals.requestId),
+    getOrgBillingSnapshot(locals, context.orgId),
+    supabase
+      .from("org_members")
+      .select("org_id, role, accepted_at")
+      .eq("user_id", context.userId)
+      .order("accepted_at", { ascending: false, nullsFirst: false }),
+  ])
 
   if (membershipsResult.error) {
     throwRuntime500({
@@ -72,7 +71,9 @@ export const load = async ({ locals }) => {
   }
 
   const memberships = (membershipsResult.data ?? []) as MembershipRow[]
-  const uniqueOrgIds = [...new Set(memberships.map((membership) => membership.org_id))]
+  const uniqueOrgIds = [
+    ...new Set(memberships.map((membership) => membership.org_id)),
+  ]
   const orgById = new Map<string, OrgRow>()
 
   if (uniqueOrgIds.length > 0) {

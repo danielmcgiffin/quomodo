@@ -2,10 +2,7 @@ import { fail, redirect } from "@sveltejs/kit"
 import { env } from "$env/dynamic/private"
 import { WebsiteBaseUrl, WebsiteName } from "../../../../config"
 import { sendTemplatedEmail } from "$lib/mailer"
-import {
-  ensureOrgContext,
-  setActiveWorkspaceCookie,
-} from "$lib/server/atlas"
+import { ensureOrgContext, setActiveWorkspaceCookie } from "$lib/server/atlas"
 import { hashOwnershipTransferToken } from "$lib/server/ownership-transfers"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
 
@@ -24,7 +21,8 @@ const determineTransferStatus = (row: TransferLookupRow | null) => {
   if (!row) return "invalid" as const
   if (row.status === "accepted") return "accepted" as const
   if (row.status === "cancelled") return "cancelled" as const
-  if (new Date(row.expires_at).getTime() <= Date.now()) return "expired" as const
+  if (new Date(row.expires_at).getTime() <= Date.now())
+    return "expired" as const
   return "pending" as const
 }
 
@@ -102,7 +100,9 @@ export const load = async ({ locals, params }) => {
   }
 
   const userId = locals.user?.id ?? null
-  const userMatchesRecipient = Boolean(userId && userId === transfer.to_owner_id)
+  const userMatchesRecipient = Boolean(
+    userId && userId === transfer.to_owner_id,
+  )
 
   return {
     transfer: {
@@ -115,7 +115,10 @@ export const load = async ({ locals, params }) => {
     },
     transferStatus,
     signInUrl,
-    canAccept: Boolean(locals.user) && userMatchesRecipient && transferStatus === "pending",
+    canAccept:
+      Boolean(locals.user) &&
+      userMatchesRecipient &&
+      transferStatus === "pending",
     userAuthenticated: Boolean(locals.user),
     userId,
     userMatchesRecipient,
@@ -132,9 +135,12 @@ export const actions = {
     }
 
     const tokenHash = await hashOwnershipTransferToken(token)
-    const rpcResult = await locals.supabase.rpc("sc_accept_ownership_transfer", {
-      p_token_hash: tokenHash,
-    })
+    const rpcResult = await locals.supabase.rpc(
+      "sc_accept_ownership_transfer",
+      {
+        p_token_hash: tokenHash,
+      },
+    )
 
     if (rpcResult.error) {
       return fail(400, { acceptTransferError: rpcResult.error.message })
@@ -142,7 +148,9 @@ export const actions = {
 
     const orgId = rpcResult.data as string | null
     if (!orgId) {
-      return fail(400, { acceptTransferError: "Transfer could not be accepted." })
+      return fail(400, {
+        acceptTransferError: "Transfer could not be accepted.",
+      })
     }
 
     // Best-effort notifications to prior/new owners.

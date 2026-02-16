@@ -208,7 +208,10 @@ export const actions = {
 
       redirect(303, `/app/roles/${result.slug}`)
     },
-    { permission: canManageDirectory, forbiddenPayload: { updateRoleError: "Insufficient permissions." } },
+    {
+      permission: canManageDirectory,
+      forbiddenPayload: { updateRoleError: "Insufficient permissions." },
+    },
   ),
 
   deleteRole: wrapAction(
@@ -226,6 +229,9 @@ export const actions = {
 
       redirect(303, "/app/roles")
     },
-    { permission: canManageDirectory, forbiddenPayload: { deleteRoleError: "Insufficient permissions." } },
+    {
+      permission: canManageDirectory,
+      forbiddenPayload: { deleteRoleError: "Insufficient permissions." },
+    },
   ),
 }

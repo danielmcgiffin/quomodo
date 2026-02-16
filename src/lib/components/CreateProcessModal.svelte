@@ -33,7 +33,12 @@
       <div class="sc-form-error">{createProcessError}</div>
     {/if}
     <div class="sc-form-row">
-      <input class="sc-search sc-field" name="name" placeholder="Process name" required />
+      <input
+        class="sc-search sc-field"
+        name="name"
+        placeholder="Process name"
+        required
+      />
     </div>
     <div class="sc-form-row">
       <RichTextEditor

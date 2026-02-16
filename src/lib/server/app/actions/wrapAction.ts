@@ -1,6 +1,9 @@
 import { fail } from "@sveltejs/kit"
 import { ensureOrgContext } from "$lib/server/atlas"
-import { assertWorkspaceWritable, getOrgBillingSnapshot } from "$lib/server/billing"
+import {
+  assertWorkspaceWritable,
+  getOrgBillingSnapshot,
+} from "$lib/server/billing"
 
 type MembershipRole = "owner" | "admin" | "editor" | "member"
 

@@ -163,7 +163,9 @@ const summarizeOrg = async (orgId) => {
 const cleanupOrg = async (orgId) => {
   const { org, counts } = await summarizeOrg(orgId)
 
-  console.log(`org=${org.id} name="${org.name ?? "unknown"}" slug="${org.slug ?? "unknown"}"`)
+  console.log(
+    `org=${org.id} name="${org.name ?? "unknown"}" slug="${org.slug ?? "unknown"}"`,
+  )
   console.log(
     `counts flags=${counts.flags} processes=${counts.processes} systems=${counts.systems} roles=${counts.roles}`,
   )
@@ -229,4 +231,3 @@ main().catch((error) => {
   console.error(String(error?.message ?? error))
   process.exitCode = 1
 })
-

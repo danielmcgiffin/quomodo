@@ -66,9 +66,7 @@ describe("process mappers", () => {
   })
 
   it("maps open process flags and drops flags for missing process", () => {
-    const processById = new Map([
-      ["p1", { id: "p1", slug: "p1", name: "P1" }],
-    ])
+    const processById = new Map([["p1", { id: "p1", slug: "p1", name: "P1" }]])
 
     const flags = mapOpenProcessFlags({
       flagRows: [
@@ -145,4 +143,3 @@ describe("process mappers", () => {
     expect(flags[0]!.message).toBe("M")
   })
 })
-

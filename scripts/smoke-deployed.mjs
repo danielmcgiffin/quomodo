@@ -42,13 +42,43 @@ const suffix = now
   .slice(0, 14)
 
 const checks = [
-  { id: "login", label: "Login (owner/admin/editor/member)", status: "pending", detail: "" },
-  { id: "rbac", label: "RBAC non-owner permissions", status: "pending", detail: "" },
-  { id: "crud", label: "CRUD (roles/systems/processes/actions)", status: "pending", detail: "" },
+  {
+    id: "login",
+    label: "Login (owner/admin/editor/member)",
+    status: "pending",
+    detail: "",
+  },
+  {
+    id: "rbac",
+    label: "RBAC non-owner permissions",
+    status: "pending",
+    detail: "",
+  },
+  {
+    id: "crud",
+    label: "CRUD (roles/systems/processes/actions)",
+    status: "pending",
+    detail: "",
+  },
   { id: "portals", label: "Portals traversal", status: "pending", detail: "" },
-  { id: "search", label: "Search endpoint + deep links", status: "pending", detail: "" },
-  { id: "flags", label: "Flags create + dashboard visibility", status: "pending", detail: "" },
-  { id: "billing", label: "Billing route access", status: "pending", detail: "" },
+  {
+    id: "search",
+    label: "Search endpoint + deep links",
+    status: "pending",
+    detail: "",
+  },
+  {
+    id: "flags",
+    label: "Flags create + dashboard visibility",
+    status: "pending",
+    detail: "",
+  },
+  {
+    id: "billing",
+    label: "Billing route access",
+    status: "pending",
+    detail: "",
+  },
 ]
 
 const findCheck = (id) => {
@@ -141,9 +171,9 @@ const parseActionIdsInOrder = (html) => {
   )
   const ids = []
   for (const form of forms) {
-    const direction = form.querySelector('input[name="direction"]')?.getAttribute(
-      "value",
-    )
+    const direction = form
+      .querySelector('input[name="direction"]')
+      ?.getAttribute("value")
     if (direction !== "up") {
       continue
     }
@@ -170,31 +200,35 @@ const hasHref = (html, hrefPrefix) => {
 
 const createSession = async ({ label, email, password }) => {
   const cookieJar = new Map()
-  const supabase = createServerClient(publicSupabaseUrl, publicSupabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return Array.from(cookieJar.entries()).map(([name, value]) => ({
-          name,
-          value,
-        }))
-      },
-      setAll(cookiesToSet) {
-        for (const cookie of cookiesToSet) {
-          const name = String(cookie.name ?? "")
-          const value = String(cookie.value ?? "")
-          const maxAge = Number(cookie.options?.maxAge)
-          if (!name) {
-            continue
+  const supabase = createServerClient(
+    publicSupabaseUrl,
+    publicSupabaseAnonKey,
+    {
+      cookies: {
+        getAll() {
+          return Array.from(cookieJar.entries()).map(([name, value]) => ({
+            name,
+            value,
+          }))
+        },
+        setAll(cookiesToSet) {
+          for (const cookie of cookiesToSet) {
+            const name = String(cookie.name ?? "")
+            const value = String(cookie.value ?? "")
+            const maxAge = Number(cookie.options?.maxAge)
+            if (!name) {
+              continue
+            }
+            if (!value || (!Number.isNaN(maxAge) && maxAge <= 0)) {
+              cookieJar.delete(name)
+            } else {
+              cookieJar.set(name, value)
+            }
           }
-          if (!value || (!Number.isNaN(maxAge) && maxAge <= 0)) {
-            cookieJar.delete(name)
-          } else {
-            cookieJar.set(name, value)
-          }
-        }
+        },
       },
     },
-  })
+  )
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -288,14 +322,22 @@ const run = async () => {
   })
 
   try {
-    for (const session of [ownerSession, adminSession, editorSession, memberSession]) {
+    for (const session of [
+      ownerSession,
+      adminSession,
+      editorSession,
+      memberSession,
+    ]) {
       const response = await requestApp({
         session,
         path: "/app/processes",
       })
       await expectStatus(response, [200], `${session.label} app access`)
     }
-    markPass("login", "All four workspace roles authenticated and loaded /app/processes.")
+    markPass(
+      "login",
+      "All four workspace roles authenticated and loaded /app/processes.",
+    )
   } catch (error) {
     markFail("login", String(error instanceof Error ? error.message : error))
     throw error
@@ -363,7 +405,8 @@ const run = async () => {
       artifacts.rolePath,
       "Update role",
     )
-    artifacts.roleSlug = artifacts.rolePath.split("/").pop() ?? artifacts.roleSlug
+    artifacts.roleSlug =
+      artifacts.rolePath.split("/").pop() ?? artifacts.roleSlug
 
     const systemName = `Smoke System ${suffix}`
     const systemUpdateName = `${systemName} Updated`
@@ -390,7 +433,11 @@ const run = async () => {
       session: ownerSession,
       path: artifacts.systemPath,
     })
-    await expectStatus(systemDetailResponse, [200], "Load created system detail")
+    await expectStatus(
+      systemDetailResponse,
+      [200],
+      "Load created system detail",
+    )
     const systemDetailHtml = await systemDetailResponse.text()
     artifacts.systemId = parseHiddenInput(systemDetailHtml, "system_id") ?? ""
     if (!artifacts.systemId) {
@@ -415,7 +462,8 @@ const run = async () => {
       artifacts.systemPath,
       "Update system",
     )
-    artifacts.systemSlug = artifacts.systemPath.split("/").pop() ?? artifacts.systemSlug
+    artifacts.systemSlug =
+      artifacts.systemPath.split("/").pop() ?? artifacts.systemSlug
 
     const processName = `Smoke Process ${suffix}`
     const createProcessResponse = await requestApp({
@@ -442,9 +490,14 @@ const run = async () => {
       session: ownerSession,
       path: artifacts.processPath,
     })
-    await expectStatus(processDetailResponse, [200], "Load created process detail")
+    await expectStatus(
+      processDetailResponse,
+      [200],
+      "Load created process detail",
+    )
     const processDetailHtml = await processDetailResponse.text()
-    artifacts.processId = parseHiddenInput(processDetailHtml, "process_id") ?? ""
+    artifacts.processId =
+      parseHiddenInput(processDetailHtml, "process_id") ?? ""
     if (!artifacts.processId) {
       throw new Error("Process detail did not include process_id form input.")
     }
@@ -481,7 +534,11 @@ const run = async () => {
       session: ownerSession,
       path: artifacts.processPath,
     })
-    await expectStatus(processAfterCreateResponse, [200], "Load process after action create")
+    await expectStatus(
+      processAfterCreateResponse,
+      [200],
+      "Load process after action create",
+    )
     const processAfterCreateHtml = await processAfterCreateResponse.text()
     artifacts.actionIds = parseActionIdsInOrder(processAfterCreateHtml)
     if (artifacts.actionIds.length < 2) {
@@ -504,7 +561,11 @@ const run = async () => {
       session: ownerSession,
       path: artifacts.processPath,
     })
-    await expectStatus(processAfterReorderResponse, [200], "Load process after reorder")
+    await expectStatus(
+      processAfterReorderResponse,
+      [200],
+      "Load process after reorder",
+    )
     const processAfterReorderHtml = await processAfterReorderResponse.text()
     const reorderedIds = parseActionIdsInOrder(processAfterReorderHtml)
     if (reorderedIds[0] !== movedActionId) {
@@ -576,7 +637,11 @@ const run = async () => {
         role_id: adminRoleId,
       },
     })
-    await expectStatus(adminDeleteRoleResponse, [200, 303], "Admin role cleanup")
+    await expectStatus(
+      adminDeleteRoleResponse,
+      [200, 303],
+      "Admin role cleanup",
+    )
 
     const editorCreateRoleResponse = await requestApp({
       session: editorSession,
@@ -605,7 +670,11 @@ const run = async () => {
         sequence: "3",
       },
     })
-    await expectStatus(editorCreateActionResponse, [200, 303], "Editor create action")
+    await expectStatus(
+      editorCreateActionResponse,
+      [200, 303],
+      "Editor create action",
+    )
 
     const memberCreateActionResponse = await requestApp({
       session: memberSession,
@@ -637,7 +706,11 @@ const run = async () => {
         target_path: "description",
       },
     })
-    await expectStatus(memberCommentResponse, [200], "Member create comment flag")
+    await expectStatus(
+      memberCommentResponse,
+      [200],
+      "Member create comment flag",
+    )
 
     const memberNeedsReviewResponse = await requestApp({
       session: memberSession,
@@ -687,7 +760,11 @@ const run = async () => {
       session: ownerSession,
       path: artifacts.systemPath,
     })
-    await expectStatus(systemTraversalResponse, [200], "System traversal page load")
+    await expectStatus(
+      systemTraversalResponse,
+      [200],
+      "System traversal page load",
+    )
     const systemTraversalHtml = await systemTraversalResponse.text()
     const hasProcessPortalFromSystem = hasHref(
       systemTraversalHtml,
@@ -722,7 +799,9 @@ const run = async () => {
       `/app/systems/${artifacts.systemSlug}`,
     )
     if (!hasRolePortalFromProcess || !hasSystemPortalFromProcess) {
-      throw new Error("Process detail did not include expected role/system links.")
+      throw new Error(
+        "Process detail did not include expected role/system links.",
+      )
     }
 
     markPass(
@@ -752,7 +831,13 @@ const run = async () => {
         item.href.includes(`/app/processes/${artifacts.processSlug}`) &&
         item.href.includes("actionId="),
     )
-    if (!hasProcess || !hasRole || !hasSystem || !hasAction || !hasActionDeepLink) {
+    if (
+      !hasProcess ||
+      !hasRole ||
+      !hasSystem ||
+      !hasAction ||
+      !hasActionDeepLink
+    ) {
       throw new Error(
         "Search results were missing expected entity types or action deep-link route.",
       )
@@ -800,7 +885,9 @@ const run = async () => {
     })
     if (billingResponse.status >= 500) {
       const snippet = await responseSnippet(billingResponse)
-      throw new Error(`Billing route returned ${billingResponse.status}: ${snippet}`)
+      throw new Error(
+        `Billing route returned ${billingResponse.status}: ${snippet}`,
+      )
     }
     if (![200, 303].includes(billingResponse.status)) {
       throw new Error(
@@ -808,8 +895,13 @@ const run = async () => {
       )
     }
     const billingLocation = billingResponse.headers.get("location") ?? ""
-    if (billingResponse.status === 303 && billingLocation.startsWith("/login")) {
-      throw new Error("Billing route redirected to /login for authenticated owner.")
+    if (
+      billingResponse.status === 303 &&
+      billingLocation.startsWith("/login")
+    ) {
+      throw new Error(
+        "Billing route redirected to /login for authenticated owner.",
+      )
     }
 
     markPass(
@@ -827,11 +919,16 @@ const run = async () => {
     })
 
     // Delete can fail with 400 (bad request) or 409 (conflict: actions still linked).
-    if (processDeleteResponse.status === 400 || processDeleteResponse.status === 409) {
-      const processHtml = await (await requestApp({
-        session: ownerSession,
-        path: artifacts.processPath,
-      })).text()
+    if (
+      processDeleteResponse.status === 400 ||
+      processDeleteResponse.status === 409
+    ) {
+      const processHtml = await (
+        await requestApp({
+          session: ownerSession,
+          path: artifacts.processPath,
+        })
+      ).text()
       const remainingActionIds = parseActionIdsInOrder(processHtml)
       for (const actionId of remainingActionIds) {
         const deleteRemainingActionResponse = await requestApp({
@@ -863,7 +960,11 @@ const run = async () => {
         "Delete process cleanup",
       )
     } else {
-      await expectStatus(processDeleteResponse, [200, 303], "Delete process cleanup")
+      await expectStatus(
+        processDeleteResponse,
+        [200, 303],
+        "Delete process cleanup",
+      )
     }
 
     const deleteSystemResponse = await requestApp({
@@ -874,7 +975,11 @@ const run = async () => {
         system_id: artifacts.systemId,
       },
     })
-    await expectStatus(deleteSystemResponse, [200, 303], "Delete system cleanup")
+    await expectStatus(
+      deleteSystemResponse,
+      [200, 303],
+      "Delete system cleanup",
+    )
 
     const deleteRoleResponse = await requestApp({
       session: ownerSession,

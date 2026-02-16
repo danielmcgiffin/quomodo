@@ -123,24 +123,38 @@ export const actions = {
           systemLocationDraft: draft.location,
           selectedOwnerRoleIdDraft: draft.ownerRoleIdRaw,
         })
-      const result = await createSystemRecord({ supabase, orgId: context.orgId, draft })
+      const result = await createSystemRecord({
+        supabase,
+        orgId: context.orgId,
+        draft,
+      })
       if (!result.ok) {
         return failSystem(result.status, result.message)
       }
       redirect(303, `/app/systems/${result.slug}`)
     },
-    { permission: canManageDirectory, forbiddenPayload: { createSystemError: "Insufficient permissions." } },
+    {
+      permission: canManageDirectory,
+      forbiddenPayload: { createSystemError: "Insufficient permissions." },
+    },
   ),
   createRole: wrapAction(
     async ({ context, supabase, formData }) => {
       const draft = readRoleDraft(formData)
-      const result = await createRoleRecord({ supabase, orgId: context.orgId, draft })
+      const result = await createRoleRecord({
+        supabase,
+        orgId: context.orgId,
+        draft,
+      })
       if (!result.ok) {
         return fail(result.status, { createRoleError: result.message })
       }
       return { createRoleSuccess: true, createdRoleId: result.id }
     },
-    { permission: canManageDirectory, forbiddenPayload: { createRoleError: "Insufficient permissions." } },
+    {
+      permission: canManageDirectory,
+      forbiddenPayload: { createRoleError: "Insufficient permissions." },
+    },
   ),
   createFlag: wrapAction(async ({ context, supabase, formData }) => {
     const result = await createFlagForEntity({

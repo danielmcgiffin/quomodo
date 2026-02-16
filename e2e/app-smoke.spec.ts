@@ -6,7 +6,10 @@ const password = process.env.E2E_PASSWORD ?? ""
 
 test.describe("app smoke", () => {
   test("sign in and load core app pages", async ({ page }) => {
-    test.skip(!email || !password, "Set E2E_EMAIL and E2E_PASSWORD to run authenticated E2E tests.")
+    test.skip(
+      !email || !password,
+      "Set E2E_EMAIL and E2E_PASSWORD to run authenticated E2E tests.",
+    )
 
     await signInViaEmailPassword(page, { email, password })
 

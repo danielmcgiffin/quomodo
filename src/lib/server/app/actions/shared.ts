@@ -819,10 +819,7 @@ export const createOrUpdateActionRecord = async ({
   orgId: string
   processSlug: string
   draft: ActionDraft
-}): Promise<
-  | { ok: true }
-  | { ok: false; status: number; message: string }
-> => {
+}): Promise<{ ok: true } | { ok: false; status: number; message: string }> => {
   if (!draft.description || !draft.ownerRoleId || !draft.systemId) {
     return {
       ok: false,
@@ -911,10 +908,7 @@ export const deleteActionRecord = async ({
   orgId: string
   processSlug: string
   actionId: string
-}): Promise<
-  | { ok: true }
-  | { ok: false; status: number; message: string }
-> => {
+}): Promise<{ ok: true } | { ok: false; status: number; message: string }> => {
   if (!actionId) {
     return { ok: false, status: 400, message: "Action id is required." }
   }
@@ -952,13 +946,14 @@ export const deleteActionRecord = async ({
     return { ok: false, status: 400, message: deleteError.message }
   }
 
-  const { data: remainingActions, error: remainingActionsError } = await supabase
-    .from("actions")
-    .select("id, sequence")
-    .eq("org_id", orgId)
-    .eq("process_id", process.id)
-    .order("sequence")
-    .order("id")
+  const { data: remainingActions, error: remainingActionsError } =
+    await supabase
+      .from("actions")
+      .select("id, sequence")
+      .eq("org_id", orgId)
+      .eq("process_id", process.id)
+      .order("sequence")
+      .order("id")
 
   if (remainingActionsError) {
     return { ok: false, status: 400, message: remainingActionsError.message }
@@ -990,10 +985,7 @@ export const reorderActionRecord = async ({
   processSlug: string
   actionId: string
   direction: "up" | "down"
-}): Promise<
-  | { ok: true }
-  | { ok: false; status: number; message: string }
-> => {
+}): Promise<{ ok: true } | { ok: false; status: number; message: string }> => {
   if (!actionId) {
     return { ok: false, status: 400, message: "Action id is required." }
   }
@@ -1025,7 +1017,9 @@ export const reorderActionRecord = async ({
   }
 
   const actionsInOrder = (actionRows ?? []) as ActionSequenceRow[]
-  const currentIndex = actionsInOrder.findIndex((action) => action.id === actionId)
+  const currentIndex = actionsInOrder.findIndex(
+    (action) => action.id === actionId,
+  )
   if (currentIndex === -1) {
     return { ok: false, status: 404, message: "Action not found." }
   }
@@ -1102,13 +1096,15 @@ export const createSystem = async ({
 type CreateFlagTargetType = "process" | "role" | "system" | "action"
 type CreateFlagTargetTable = "processes" | "roles" | "systems" | "actions"
 
-const flagTargetTableByType: Record<CreateFlagTargetType, CreateFlagTargetTable> =
-  {
-    process: "processes",
-    role: "roles",
-    system: "systems",
-    action: "actions",
-  }
+const flagTargetTableByType: Record<
+  CreateFlagTargetType,
+  CreateFlagTargetTable
+> = {
+  process: "processes",
+  role: "roles",
+  system: "systems",
+  action: "actions",
+}
 
 export const createFlag = async ({
   supabase,
@@ -1145,7 +1141,11 @@ export const createFlag = async ({
 
   const flagTypeRaw = String(formData.get("flag_type") ?? "comment").trim()
   if (!isScFlagType(flagTypeRaw)) {
-    return { success: false, error: "Flag type is invalid.", field: "flag_type" }
+    return {
+      success: false,
+      error: "Flag type is invalid.",
+      field: "flag_type",
+    }
   }
 
   const message = String(formData.get("message") ?? "").trim()

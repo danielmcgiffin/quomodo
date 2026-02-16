@@ -102,13 +102,20 @@ export const actions = {
           roleDescriptionDraft: draft.description,
           roleDescriptionRichDraft: draft.descriptionRichRaw,
         })
-      const result = await createRoleRecord({ supabase, orgId: context.orgId, draft })
+      const result = await createRoleRecord({
+        supabase,
+        orgId: context.orgId,
+        draft,
+      })
       if (!result.ok) {
         return failRole(result.status, result.message)
       }
       redirect(303, `/app/roles/${result.slug}`)
     },
-    { permission: canManageDirectory, forbiddenPayload: { createRoleError: "Insufficient permissions." } },
+    {
+      permission: canManageDirectory,
+      forbiddenPayload: { createRoleError: "Insufficient permissions." },
+    },
   ),
   createFlag: wrapAction(
     async ({ context, supabase, formData }) => {

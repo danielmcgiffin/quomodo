@@ -9,9 +9,7 @@ const stripe = new Stripe(privateEnv.PRIVATE_STRIPE_API_KEY, {
   apiVersion: "2023-08-16",
 })
 
-export const load: PageServerLoad = async ({
-  locals,
-}) => {
+export const load: PageServerLoad = async ({ locals }) => {
   const { session } = await locals.safeGetSession()
   if (!session) {
     redirect(303, "/login")

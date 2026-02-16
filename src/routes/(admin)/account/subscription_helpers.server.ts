@@ -116,8 +116,7 @@ export const fetchSubscription = async ({
     })
     if (!appSubscription) {
       return {
-        error:
-          `Stripe subscription could not be mapped to pricing_plans.ts (product=${productId}, price=${priceId})`,
+        error: `Stripe subscription could not be mapped to pricing_plans.ts (product=${productId}, price=${priceId})`,
       }
     }
   }

@@ -193,7 +193,10 @@ export const actions = {
 
       redirect(303, `/app/processes/${result.slug}`)
     },
-    { permission: canEditAtlas, forbiddenPayload: { updateProcessError: "Insufficient permissions." } },
+    {
+      permission: canEditAtlas,
+      forbiddenPayload: { updateProcessError: "Insufficient permissions." },
+    },
   ),
 
   deleteProcess: wrapAction(
@@ -215,7 +218,10 @@ export const actions = {
 
       redirect(303, "/app/processes")
     },
-    { permission: canEditAtlas, forbiddenPayload: { deleteProcessError: "Insufficient permissions." } },
+    {
+      permission: canEditAtlas,
+      forbiddenPayload: { deleteProcessError: "Insufficient permissions." },
+    },
   ),
 
   createAction: wrapAction(
@@ -244,7 +250,10 @@ export const actions = {
 
       redirect(303, `/app/processes/${params.slug}`)
     },
-    { permission: canEditAtlas, forbiddenPayload: { createActionError: "Insufficient permissions." } },
+    {
+      permission: canEditAtlas,
+      forbiddenPayload: { createActionError: "Insufficient permissions." },
+    },
   ),
 
   deleteAction: wrapAction(
@@ -273,7 +282,10 @@ export const actions = {
 
       redirect(303, `/app/processes/${params.slug}`)
     },
-    { permission: canEditAtlas, forbiddenPayload: { deleteActionError: "Insufficient permissions." } },
+    {
+      permission: canEditAtlas,
+      forbiddenPayload: { deleteActionError: "Insufficient permissions." },
+    },
   ),
 
   reorderAction: wrapAction(
@@ -304,7 +316,10 @@ export const actions = {
 
       redirect(303, `/app/processes/${params.slug}`)
     },
-    { permission: canEditAtlas, forbiddenPayload: { reorderActionError: "Insufficient permissions." } },
+    {
+      permission: canEditAtlas,
+      forbiddenPayload: { reorderActionError: "Insufficient permissions." },
+    },
   ),
 
   createRole: wrapAction(
@@ -337,7 +352,10 @@ export const actions = {
         actionDescriptionRichDraft,
       }
     },
-    { permission: canManageDirectory, forbiddenPayload: { createRoleError: "Insufficient permissions." } },
+    {
+      permission: canManageDirectory,
+      forbiddenPayload: { createRoleError: "Insufficient permissions." },
+    },
   ),
 
   createSystem: wrapAction(
@@ -370,7 +388,10 @@ export const actions = {
         actionDescriptionRichDraft,
       }
     },
-    { permission: canManageDirectory, forbiddenPayload: { createSystemError: "Insufficient permissions." } },
+    {
+      permission: canManageDirectory,
+      forbiddenPayload: { createSystemError: "Insufficient permissions." },
+    },
   ),
 
   createFlag: wrapAction(async ({ context, supabase, formData, params }) => {

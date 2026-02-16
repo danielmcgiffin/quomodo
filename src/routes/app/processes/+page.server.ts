@@ -140,24 +140,38 @@ export const actions = {
   createProcess: wrapAction(
     async ({ context, supabase, formData }) => {
       const draft = readProcessDraft(formData)
-      const result = await createProcessRecord({ supabase, orgId: context.orgId, draft })
+      const result = await createProcessRecord({
+        supabase,
+        orgId: context.orgId,
+        draft,
+      })
       if (!result.ok) {
         return fail(result.status, { createProcessError: result.message })
       }
       redirect(303, `/app/processes/${result.slug}`)
     },
-    { permission: canEditAtlas, forbiddenPayload: { createProcessError: "Insufficient permissions." } },
+    {
+      permission: canEditAtlas,
+      forbiddenPayload: { createProcessError: "Insufficient permissions." },
+    },
   ),
   createRole: wrapAction(
     async ({ context, supabase, formData }) => {
       const draft = readRoleDraft(formData)
-      const result = await createRoleRecord({ supabase, orgId: context.orgId, draft })
+      const result = await createRoleRecord({
+        supabase,
+        orgId: context.orgId,
+        draft,
+      })
       if (!result.ok) {
         return fail(result.status, { createRoleError: result.message })
       }
       return { createRoleSuccess: true, createdRoleId: result.id }
     },
-    { permission: canManageDirectory, forbiddenPayload: { createRoleError: "Insufficient permissions." } },
+    {
+      permission: canManageDirectory,
+      forbiddenPayload: { createRoleError: "Insufficient permissions." },
+    },
   ),
   createFlag: wrapAction(async ({ context, supabase, formData }) => {
     const result = await createFlagForEntity({

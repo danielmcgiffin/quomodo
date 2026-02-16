@@ -19,6 +19,7 @@ This document lists broken behavior, blockers, and visual/UX grossness. It inten
   - `/tmp/sr16-audit/mobile/*.png`
 
 Notes:
+
 - Account routes were redirected to `/account/create_profile` until profile fields are set (see `src/routes/(admin)/account/+layout.ts`).
 - Dynamic routes were tested with these sample paths:
   - `/method/[slug]` -> `/method/diagnose-the-break`
@@ -31,21 +32,25 @@ Notes:
 ## Executive Summary
 
 P0
+
 - **Hydration failure on `/app/systems`** due to invalid nested anchors (likely breaks client-side interactivity and is console-noisy).
 
 P1
+
 - **Roles directory `/app/roles` doesn’t show role names** (cards are basically anonymous).
 - **Role detail `/app/roles/[slug]` has an empty “Role Details” card** (looks broken/unfinished).
 - **Account surface is heavily “starter template”** (DaisyUI purple buttons/cards, demo placeholder content, inconsistent styling inside the app shell).
 - **Delete account message string interpolation bug** (shows literal `{...}` text to users).
 
 P2
+
 - **Flags dashboard layout** wastes screen space (blank right gutter) and duplicates headings.
 - **Team page** shows raw UUIDs as member identity and repeats them (unusable in real teams).
 - **Legacy starter routes** (`/blog`, `/search`, `/contact_us`) are unbranded and contain sample/placeholder content; blog post pages have severe contrast/readability problems.
 - **Global error page** is unbranded and echoes error message to the user.
 
 P3
+
 - Minor console noise on auth pages (“Autofocus processing was blocked…”).
 - Minor HTML/UX polish issues (links wrapping buttons, grammar, etc.).
 
@@ -54,6 +59,7 @@ P3
 Each route below is verified to load (HTTP 200 in the crawl), but “Loads” does not mean “good”.
 
 Marketing (SystemsCraft themed)
+
 - `/` (`src/routes/(marketing)/+page.svelte`)  
   Screens: `root.png`  
   Notes: visually OK; large vertical spacing on desktop may be intentional.
@@ -90,6 +96,7 @@ Marketing (SystemsCraft themed)
   Notes: only invalid-token state tested (valid flow requires a real transfer token).
 
 Legacy starter / unbranded (needs decision: rebrand or remove)
+
 - `/pricing` (`src/routes/(marketing)/pricing/+page.svelte`)  
   Screens: `pricing.png`  
   Issues: SR16-009
@@ -113,6 +120,7 @@ Legacy starter / unbranded (needs decision: rebrand or remove)
   Issues: SR16-009
 
 App (SystemsCraft app shell)
+
 - `/app/processes` (`src/routes/app/processes/+page.svelte`)  
   Screens: `app_processes.png`  
   Notes: visually OK in crawl; verify CRUD flows manually.
@@ -139,6 +147,7 @@ App (SystemsCraft app shell)
   Issues: SR16-006
 
 Account (inside app shell, but starter-template UI)
+
 - `/account/create_profile` (`src/routes/(admin)/account/create_profile/+page.svelte`)  
   Screens: `account_create_profile.png`  
   Issues: SR16-007
@@ -177,6 +186,7 @@ Account (inside app shell, but starter-template UI)
   Notes: crawl redirects to `/login` (expected).
 
 System
+
 - Global error page (`src/routes/+error.svelte`)  
   Issues: SR16-010
 
@@ -188,18 +198,22 @@ Severity: P0 (fix first)
 Routes: `/app/systems`
 
 Repro
+
 1. Open `/app/systems`.
 2. Open browser console.
 3. Observe warning: `Failed to hydrate: HierarchyRequestError...` (also recorded in `/tmp/sr16-audit/audit.json` under `consoleMessages` for `/app/systems`).
 
 Expected
+
 - No hydration warnings.
 - Valid HTML structure (no nested `<a>`).
 
 Actual
+
 - The systems directory card is an `<a>` that contains `SystemPortal` and `RolePortal`, which each render their own `<a>`, producing invalid nested anchors.
 
 Likely cause (code)
+
 - Outer link wrapper:
   - `src/routes/app/systems/+page.svelte:224` to `src/routes/app/systems/+page.svelte:242`
 - Inner link components:
@@ -207,6 +221,7 @@ Likely cause (code)
   - `src/lib/components/RolePortal.svelte:26`
 
 Fix outline
+
 1. Pick the intended interaction model:
    - Option A: entire card navigates, portals become non-links.
    - Option B: portals navigate, card is not a link (title-only link like processes list).
@@ -223,11 +238,13 @@ Severity: P1
 Routes: all `/app/*` and `/account/*` routes (app shell)
 
 Symptoms (mobile `<= 960px`)
+
 - Sidebar becomes a horizontal scroll row. It does not ensure the active link is scrolled into view.
 - On the Systems screen, the “Systems” nav item can be off-screen; the user sees “Flags / Processes / Roles” and may not realize the nav is horizontally scrollable.
 - Brand pill becomes a large white capsule containing only the logo, consuming meaningful vertical space.
 
 Likely cause (code)
+
 - Horizontal scroll conversion:
   - `src/app.css:396` to `src/app.css:436` (`@media (max-width: 960px)`)
 - Brand-pill label hidden:
@@ -236,6 +253,7 @@ Likely cause (code)
   - `src/lib/components/ScShell.svelte:109` to `src/lib/components/ScShell.svelte:151`
 
 Fix outline
+
 1. Ensure active nav item is visible on load/navigation:
    - Add a small client-side effect in `src/lib/components/ScShell.svelte` to `element.scrollIntoView({ block: \"nearest\", inline: \"nearest\" })` for the active `.sc-side-link.is-active`.
 2. Improve mobile nav layout to avoid hidden sections:
@@ -250,22 +268,27 @@ Severity: P1
 Routes: `/app/roles`
 
 Repro
+
 1. Open `/app/roles`.
 2. Observe the list cards show only the description content. The role name is not rendered anywhere inside the card.
 
 Expected
+
 - Each role card shows at least:
   - Role name (primary)
   - Optional short description (secondary)
 
 Actual
+
 - Role name is only present in `aria-label`; visually the cards are anonymous descriptions.
 
 Likely cause (code)
+
 - `src/routes/app/roles/+page.svelte:128` to `src/routes/app/roles/+page.svelte:152`
   - The link content only renders `RichText html={role.descriptionHtml}`.
 
 Fix outline
+
 1. Add a title row inside the card link:
    - Render `{role.name}` (and optionally initials) above the description.
 2. Keep description as secondary text (muted) to match processes directory hierarchy.
@@ -277,10 +300,12 @@ Severity: P1
 Routes: `/app/roles/[slug]`
 
 Repro
+
 1. Open any role detail page (example: `/app/roles/client-success`).
 2. Find “Role Details” section.
 
 Expected
+
 - “Role Details” should contain actual content (even minimal), like:
   - Role portal identity (name/initials)
   - Description
@@ -288,12 +313,15 @@ Expected
   - Ownership summary counts (processes/actions/systems)
 
 Actual
+
 - The card renders only `InlineEntityFlagControl`, leaving a blank-looking card beneath the section title.
 
 Likely cause (code)
+
 - `src/routes/app/roles/[slug]/+page.svelte:106` to `src/routes/app/roles/[slug]/+page.svelte:122`
 
 Fix outline
+
 1. Either:
    - Remove the section entirely (if `RoleDetailHeader` already covers “details”), or
    - Populate it with real role metadata so the section title makes sense.
@@ -305,26 +333,31 @@ Severity: P2
 Routes: `/app/flags`
 
 Repro
+
 1. Open `/app/flags` on desktop.
 2. Observe:
    - Large empty right gutter (layout implies a sidebar that isn’t present).
    - Page title “Flags” plus another “Flags” section title inside the create form.
 
 Expected
+
 - Single, centered content column, or a real second column.
 - One “Flags” title hierarchy.
 
 Actual
+
 - Uses `.sc-process-layout` (two columns) with only the main column, leaving unused space.
 - Duplicate headings.
 
 Likely cause (code)
+
 - Page layout uses `.sc-process-layout` without an `<aside>`:
   - `src/routes/app/flags/+page.svelte:22` to `src/routes/app/flags/+page.svelte:38`
 - Duplicate section title:
   - `src/lib/components/FlagsCreateForm.svelte:21` to `src/lib/components/FlagsCreateForm.svelte:33`
 
 Fix outline
+
 1. Change `/app/flags` layout to a single-column page pattern (like `src/routes/app/team/+page.svelte` uses `.sc-page`).
 2. Decide where the page title lives (page head vs create form) and remove the duplicate.
 3. Note: there is already a planned item `SR-27` for flags dashboard centering and grid layout (see `plans/archive/V1_CHECKLIST.md`).
@@ -335,22 +368,27 @@ Severity: P2 (could become P1 for real teams)
 Routes: `/app/team`
 
 Repro
+
 1. Open `/app/team`.
 2. In “Members”, note `displayName` may be a UUID, and `userId` is printed directly under it.
 
 Expected
+
 - Primary identity: full name or email.
 - Secondary: role/status badges.
 - Internal IDs should be hidden by default (or behind a “copy” affordance).
 
 Actual
+
 - Member rows can show a UUID as the name and repeat it as a secondary line.
 
 Likely cause (code)
+
 - UI always prints both `displayName` and `userId`:
   - `src/routes/app/team/+page.svelte:329` to `src/routes/app/team/+page.svelte:336`
 
 Fix outline
+
 1. Update the mapper/server to provide a sane `displayName` fallback:
    - Prefer `profiles.full_name`, then `users.email`, else a shortened ID.
 2. In UI, remove the unconditional `{member.userId}` line or move it behind a “copy ID” interaction.
@@ -364,12 +402,14 @@ Severity: P1
 Routes: `/account/*` (all account pages)
 
 Symptoms
+
 - `/account/create_profile` uses DaisyUI `btn btn-primary` (purple) inside the SystemsCraft app shell (green/beige). It feels like a different product.
 - `/account` (Dashboard) contains explicit placeholder/demo content and fake stats.
 - Many settings modules likely inherit DaisyUI cards, alerts, and buttons rather than `sc-*` components/styles.
 - Most `/account/*` routes are blocked by profile completion gating, which makes it easy to miss problems.
 
 Likely cause (code)
+
 - Profile gating redirects almost all account routes until full profile is present:
   - `src/routes/(admin)/account/+layout.ts:47` to `src/routes/(admin)/account/+layout.ts:57`
 - DaisyUI theme is still globally defined (purple primary). Any usage of DaisyUI classes like `btn btn-primary` will pull from this theme and clash with SystemsCraft app styles:
@@ -380,6 +420,7 @@ Likely cause (code)
   - `src/routes/(admin)/account/(menu)/+page.svelte:6` to `src/routes/(admin)/account/(menu)/+page.svelte:31`
 
 Fix outline
+
 1. Decide the visual system for account pages:
    - Recommended: re-skin account UI to match SystemsCraft app (`sc-*` components), since it’s inside `ScShell`.
 2. Remove placeholder “Demo Content” and fake stats from `/account`.
@@ -393,20 +434,25 @@ Severity: P1
 Routes: `/account/settings/delete_account`
 
 Repro
+
 1. Ensure profile gating is satisfied (see SR16-007).
 2. Open `/account/settings/delete_account`.
 3. Observe the “message” text includes literal braces/quotes instead of the user email.
 
 Expected
+
 - Message interpolates the actual email value.
 
 Actual
+
 - The message prop is a multi-line string with `'{data.session?.user?.email}'` inside it, so the user will see that literal text.
 
 Likely cause (code)
+
 - `src/routes/(admin)/account/(menu)/settings/delete_account/+page.svelte:13` to `src/routes/(admin)/account/(menu)/settings/delete_account/+page.svelte:19`
 
 Fix outline
+
 1. Convert the `message="..."` to an expression prop:
    - `message={\`Deleting... You are currently logged in as '${data.session?.user?.email ?? \"\"}'\`}`
 2. Verify the email displays correctly and the string doesn’t wrap awkwardly on mobile.
@@ -417,6 +463,7 @@ Severity: P2 (P1 for blog readability)
 Routes: `/blog/*`, `/search`, `/contact_us`, `/pricing`
 
 Symptoms
+
 - Blog branding and copy are clearly starter-template:
   - “SaaS Starter Blog”, “A demo blog with sample content.”
 - Blog post pages are unreadable due to low contrast (default `prose` colors on dark `mk-shell` background).
@@ -425,6 +472,7 @@ Symptoms
 - `/search` and `/pricing` use DaisyUI theme colors (purple/pink) that clash with the SystemsCraft marketing theme.
 
 Likely cause (code)
+
 - Blog name:
   - `src/routes/(marketing)/blog/posts.ts:1` to `src/routes/(marketing)/blog/posts.ts:4`
 - Blog index template UI:
@@ -441,6 +489,7 @@ Likely cause (code)
   - `src/routes/(marketing)/pricing/+page.svelte:2` onward
 
 Fix outline
+
 1. Make a decision per route:
    - Remove/redirect (simplest) OR rebrand and restyle to SystemsCraft theme.
 2. If keeping blog posts:
@@ -456,14 +505,17 @@ Severity: P2
 Routes: global error (`src/routes/+error.svelte`)
 
 Symptoms
+
 - Copy: “This is embarrassing…” (not in SystemsCraft voice).
 - Displays raw error message to the user (`{$page?.error?.message}`), which can leak internal details.
 - Uses DaisyUI `btn btn-primary` styling inconsistent with marketing/app.
 
 Likely cause (code)
+
 - `src/routes/+error.svelte:6` to `src/routes/+error.svelte:13`
 
 Fix outline
+
 1. Replace with SystemsCraft-branded error UI.
 2. Do not render raw error message in production UI:
    - Show a generic message and a support/contact link.
@@ -475,13 +527,16 @@ Severity: P3
 Routes: `/login/sign_in`, `/login/sign_up`, `/login/forgot_password`
 
 Repro
+
 1. Open any of the routes above.
 2. Observe console info: “Autofocus processing was blocked because a document already has a focused element.”
 
 Likely cause
+
 - Multiple focus attempts (likely within `@supabase/auth-ui-svelte`) plus app shell / browser default focus.
 
 Fix outline
+
 1. Ensure only one element is set to autofocus or programmatic focus.
 2. If this originates in the Supabase auth component and is harmless, consider suppressing by removing competing focus behavior on the page/layout.
 
@@ -491,12 +546,15 @@ Severity: P3
 Routes: `/login`
 
 Symptoms
+
 - `<a><button ...></button></a>` nesting is not ideal HTML semantics and can confuse screen readers.
 
 Likely cause (code)
+
 - `src/routes/(marketing)/login/+page.svelte:9` to `src/routes/(marketing)/login/+page.svelte:18`
 
 Fix outline
+
 1. Use `<a class="mk-btn ...">Sign Up</a>` instead of wrapping a `<button>` inside a link.
 2. Repeat for “Sign In”.
 
@@ -506,9 +564,11 @@ Severity: P3
 Routes: various
 
 Examples
+
 - Grammar on password error page:
   - “You attempted edit your account…” should be “You attempted to edit your account…”
   - `src/routes/(marketing)/login/current_password_error/+page.svelte:9` to `src/routes/(marketing)/login/current_password_error/+page.svelte:12`
 
 Fix outline
+
 1. Clean up copy where it reads like template text.

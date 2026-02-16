@@ -1,11 +1,9 @@
 # Agent Instructions
 
 - All plans are included in the /plans directory
-- Always reference `plans/V1_CHECKLIST.md` before planning or making scope decisions.
-- Always reference `plans/LAUNCH_PLAN.md` for task sequencing, acceptance criteria, and launch decisions.
+- Always reference `plans/MASTER_PLAN.md` before planning, making scope decisions, or sequencing tasks.
 - For marketing workstreams, reference `.reference/qstr-master/qstr-mrktng/*` before creating new pages/components.
-- If you complete or change scope, update `plans/V1_CHECKLIST.md` in the same change.
-- If you complete or change launch tasks, update `plans/LAUNCH_PLAN.md` in the same change.
+- If you complete or change scope or launch tasks, update `plans/MASTER_PLAN.md` in the same change.
 
 ## Behavioral Guidelines (Karpathy)
 

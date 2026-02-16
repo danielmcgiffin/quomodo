@@ -17,7 +17,9 @@ const asRecord = (value: unknown): Record<string, unknown> | null => {
 const isDocContent = (value: unknown): value is JSONContent[] =>
   Array.isArray(value)
 
-export const isRichTextDocument = (value: unknown): value is RichTextDocument => {
+export const isRichTextDocument = (
+  value: unknown,
+): value is RichTextDocument => {
   const asObject = asRecord(value)
   if (!asObject) {
     return false
@@ -35,7 +37,9 @@ const normalizeWhitespace = (value: string) =>
     .replace(/\u00a0/g, " ")
     .trim()
 
-export const plainTextToRichTextDocument = (value: string): RichTextDocument => {
+export const plainTextToRichTextDocument = (
+  value: string,
+): RichTextDocument => {
   const normalized = normalizeWhitespace(value)
   if (!normalized) {
     return EMPTY_RICH_TEXT_DOCUMENT
@@ -118,4 +122,3 @@ export const toRichTextDocumentString = (value: unknown): string => {
   }
   return JSON.stringify(EMPTY_RICH_TEXT_DOCUMENT)
 }
-

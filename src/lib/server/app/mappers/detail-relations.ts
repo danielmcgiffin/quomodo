@@ -79,7 +79,10 @@ export const mapActionsByProcess = ({
   roleId: string
 }) => {
   const processById = new Map(processes.map((process) => [process.id, process]))
-  const entryByProcessId = new Map<string, { process: RoleOwnedProcess; actions: RoleActionDisplay[] }>()
+  const entryByProcessId = new Map<
+    string,
+    { process: RoleOwnedProcess; actions: RoleActionDisplay[] }
+  >()
 
   for (const process of processes) {
     if (process.ownerRoleId === roleId) {
@@ -92,7 +95,10 @@ export const mapActionsByProcess = ({
     if (!process) {
       continue
     }
-    const existing = entryByProcessId.get(process.id) ?? { process, actions: [] }
+    const existing = entryByProcessId.get(process.id) ?? {
+      process,
+      actions: [],
+    }
     existing.actions.push(action)
     entryByProcessId.set(process.id, existing)
   }

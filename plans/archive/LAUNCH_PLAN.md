@@ -69,7 +69,7 @@ Launch is approved only when all conditions are true:
 ### WS1: Close Immediate Launch Blockers
 
 - [x] `LP-065` Production domain + auth callback alignment.
-  Acceptance:
+      Acceptance:
 - Canonical domain routes correctly to production worker.
 - `WebsiteBaseUrl` matches canonical domain.
 - Supabase callback/redirect allowlist includes canonical callback URLs.
@@ -78,7 +78,7 @@ Launch is approved only when all conditions are true:
 - Completed 2026-02-13 (verified `systemscraft.co` + `www.systemscraft.co` Cloudflare custom-domain routes in `wrangler.jsonc`, confirmed `WebsiteBaseUrl` is `https://systemscraft.co`, and re-ran canonical-domain validations: `SMOKE_BASE_URL=https://systemscraft.co npm run -s onboarding:deployed` PASS at `2026-02-13T12:57:28.268Z`; `SMOKE_BASE_URL=https://systemscraft.co npm run -s smoke:deployed` PASS at `2026-02-13T13:05:42.143Z`).
 
 - [x] `LP-066` Stripe launch catalog + pricing mapping hardening.
-  Acceptance:
+      Acceptance:
 - Pricing plans use launch copy and real live IDs (no demo/test copy).
 - Subscription mapping resolves cleanly from Stripe product -> app plan.
 - Billing portal + checkout roundtrips return to canonical domain paths.
@@ -97,13 +97,13 @@ Launch is approved only when all conditions are true:
 - 2026-02-13: Post-change regression validation PASS on canonical domain:
   - `SMOKE_BASE_URL=https://systemscraft.co npm run -s onboarding:deployed` PASS at `2026-02-13T13:39:35.568Z`
   - `SMOKE_BASE_URL=https://systemscraft.co npm run -s smoke:deployed` PASS at `2026-02-13T13:39:36.721Z`
-  Status:
+    Status:
 - Completed 2026-02-13 (pricing copy + IDs are launch-ready, subscription mapping resolves with product/price matching, and billing checkout/portal paths roundtrip via canonical domain with live Stripe checkout sessions).
 
 ### WS2: Workspace Lifecycle and Multi-Workspace Productization
 
 - [x] `LP-075` Workspace lifecycle UX (create + rename + first-workspace onboarding polish).
-  Acceptance:
+      Acceptance:
 - New user gets first workspace automatically or via one clear onboarding step.
 - Existing user can create additional workspaces from UI.
 - Workspace rename is available to `owner/admin` with server-side auth checks.
@@ -114,7 +114,7 @@ Launch is approved only when all conditions are true:
 - Completed 2026-02-13 (first-workspace bootstrap persists `sc_active_workspace` cookie via `src/hooks.server.ts`; create + rename are self-service in `/app/workspace` with owner/admin checks).
 
 - [x] `LP-076` Multi-workspace membership context + nav switcher.
-  Acceptance:
+      Acceptance:
 - User can belong to N workspaces and switch active workspace in app nav.
 - All `/app` loaders/actions resolve against selected workspace context.
 - Active workspace context is explicit and stable across navigation.
@@ -129,7 +129,7 @@ Launch is approved only when all conditions are true:
 ### WS3: In-App Team Management and Handoff
 
 - [x] `LP-077` Team management page (`/app/team` or `/app/settings`) for member list + role changes + removal.
-  Acceptance:
+      Acceptance:
 - `owner/admin` can view members and change/remove according to RBAC policy.
 - `editor/member` cannot access forbidden management actions.
   Progress:
@@ -141,7 +141,7 @@ Launch is approved only when all conditions are true:
 - Completed 2026-02-13 (team management is live in-app with server-side RBAC enforcement; owner transfer and leave/stay remain in `LP-079`).
 
 - [x] `LP-078` Stored invite flow (email invite -> accept -> membership attach).
-  Acceptance:
+      Acceptance:
 - Invites are persisted (auditable), revocable, and role-scoped.
 - Invite acceptance supports both existing users and new signups.
 - Accepted invite lands user in the intended workspace.
@@ -157,7 +157,7 @@ Launch is approved only when all conditions are true:
 - Completed 2026-02-13 (stored invite records, revoke flow, and email-link acceptance are live; accepted invites land in invited workspace context).
 
 - [x] `LP-079` Ownership transfer + consultant leave/stay path.
-  Acceptance:
+      Acceptance:
 - Only current `owner` can initiate transfer in-product.
 - Recipient must be an existing verified `admin` member of the workspace.
 - Transfer is atomic with billing owner handoff (both succeed or both roll back).
@@ -176,7 +176,7 @@ Launch is approved only when all conditions are true:
 ### WS4: Billing and Sales Readiness
 
 - [x] `LP-080` Billing model alignment for commercial launch.
-  Acceptance:
+      Acceptance:
 - Launch billing model is per-workspace with owner as billing authority.
 - Lapsed workspaces are view-only for all roles.
 - In lapsed state, invites are blocked; `owner/admin` may still remove members; billing actions are available.
@@ -239,9 +239,9 @@ These are intentionally out of the consolidated V1 launch/sales scope:
 ## Agent Execution Protocol
 
 1. Read `AGENTS.md`.
-2. Read `plans/V1_CHECKLIST.md`.
-3. Read this file (`plans/LAUNCH_PLAN.md`).
-4. Execute the next unchecked `LP-*` task unless user sets a different priority.
-5. Update both `plans/LAUNCH_PLAN.md` and `plans/V1_CHECKLIST.md` when scope/status changes.
+2. Read `plans/MASTER_PLAN.md` (Single source of truth).
+3. Read `plans/archive/V1_CHECKLIST.md`.
+4. Read this file (`plans/archive/LAUNCH_PLAN.md`).
+5. Update `plans/MASTER_PLAN.md` when scope/status changes.
 6. Include touched `LP-*` IDs in commit/PR summaries.
 7. For marketing tasks, review `.reference/qstr-master/qstr-mrktng/*` before creating new content.

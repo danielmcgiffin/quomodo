@@ -70,7 +70,8 @@
       <section class="sc-card sc-stack-top-12">
         <div class="font-semibold">Sign in to accept this invite.</div>
         <div class="sc-muted-line sc-stack-top-6">
-          You can sign in with an existing account or sign up with {data.invite.email}.
+          You can sign in with an existing account or sign up with {data.invite
+            .email}.
         </div>
         <div class="sc-actions sc-stack-top-10">
           <a class="sc-btn" href={data.signInUrl}>Sign in</a>
@@ -83,7 +84,8 @@
       <section class="sc-card sc-stack-top-12">
         <div class="font-semibold">Wrong account signed in.</div>
         <div class="sc-muted-line sc-stack-top-6">
-          Signed in as {data.userEmail ?? "unknown user"}, but this invite belongs to
+          Signed in as {data.userEmail ?? "unknown user"}, but this invite
+          belongs to
           {data.invite.email}.
         </div>
         <div class="sc-actions sc-stack-top-10">
@@ -97,8 +99,8 @@
       <section class="sc-card sc-stack-top-12">
         <div class="font-semibold">Ready to join?</div>
         <div class="sc-muted-line sc-stack-top-6">
-          Accepting will attach your account to this workspace and open the app in that
-          workspace context.
+          Accepting will attach your account to this workspace and open the app
+          in that workspace context.
         </div>
         <form class="sc-stack-top-10" method="POST" action="?/acceptInvite">
           <button class="sc-btn" type="submit">Accept invite</button>

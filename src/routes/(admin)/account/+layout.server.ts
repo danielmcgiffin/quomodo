@@ -42,10 +42,7 @@ const countTable = async (
   return count ?? 0
 }
 
-export const load: LayoutServerLoad = async ({
-  locals,
-  cookies,
-}) => {
+export const load: LayoutServerLoad = async ({ locals, cookies }) => {
   // Session here is from authGuard hook
 
   const context = await ensureOrgContext(locals)
@@ -106,7 +103,9 @@ export const load: LayoutServerLoad = async ({
   }
 
   const memberships = (membershipsResult.data ?? []) as MembershipRow[]
-  const uniqueOrgIds = [...new Set(memberships.map((membership) => membership.org_id))]
+  const uniqueOrgIds = [
+    ...new Set(memberships.map((membership) => membership.org_id)),
+  ]
   const orgById = new Map<string, OrgRow>()
 
   if (uniqueOrgIds.length > 0) {

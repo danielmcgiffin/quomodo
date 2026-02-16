@@ -63,5 +63,7 @@ export const marketingSite = {
     { label: "Partners", href: "/partners" },
     { label: "Contact", href: "/contact" },
     { label: "Product", href: "/app/processes" },
+    { label: "Terms", href: "/terms" },
+    { label: "Privacy", href: "/privacy" },
   ] satisfies NavItem[],
 }

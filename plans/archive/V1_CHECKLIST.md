@@ -1,7 +1,7 @@
 # SystemsCraft Unified V1 Launch + Sales Checklist
 
 This checklist tracks the consolidated scope where V1, launch, and sales readiness are one combined target.
-Execution details, sequencing, and acceptance criteria live in `plans/LAUNCH_PLAN.md`.
+Execution details, sequencing, and acceptance criteria live in `plans/archive/LAUNCH_PLAN.md`.
 Locked decisions remain: Cloudflare-only hosting, TipTap for rich text, and RBAC roles (`owner/admin/editor/member`).
 
 ## Core Product Baseline (Shipped)

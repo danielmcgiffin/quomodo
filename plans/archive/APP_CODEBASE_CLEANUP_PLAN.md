@@ -47,8 +47,8 @@ This plan is intentionally compatible with the underlying SaaS starter template.
 
 ## Source-Of-Truth Alignment
 
-- `plans/V1_CHECKLIST.md`: active V1 scope and status.
-- `plans/LAUNCH_PLAN.md`: task sequencing and acceptance criteria.
+- `plans/archive/V1_CHECKLIST.md`: active V1 scope and status.
+- `plans/archive/LAUNCH_PLAN.md`: task sequencing and acceptance criteria.
 
 This cleanup plan directly supports:
 

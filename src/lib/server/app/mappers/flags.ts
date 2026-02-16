@@ -1,11 +1,18 @@
-import { mapRolePortals, type RolePortalModel } from "$lib/server/app/mappers/portals"
+import {
+  mapRolePortals,
+  type RolePortalModel,
+} from "$lib/server/app/mappers/portals"
 
 export type FlagTargetType = "process" | "role" | "system" | "action"
 
 export type FlagsProcessRow = { id: string; slug: string; name: string }
 export type FlagsRoleRow = { id: string; slug: string; name: string }
 export type FlagsSystemRow = { id: string; slug: string; name: string }
-export type FlagsActionRow = { id: string; process_id: string; sequence: number }
+export type FlagsActionRow = {
+  id: string
+  process_id: string
+  sequence: number
+}
 export type FlagsRow = {
   id: string
   target_type: FlagTargetType
@@ -171,7 +178,8 @@ export const mapFlagsDashboard = ({
     return {
       ...common,
       targetType: "action",
-      target: actionTargets.find((action) => action.id === flag.target_id) ?? null,
+      target:
+        actionTargets.find((action) => action.id === flag.target_id) ?? null,
     }
   })
 }

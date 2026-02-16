@@ -170,7 +170,8 @@ export const load = async ({ locals, url }) => {
 
   const members = (membersResult.data ?? []) as TeamMemberRow[]
   const invites = (invitesResult.data ?? []) as TeamInviteRow[]
-  const pendingTransfer = (transferResult.data ?? null) as OwnershipTransferRow | null
+  const pendingTransfer = (transferResult.data ??
+    null) as OwnershipTransferRow | null
   const userIds = [
     ...new Set([
       ...members.map((member) => member.user_id),
@@ -550,15 +551,13 @@ export const actions = {
       })
     }
 
-    const invite = inviteResult.data as
-      | {
-          id: string
-          role: MembershipRole
-          expires_at: string
-          accepted_at: string | null
-          revoked_at: string | null
-        }
-      | null
+    const invite = inviteResult.data as {
+      id: string
+      role: MembershipRole
+      expires_at: string
+      accepted_at: string | null
+      revoked_at: string | null
+    } | null
     if (!invite) {
       return fail(404, { revokeInviteError: "Invite not found." })
     }
@@ -609,7 +608,9 @@ export const actions = {
 
     const formData = await request.formData()
     const recipientUserId = String(formData.get("recipientUserId") ?? "").trim()
-    const dispositionRaw = String(formData.get("priorOwnerDisposition") ?? "").trim()
+    const dispositionRaw = String(
+      formData.get("priorOwnerDisposition") ?? "",
+    ).trim()
     const disposition = parsePriorOwnerDisposition(dispositionRaw)
 
     if (!recipientUserId) {
@@ -625,7 +626,8 @@ export const actions = {
       await locals.supabaseServiceRole.auth.admin.getUserById(recipientUserId)
     const recipientUser = recipientLookup.data.user
     const recipientEmailVerified = Boolean(
-      recipientUser?.email_confirmed_at || recipientUser?.user_metadata?.email_verified,
+      recipientUser?.email_confirmed_at ||
+        recipientUser?.user_metadata?.email_verified,
     )
 
     if (!recipientUser || !recipientUser.email || !recipientEmailVerified) {
@@ -641,13 +643,16 @@ export const actions = {
       Date.now() + TRANSFER_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
     ).toISOString()
 
-    const rpcResult = await locals.supabase.rpc("sc_create_ownership_transfer", {
-      p_org_id: context.orgId,
-      p_to_user_id: recipientUserId,
-      p_token_hash: tokenHash,
-      p_prior_owner_disposition: disposition,
-      p_expires_at: expiresAt,
-    })
+    const rpcResult = await locals.supabase.rpc(
+      "sc_create_ownership_transfer",
+      {
+        p_org_id: context.orgId,
+        p_to_user_id: recipientUserId,
+        p_token_hash: tokenHash,
+        p_prior_owner_disposition: disposition,
+        p_expires_at: expiresAt,
+      },
+    )
 
     if (rpcResult.error) {
       return fail(400, {
@@ -706,15 +711,22 @@ export const actions = {
   cancelOwnershipTransfer: async ({ locals }) => {
     const context = await ensureOrgContext(locals)
     if (context.membershipRole !== "owner") {
-      return fail(403, { cancelOwnershipTransferError: "Only owners can cancel transfers." })
+      return fail(403, {
+        cancelOwnershipTransferError: "Only owners can cancel transfers.",
+      })
     }
 
-    const rpcResult = await locals.supabase.rpc("sc_cancel_ownership_transfer", {
-      p_org_id: context.orgId,
-    })
+    const rpcResult = await locals.supabase.rpc(
+      "sc_cancel_ownership_transfer",
+      {
+        p_org_id: context.orgId,
+      },
+    )
 
     if (rpcResult.error) {
-      return fail(400, { cancelOwnershipTransferError: rpcResult.error.message })
+      return fail(400, {
+        cancelOwnershipTransferError: rpcResult.error.message,
+      })
     }
 
     redirect(303, `${TEAM_PAGE_PATH}?ownershipTransferCancelled=1`)

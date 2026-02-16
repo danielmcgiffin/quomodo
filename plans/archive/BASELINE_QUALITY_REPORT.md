@@ -25,4 +25,3 @@ Scope filter:
 App-specific error count: **0**
 
 No app-specific errors reported by `svelte-check` in this baseline capture.
-

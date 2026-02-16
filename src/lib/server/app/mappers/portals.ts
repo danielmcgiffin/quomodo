@@ -38,5 +38,6 @@ export const toSystemPortal = (row: SystemPortalRow): SystemPortalModel => ({
   logoUrl: row.logo_url,
 })
 
-export const mapSystemPortals = (rows: SystemPortalRow[]): SystemPortalModel[] =>
-  rows.map(toSystemPortal)
+export const mapSystemPortals = (
+  rows: SystemPortalRow[],
+): SystemPortalModel[] => rows.map(toSystemPortal)

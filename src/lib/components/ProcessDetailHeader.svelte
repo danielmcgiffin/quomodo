@@ -81,7 +81,9 @@
       isEditProcessModalOpen = true
     }
     processNameDraft =
-      typeof form?.processNameDraft === "string" ? form.processNameDraft : process.name
+      typeof form?.processNameDraft === "string"
+        ? form.processNameDraft
+        : process.name
     processDescriptionDraft =
       typeof form?.processDescriptionDraft === "string"
         ? form.processDescriptionDraft
@@ -91,9 +93,13 @@
         ? form.processDescriptionRichDraft
         : process.descriptionRich
     processTriggerDraft =
-      typeof form?.processTriggerDraft === "string" ? form.processTriggerDraft : process.trigger
+      typeof form?.processTriggerDraft === "string"
+        ? form.processTriggerDraft
+        : process.trigger
     processEndStateDraft =
-      typeof form?.processEndStateDraft === "string" ? form.processEndStateDraft : process.endState
+      typeof form?.processEndStateDraft === "string"
+        ? form.processEndStateDraft
+        : process.endState
     selectedProcessOwnerRoleId =
       typeof form?.selectedProcessOwnerRoleIdDraft === "string"
         ? form.selectedProcessOwnerRoleIdDraft
@@ -110,10 +116,18 @@
   </div>
   {#if canEdit}
     <div class="sc-actions">
-      <button class="sc-btn secondary" type="button" onclick={openEditProcessModal}>
+      <button
+        class="sc-btn secondary"
+        type="button"
+        onclick={openEditProcessModal}
+      >
         Edit Process
       </button>
-      <form method="POST" action="?/deleteProcess" onsubmit={confirmDeleteProcess}>
+      <form
+        method="POST"
+        action="?/deleteProcess"
+        onsubmit={confirmDeleteProcess}
+      >
         <input type="hidden" name="process_id" value={process.id} />
         <button class="sc-btn secondary" type="submit">Delete Process</button>
       </form>
@@ -190,4 +204,3 @@
     </div>
   </form>
 </ScModal>
-

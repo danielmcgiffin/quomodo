@@ -217,7 +217,9 @@ const run = async () => {
         continue
       }
       await rollbackMembership({ orgId, userId: user.id })
-      console.log(`PASS | removed ${target.role} membership for ${target.email}`)
+      console.log(
+        `PASS | removed ${target.role} membership for ${target.email}`,
+      )
     }
     return
   }

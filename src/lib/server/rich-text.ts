@@ -24,8 +24,7 @@ const allowedTags = [
   "a",
 ]
 
-const htmlLooksLikeMarkup = (value: string) =>
-  /<\/?[a-z][\s\S]*>/i.test(value)
+const htmlLooksLikeMarkup = (value: string) => /<\/?[a-z][\s\S]*>/i.test(value)
 
 const escapeHtml = (value: string) =>
   value
@@ -45,9 +44,7 @@ const renderRichNodes = (nodes: unknown): string => {
   if (!Array.isArray(nodes)) {
     return ""
   }
-  return nodes
-    .map((node) => renderRichNode(node))
-    .join("")
+  return nodes.map((node) => renderRichNode(node)).join("")
 }
 
 const renderRichMark = (value: string, mark: unknown): string => {

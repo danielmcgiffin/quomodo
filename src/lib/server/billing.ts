@@ -3,7 +3,10 @@ import { error as kitError } from "@sveltejs/kit"
 import Stripe from "stripe"
 import type { SupabaseClient, User } from "@supabase/supabase-js"
 import type { Database } from "../../DatabaseDefinitions"
-import { pricingPlans, defaultPlanId } from "../../routes/(marketing)/pricing/pricing_plans"
+import {
+  pricingPlans,
+  defaultPlanId,
+} from "../../routes/(marketing)/pricing/pricing_plans"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
 
 const stripe = new Stripe(privateEnv.PRIVATE_STRIPE_API_KEY, {
@@ -35,7 +38,9 @@ const mapStripeSubscriptionToPlanId = (
     if (!plan.stripe_product_id && !plan.stripe_price_id) {
       return false
     }
-    return plan.stripe_product_id === productId || plan.stripe_price_id === priceId
+    return (
+      plan.stripe_product_id === productId || plan.stripe_price_id === priceId
+    )
   })
 
   return mapped?.id ?? null
@@ -200,7 +205,8 @@ export const getOrgBillingSnapshot = async (
       orgId,
       stripeCustomerId: null,
       planId: row?.plan_id ?? defaultPlanId,
-      billingState: (row?.billing_state as BillingState | undefined) ?? "active",
+      billingState:
+        (row?.billing_state as BillingState | undefined) ?? "active",
       isLapsed: row?.billing_state === "lapsed",
       hasEverPaid: row?.has_ever_paid ?? false,
       lastCheckedAt,
@@ -209,7 +215,8 @@ export const getOrgBillingSnapshot = async (
 
   const lastCheckedMs = lastCheckedAt ? Date.parse(lastCheckedAt) : 0
   const nowMs = Date.now()
-  const shouldRefresh = !lastCheckedMs || nowMs - lastCheckedMs > BILLING_REFRESH_TTL_MS
+  const shouldRefresh =
+    !lastCheckedMs || nowMs - lastCheckedMs > BILLING_REFRESH_TTL_MS
 
   if (!shouldRefresh && row) {
     return {
@@ -257,7 +264,9 @@ export const getOrgBillingSnapshot = async (
   if (!computed) {
     throwRuntime500({
       context: "billing.stripe.subscriptionMap.unreachable",
-      error: new Error("Billing snapshot computation unexpectedly returned null."),
+      error: new Error(
+        "Billing snapshot computation unexpectedly returned null.",
+      ),
       requestId: locals.requestId,
       details: { orgId, stripeCustomerId },
     })

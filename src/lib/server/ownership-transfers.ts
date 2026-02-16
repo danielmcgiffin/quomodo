@@ -14,7 +14,9 @@ export const parsePriorOwnerDisposition = (
   return null
 }
 
-export const hashOwnershipTransferToken = async (token: string): Promise<string> => {
+export const hashOwnershipTransferToken = async (
+  token: string,
+): Promise<string> => {
   const encoder = new TextEncoder()
   const digest = await crypto.subtle.digest("SHA-256", encoder.encode(token))
   return toHex(digest)
@@ -29,4 +31,3 @@ export const createOwnershipTransferToken = async (): Promise<{
   const tokenHash = await hashOwnershipTransferToken(token)
   return { token, tokenHash }
 }
-

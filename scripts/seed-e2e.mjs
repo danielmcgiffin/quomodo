@@ -43,9 +43,12 @@ const randomSuffix = () => Math.random().toString(36).slice(2, 8)
 const ensureE2EUser = async () => {
   const preferredUserId = process.env.E2E_USER_ID
   if (preferredUserId) {
-    const { data, error } = await supabase.auth.admin.getUserById(preferredUserId)
+    const { data, error } =
+      await supabase.auth.admin.getUserById(preferredUserId)
     if (error && !isUserMissingError(error)) {
-      throw new Error(`Unable to lookup E2E user (${preferredUserId}): ${error.message}`)
+      throw new Error(
+        `Unable to lookup E2E user (${preferredUserId}): ${error.message}`,
+      )
     }
     if (data?.user) {
       return { userId: data.user.id, created: false }
@@ -53,39 +56,46 @@ const ensureE2EUser = async () => {
   }
 
   // If user already exists (by email), just reuse it.
-  const { data: usersData, error: usersError } = await supabase.auth.admin.listUsers({
-    page: 1,
-    perPage: 1000,
-  })
+  const { data: usersData, error: usersError } =
+    await supabase.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    })
   if (usersError) {
     throw new Error(`Unable to list users: ${usersError.message}`)
   }
 
   const existing = (usersData?.users ?? []).find(
-    (u) => typeof u.email === "string" && u.email.toLowerCase() === email.toLowerCase(),
+    (u) =>
+      typeof u.email === "string" &&
+      u.email.toLowerCase() === email.toLowerCase(),
   )
   if (existing) {
     return { userId: existing.id, created: false }
   }
 
-  const { data: createdData, error: createError } = await supabase.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: {
-      full_name: "SystemsCraft E2E User",
-    },
-  })
+  const { data: createdData, error: createError } =
+    await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        full_name: "SystemsCraft E2E User",
+      },
+    })
 
   if (createError || !createdData?.user?.id) {
-    throw new Error(`Unable to create E2E user (${email}): ${createError?.message ?? "unknown error"}`)
+    throw new Error(
+      `Unable to create E2E user (${email}): ${createError?.message ?? "unknown error"}`,
+    )
   }
 
   return { userId: createdData.user.id, created: true }
 }
 
 const ensureLapsedWorkspace = async ({ userId }) => {
-  const workspaceName = process.env.E2E_LAPSED_WORKSPACE_NAME || "E2E Lapsed Workspace"
+  const workspaceName =
+    process.env.E2E_LAPSED_WORKSPACE_NAME || "E2E Lapsed Workspace"
 
   const existingOrg = await supabase
     .from("orgs")
@@ -116,7 +126,9 @@ const ensureLapsedWorkspace = async ({ userId }) => {
         break
       }
       if (insertResult.error?.code !== "23505") {
-        throw new Error(`Unable to create lapsed org: ${insertResult.error.message}`)
+        throw new Error(
+          `Unable to create lapsed org: ${insertResult.error.message}`,
+        )
       }
     }
 
@@ -127,20 +139,20 @@ const ensureLapsedWorkspace = async ({ userId }) => {
     orgId = inserted.id
 
     // Ensure owner membership exists.
-    const upsertMemberResult = await supabase
-      .from("org_members")
-      .upsert(
-        {
-          org_id: orgId,
-          user_id: userId,
-          role: "owner",
-          accepted_at: new Date().toISOString(),
-        },
-        { onConflict: "org_id,user_id" },
-      )
+    const upsertMemberResult = await supabase.from("org_members").upsert(
+      {
+        org_id: orgId,
+        user_id: userId,
+        role: "owner",
+        accepted_at: new Date().toISOString(),
+      },
+      { onConflict: "org_id,user_id" },
+    )
 
     if (upsertMemberResult.error) {
-      throw new Error(`Unable to upsert lapsed org member: ${upsertMemberResult.error.message}`)
+      throw new Error(
+        `Unable to upsert lapsed org member: ${upsertMemberResult.error.message}`,
+      )
     }
   }
 
@@ -158,7 +170,9 @@ const ensureLapsedWorkspace = async ({ userId }) => {
   )
 
   if (upsertBillingResult.error) {
-    throw new Error(`Unable to mark org as lapsed: ${upsertBillingResult.error.message}`)
+    throw new Error(
+      `Unable to mark org as lapsed: ${upsertBillingResult.error.message}`,
+    )
   }
 
   return { orgId, workspaceName }
@@ -167,9 +181,12 @@ const ensureLapsedWorkspace = async ({ userId }) => {
 const main = async () => {
   const user = await ensureE2EUser()
 
-  const { data: seededOrgId, error: seedError } = await supabase.rpc("sc_seed_demo", {
-    p_owner_user_id: user.userId,
-  })
+  const { data: seededOrgId, error: seedError } = await supabase.rpc(
+    "sc_seed_demo",
+    {
+      p_owner_user_id: user.userId,
+    },
+  )
 
   if (seedError) {
     if (String(seedError.message).includes("sc_seed_demo")) {
@@ -187,7 +204,9 @@ const main = async () => {
   const lapsed = await ensureLapsedWorkspace({ userId: user.userId })
 
   console.log("SystemsCraft E2E seed complete.")
-  console.log(`e2e_user_id=${user.userId} (${user.created ? "created" : "reused"})`)
+  console.log(
+    `e2e_user_id=${user.userId} (${user.created ? "created" : "reused"})`,
+  )
   console.log(`org_id=${seededOrgId}`)
   console.log(`lapsed_org_id=${lapsed.orgId} (${lapsed.workspaceName})`)
 }

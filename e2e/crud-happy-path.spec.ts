@@ -6,7 +6,10 @@ const password = process.env.E2E_PASSWORD ?? ""
 
 test.describe("crud happy path", () => {
   test("create role, system, process", async ({ page }) => {
-    test.skip(!email || !password, "Set E2E_EMAIL and E2E_PASSWORD to run authenticated E2E tests.")
+    test.skip(
+      !email || !password,
+      "Set E2E_EMAIL and E2E_PASSWORD to run authenticated E2E tests.",
+    )
 
     const runId = String(Date.now())
     const roleName = `E2E Role ${runId}`
@@ -41,7 +44,9 @@ test.describe("crud happy path", () => {
     await page.getByRole("button", { name: /record a system/i }).click()
     await page.getByPlaceholder("System name").fill(systemName)
     await page.getByPlaceholder(/location/i).fill(`E2E ${runId}`)
-    await page.getByRole("button", { name: "Create System", exact: true }).click()
+    await page
+      .getByRole("button", { name: "Create System", exact: true })
+      .click()
     try {
       await page.waitForURL(/\/app\/systems\/[^/]+/, { timeout: 30_000 })
     } catch {
@@ -61,13 +66,11 @@ test.describe("crud happy path", () => {
     await page.goto("/app/processes")
     await page.getByRole("button", { name: /write a process/i }).click()
     await page.getByPlaceholder("Process name").fill(processName)
+    await page.getByPlaceholder(/trigger/i).fill(`Trigger for ${runId}`)
+    await page.getByPlaceholder(/outcome/i).fill(`Outcome for ${runId}`)
     await page
-      .getByPlaceholder(/trigger/i)
-      .fill(`Trigger for ${runId}`)
-    await page
-      .getByPlaceholder(/outcome/i)
-      .fill(`Outcome for ${runId}`)
-    await page.getByRole("button", { name: "Create Process", exact: true }).click()
+      .getByRole("button", { name: "Create Process", exact: true })
+      .click()
     try {
       await page.waitForURL(/\/app\/processes\/[^/]+/, { timeout: 30_000 })
     } catch {

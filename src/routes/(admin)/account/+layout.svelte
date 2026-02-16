@@ -9,7 +9,10 @@
       supabase: {
         auth: {
           onAuthStateChange: (
-            callback: (event: string, session: { expires_at?: number } | null) => void,
+            callback: (
+              event: string,
+              session: { expires_at?: number } | null,
+            ) => void,
           ) => { data: { subscription: { unsubscribe: () => void } } }
         }
       }

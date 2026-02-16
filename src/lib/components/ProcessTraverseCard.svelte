@@ -31,7 +31,9 @@
   <div class="sc-card">
     <div class="sc-byline">
       {#if actionRoles.length === 0 && actionSystems.length === 0}
-        <span class="sc-page-subtitle">Add actions to build traversal links.</span>
+        <span class="sc-page-subtitle"
+          >Add actions to build traversal links.</span
+        >
       {:else}
         {#each actionRoles as role}
           <RolePortal {role} />

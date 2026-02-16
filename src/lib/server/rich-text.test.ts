@@ -64,7 +64,6 @@ describe("rich-text server pipeline", () => {
     const draft = readRichTextFormDraft({ formData })
 
     expect(draft.text).toBe("Owner context")
-    expect(draft.richRaw).toContain("\"type\":\"doc\"")
+    expect(draft.richRaw).toContain('"type":"doc"')
   })
 })
-

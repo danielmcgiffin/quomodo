@@ -192,7 +192,8 @@ const authGuard: Handle = async ({ event, resolve }) => {
     if (
       typeof event.locals.activeWorkspaceId === "string" &&
       event.locals.activeWorkspaceId.trim().length > 0 &&
-      event.cookies.get(ACTIVE_WORKSPACE_COOKIE) !== event.locals.activeWorkspaceId
+      event.cookies.get(ACTIVE_WORKSPACE_COOKIE) !==
+        event.locals.activeWorkspaceId
     ) {
       setActiveWorkspaceCookie(event.cookies, event.locals.activeWorkspaceId)
     }

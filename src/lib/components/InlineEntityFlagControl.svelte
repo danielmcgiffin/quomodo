@@ -60,7 +60,9 @@
 
     if (
       targetScope === "field" &&
-      !fieldTargets.some((fieldTarget) => fieldTarget.path === selectedFieldPath)
+      !fieldTargets.some(
+        (fieldTarget) => fieldTarget.path === selectedFieldPath,
+      )
     ) {
       selectedFieldPath = fieldTargets[0]?.path ?? ""
     }
@@ -122,7 +124,11 @@
     </div>
     {#if targetScope === "field" && hasFieldTargets}
       <div class="sc-form-row">
-        <select class="sc-search sc-field" bind:value={selectedFieldPath} required>
+        <select
+          class="sc-search sc-field"
+          bind:value={selectedFieldPath}
+          required
+        >
           <option value="">Select field target</option>
           {#each fieldTargets as fieldTarget}
             <option value={fieldTarget.path}>{fieldTarget.label}</option>

@@ -13,9 +13,15 @@ describe("flags mappers", () => {
   const processRows: FlagsProcessRow[] = [
     { id: "p1", slug: "onboarding", name: "Onboarding" },
   ]
-  const roleRows: FlagsRoleRow[] = [{ id: "r1", slug: "ops", name: "Operations" }]
-  const systemRows: FlagsSystemRow[] = [{ id: "s1", slug: "hubspot", name: "HubSpot" }]
-  const actionRows: FlagsActionRow[] = [{ id: "a1", process_id: "p1", sequence: 2 }]
+  const roleRows: FlagsRoleRow[] = [
+    { id: "r1", slug: "ops", name: "Operations" },
+  ]
+  const systemRows: FlagsSystemRow[] = [
+    { id: "s1", slug: "hubspot", name: "HubSpot" },
+  ]
+  const actionRows: FlagsActionRow[] = [
+    { id: "a1", process_id: "p1", sequence: 2 },
+  ]
 
   it("maps action targets with process context in label", () => {
     const processById = new Map(processRows.map((row) => [row.id, row]))
@@ -28,7 +34,12 @@ describe("flags mappers", () => {
     const processById = new Map(processRows.map((row) => [row.id, row]))
     const actionTargets = mapActionTargets({ actionRows, processById })
     expect(
-      mapFlagTargetOptions({ processRows, roleRows, systemRows, actionTargets }),
+      mapFlagTargetOptions({
+        processRows,
+        roleRows,
+        systemRows,
+        actionTargets,
+      }),
     ).toEqual([
       { value: "process:p1", label: "Process: Onboarding" },
       { value: "role:r1", label: "Role: Operations" },

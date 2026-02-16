@@ -54,7 +54,9 @@
   {#if data.renamed}
     <div class="sc-card sc-stack-top-12">
       <div class="font-semibold">Workspace name updated.</div>
-      <div class="sc-muted-line sc-stack-top-6">Your navigation now uses the new name.</div>
+      <div class="sc-muted-line sc-stack-top-6">
+        Your navigation now uses the new name.
+      </div>
     </div>
   {/if}
 
@@ -73,7 +75,11 @@
       {data.org.orgName} ({data.org.membershipRole})
     </div>
     {#if data.canRenameWorkspace}
-      <form class="sc-form sc-stack-top-10" method="POST" action="?/renameWorkspace">
+      <form
+        class="sc-form sc-stack-top-10"
+        method="POST"
+        action="?/renameWorkspace"
+      >
         {#if form?.renameWorkspaceError}
           <div class="sc-form-error">{form.renameWorkspaceError}</div>
         {/if}
@@ -104,7 +110,11 @@
     <div class="sc-muted-line sc-stack-top-6">
       Create another workspace for a new customer or separate operating context.
     </div>
-    <form class="sc-form sc-stack-top-10" method="POST" action="?/createWorkspace">
+    <form
+      class="sc-form sc-stack-top-10"
+      method="POST"
+      action="?/createWorkspace"
+    >
       {#if form?.createWorkspaceError}
         <div class="sc-form-error">{form.createWorkspaceError}</div>
       {/if}
@@ -131,7 +141,9 @@
       Switch your active workspace here or from the app navigation switcher.
     </div>
     {#if form?.switchWorkspaceError}
-      <div class="sc-form-error sc-stack-top-8">{form.switchWorkspaceError}</div>
+      <div class="sc-form-error sc-stack-top-8">
+        {form.switchWorkspaceError}
+      </div>
     {/if}
 
     {#if data.workspaces.length === 0}
@@ -139,7 +151,9 @@
     {:else}
       <div class="sc-stack-top-10 flex flex-col gap-2">
         {#each data.workspaces as workspace (workspace.id)}
-          <div class="sc-form-row rounded-[var(--sc-radius-md)] border border-[var(--sc-border)] bg-[var(--sc-bg-inset)] p-3">
+          <div
+            class="sc-form-row rounded-[var(--sc-radius-md)] border border-[var(--sc-border)] bg-[var(--sc-bg-inset)] p-3"
+          >
             <div class="flex min-w-0 flex-1 flex-col">
               <div class="truncate font-semibold">{workspace.name}</div>
               <div class="sc-muted-line">Role: {workspace.role}</div>
@@ -149,8 +163,16 @@
                 <span class="sc-pill">Current</span>
               {:else}
                 <form method="POST" action="?/switchWorkspace">
-                  <input type="hidden" name="workspaceId" value={workspace.id} />
-                  <input type="hidden" name="redirectTo" value="/app/workspace?switched=1" />
+                  <input
+                    type="hidden"
+                    name="workspaceId"
+                    value={workspace.id}
+                  />
+                  <input
+                    type="hidden"
+                    name="redirectTo"
+                    value="/app/workspace?switched=1"
+                  />
                   <button class="sc-btn secondary" type="submit">Switch</button>
                 </form>
               {/if}

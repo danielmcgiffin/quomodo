@@ -19,4 +19,3 @@ test("marketing pages load", async ({ page }) => {
   await page.goto("/login/sign_up")
   await expect(page.getByRole("heading", { name: /sign up/i })).toBeVisible()
 })
-

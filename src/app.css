@@ -64,7 +64,6 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
-
   *,
   ::after,
   ::before,
@@ -471,8 +470,10 @@ button[disabled].authBtn::before {
   height: 56px;
   padding: 0 32px;
   display: grid;
-  grid-template-columns: minmax(0, auto) minmax(min(900px, 100%), 1fr) minmax(0,
-      auto);
+  grid-template-columns: minmax(0, auto) minmax(min(900px, 100%), 1fr) minmax(
+      0,
+      auto
+    );
   align-items: center;
   gap: 0;
 }
@@ -738,7 +739,7 @@ button[disabled].authBtn::before {
   }
 }
 
-.sc-card+.sc-card {
+.sc-card + .sc-card {
   margin-top: 12px;
 }
 
@@ -1100,7 +1101,7 @@ button[disabled].authBtn::before {
   white-space: pre-wrap;
 }
 
-.sc-rich-editor-content p+p {
+.sc-rich-editor-content p + p {
   margin-top: 10px;
 }
 
@@ -1118,7 +1119,7 @@ button[disabled].authBtn::before {
   list-style: decimal;
 }
 
-.sc-rich-editor-content li+li {
+.sc-rich-editor-content li + li {
   margin-top: 6px;
 }
 
@@ -1264,7 +1265,7 @@ button[disabled].authBtn::before {
   margin-top: 14px;
 }
 
-.sc-search-group+.sc-search-group {
+.sc-search-group + .sc-search-group {
   margin-top: 16px;
 }
 
@@ -1315,7 +1316,7 @@ button[disabled].authBtn::before {
   z-index: 90;
 }
 
-.sc-rich p+p {
+.sc-rich p + p {
   margin-top: 8px;
 }
 
@@ -1325,7 +1326,7 @@ button[disabled].authBtn::before {
   list-style: disc;
 }
 
-.sc-rich li+li {
+.sc-rich li + li {
   margin-top: 6px;
 }
 
@@ -1391,12 +1392,16 @@ button[disabled].authBtn::before {
 
 .mk-shell {
   min-height: 100vh;
-  background: radial-gradient(circle at 10% 10%,
+  background: radial-gradient(
+      circle at 10% 10%,
       rgba(201, 168, 76, 0.08),
-      transparent 40%),
-    radial-gradient(circle at 90% 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 90% 0%,
       rgba(201, 168, 76, 0.06),
-      transparent 35%),
+      transparent 35%
+    ),
     var(--mk-bg);
   color: var(--mk-text);
   font-family:
@@ -1561,7 +1566,6 @@ button[disabled].authBtn::before {
   transform: translateY(-1px);
 }
 
-
 .mk-mobile-nav {
   display: grid;
   gap: 0.25rem;
@@ -1654,9 +1658,11 @@ button[disabled].authBtn::before {
 .mk-query-card,
 .mk-method-action-card {
   border: 1px solid var(--mk-border);
-  background: linear-gradient(180deg,
-      var(--mk-bg-card),
-      var(--mk-bg-card-soft));
+  background: linear-gradient(
+    180deg,
+    var(--mk-bg-card),
+    var(--mk-bg-card-soft)
+  );
   border-radius: 14px;
   padding: 1rem;
   animation: mk-rise 380ms ease both;
@@ -1699,9 +1705,11 @@ button[disabled].authBtn::before {
   border: 1px solid rgba(212, 182, 92, 0.28);
   border-radius: 18px;
   padding: 1.5rem;
-  background: linear-gradient(120deg,
-      rgba(212, 182, 92, 0.08),
-      rgba(20, 20, 22, 0.94));
+  background: linear-gradient(
+    120deg,
+    rgba(212, 182, 92, 0.08),
+    rgba(20, 20, 22, 0.94)
+  );
 }
 
 .mk-cta-band h2 {

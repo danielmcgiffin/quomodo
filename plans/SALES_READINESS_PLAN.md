@@ -22,16 +22,16 @@ A product is saleable when:
 
 ## Gap Analysis
 
-| Area | Current State | Gap | Risk if Unaddressed |
-|------|--------------|-----|---------------------|
-| **E2E testing** | 0 Playwright tests | No automated regression on critical paths | Deploys break signup/billing and you find out from customers |
-| **Unit test coverage** | 42 tests across 10 files | Shared actions, mappers, RBAC partially covered | Refactoring introduces silent bugs |
-| **UI polish** | Flag UX issues noted in todo.md | Rough edges on flag sidebar, empty states | Demo friction, support tickets |
-| **Screen audit** | Not done | No systematic check of all ~40 screens | Broken/ugly screens discovered live |
-| **Error monitoring** | `console.error` only | No alerting, no error aggregation | Blind to production failures |
-| **Legal pages** | None visible | No Terms of Service, Privacy Policy | Enterprise prospects bounce |
-| **DB migration** | Schema cleanup SQL prepared, not applied to prod | Stale columns in production DB | Type mismatches, confusion |
-| **Remaining cleanup** | EPI-43–49 in backlog | Some duplication remains in loaders | Slower dev velocity, harder onboarding |
+| Area                   | Current State                                    | Gap                                             | Risk if Unaddressed                                          |
+| ---------------------- | ------------------------------------------------ | ----------------------------------------------- | ------------------------------------------------------------ |
+| **E2E testing**        | 0 Playwright tests                               | No automated regression on critical paths       | Deploys break signup/billing and you find out from customers |
+| **Unit test coverage** | 42 tests across 10 files                         | Shared actions, mappers, RBAC partially covered | Refactoring introduces silent bugs                           |
+| **UI polish**          | Flag UX issues noted in todo.md                  | Rough edges on flag sidebar, empty states       | Demo friction, support tickets                               |
+| **Screen audit**       | Not done                                         | No systematic check of all ~40 screens          | Broken/ugly screens discovered live                          |
+| **Error monitoring**   | `console.error` only                             | No alerting, no error aggregation               | Blind to production failures                                 |
+| **Legal pages**        | None visible                                     | No Terms of Service, Privacy Policy             | Enterprise prospects bounce                                  |
+| **DB migration**       | Schema cleanup SQL prepared, not applied to prod | Stale columns in production DB                  | Type mismatches, confusion                                   |
+| **Remaining cleanup**  | EPI-43–49 in backlog                             | Some duplication remains in loaders             | Slower dev velocity, harder onboarding                       |
 
 ## Prioritized Workstreams
 
@@ -51,6 +51,7 @@ A product is saleable when:
 **Tickets:**
 
 #### SR-01: Commit and deploy EPI-36 componentization work
+
 - **What**: Stage the current uncommitted changes (RoleDetailHeader, SystemDetailHeader, roles/systems detail page refactors, DatabaseDefinitions update, migration rename)
 - **How**:
   1. `git add` the specific changed files
@@ -61,6 +62,7 @@ A product is saleable when:
 - **Done when**: Deployed to production, smoke passes
 
 #### SR-02: Apply DB schema cleanup migration to production
+
 - **What**: Run `20260213000000_schema_cleanup_fields.sql` against production Supabase
 - **How**:
   1. Take a DB backup via Supabase dashboard (Settings → Backups)
@@ -81,24 +83,25 @@ A product is saleable when:
 **Tickets:**
 
 #### SR-03: Set up Playwright infrastructure
+
 - **What**: Install Playwright, configure for SvelteKit, add npm scripts, add to CI
 - **How**:
   1. `npm install -D @playwright/test`
   2. `npx playwright install chromium` (just one browser to start)
   3. Create `playwright.config.ts`:
      ```typescript
-     import { defineConfig } from '@playwright/test';
+     import { defineConfig } from "@playwright/test"
      export default defineConfig({
-       testDir: './e2e',
+       testDir: "./e2e",
        webServer: {
-         command: 'npm run build && npm run preview',
+         command: "npm run build && npm run preview",
          port: 4173,
          reuseExistingServer: !process.env.CI,
        },
        use: {
-         baseURL: 'http://localhost:4173',
+         baseURL: "http://localhost:4173",
        },
-     });
+     })
      ```
   4. Add to `package.json` scripts:
      ```json
@@ -114,6 +117,7 @@ A product is saleable when:
 - Completed 2026-02-14 (added `@playwright/test`, `playwright.config.ts`, `e2e/` test dir, `test:e2e` scripts, `.gitignore` entries, and CI step in `.github/workflows/tests.yml`; local `npm run -s test:e2e` PASS).
 
 #### SR-04: E2E — Marketing pages load without errors
+
 - **What**: Smoke-test that public pages render (no 500s, key content visible)
 - **How**: Create `e2e/marketing.spec.ts`:
   - `GET /` → status 200, contains "SystemsCraft" (or your headline text)
@@ -127,6 +131,7 @@ A product is saleable when:
 - Completed 2026-02-14 (added `e2e/marketing.spec.ts`; local `npm run -s test:e2e` PASS).
 
 #### SR-05: E2E — Authenticated app smoke test
+
 - **What**: Log in with a test user, verify core app pages load
 - **Prereqs**: Create a dedicated test user in Supabase (e.g. `e2e-test@systemscraft.co`) with a known password and a pre-seeded workspace. Store credentials in `.env.test` (gitignored) and CI secrets.
 - **How**: Create `e2e/app-smoke.spec.ts`:
@@ -148,6 +153,7 @@ A product is saleable when:
 - Completed 2026-02-14 (CI `npm run test:e2e` PASS with prod Supabase + test user credentials configured via GitHub Actions secrets).
 
 #### SR-05A: Dedicated E2E Supabase Project + Seeded Fixtures (P0)
+
 - **What**: Move Playwright E2E tests off production Supabase and onto a dedicated E2E Supabase project with seeded workspaces/users and deterministic fixtures.
 - **Why**: Avoid polluting prod data, avoid flaky tests due to billing/org state, and allow SR-07 (lapsed workspace) to be deterministic.
 - **Current implementation**:
@@ -173,6 +179,7 @@ A product is saleable when:
 - Completed 2026-02-14 (migrations applied to dedicated E2E Supabase via `E2E Supabase Setup` workflow; `Tests` workflow seeds E2E fixtures and runs Playwright against E2E secrets).
 
 #### SR-06: E2E — CRUD happy path (create role, system, process)
+
 - **What**: Test the primary user workflow end-to-end
 - **How**: Create `e2e/crud-happy-path.spec.ts`:
   1. Log in as test user
@@ -191,6 +198,7 @@ A product is saleable when:
 - Completed 2026-02-14 (CI `npm run test:e2e` PASS; note local runs require `E2E_EMAIL`/`E2E_PASSWORD` env vars or the authenticated specs will skip).
 
 #### SR-07: E2E — Billing gate enforcement
+
 - **What**: Verify lapsed workspaces are read-only
 - **How**: Create `e2e/billing-gate.spec.ts`:
   1. Log in as a user whose workspace is in `lapsed` billing state (requires test fixture)
@@ -214,6 +222,7 @@ A product is saleable when:
 **Tickets:**
 
 #### SR-08: Unit tests for wrapAction utility
+
 - **What**: Test the `wrapAction` wrapper in `src/lib/server/app/actions/`
 - **Test cases**:
   1. Returns `fail(403)` when permission check fails
@@ -228,6 +237,7 @@ A product is saleable when:
 - Completed 2026-02-14 (added `src/lib/server/app/actions/wrapAction.test.ts`; covers permission denial, lapsed enforcement (default + disabled), and handler wiring).
 
 #### SR-09: Unit tests for directory mapper
+
 - **What**: Test `src/lib/server/app/mappers/directory.ts`
 - **Test cases**:
   1. Maps raw role DB row to role list view model (correct fields, no extra fields)
@@ -241,6 +251,7 @@ A product is saleable when:
 - Completed 2026-02-14 (added `src/lib/server/app/mappers/directory.test.ts`; covers role + system mapping and null/unknown owner handling).
 
 #### SR-10: Unit tests for detail-relations mapper
+
 - **What**: Test `src/lib/server/app/mappers/detail-relations.ts`
 - **Test cases**:
   1. Correctly groups related entities by type
@@ -252,6 +263,7 @@ A product is saleable when:
 - Completed 2026-02-14 (added `src/lib/server/app/mappers/detail-relations.test.ts`; covers grouping/filtering and open-flag mapping).
 
 #### SR-11: Unit tests for process mapper
+
 - **What**: Test `src/lib/server/app/mappers/processes.ts`
 - **Test cases**:
   1. Maps process row + actions to detail view model
@@ -264,6 +276,7 @@ A product is saleable when:
 - Completed 2026-02-14 (added `src/lib/server/app/mappers/processes.test.ts`; covers cards sorting/deduping, open flags filtering, and detail action/flag mapping).
 
 #### SR-12: Expand RBAC test coverage
+
 - **What**: Add edge cases to `src/lib/server/team-rbac.test.ts`
 - **Test cases to add**:
   1. `editor` cannot manage anyone
@@ -285,6 +298,7 @@ A product is saleable when:
 **Tickets:**
 
 #### SR-13: Fix flag button/modal pattern
+
 - **What**: From todo.md — flag creation should follow the same button→modal pattern used elsewhere
 - **Where**: `src/lib/components/InlineEntityFlagControl.svelte`, `src/lib/components/FlagsCreateForm.svelte`
 - **How**:
@@ -296,6 +310,7 @@ A product is saleable when:
 - Completed 2026-02-14 (updated `src/lib/components/FlagsCreateForm.svelte` to use a button-triggered `ScModal` instead of an always-visible inline form; error state re-opens modal).
 
 #### SR-14: Fix flags page — remove flag sidebar from flags list
+
 - **What**: From todo.md — the flags index page (`/app/flags`) shouldn't show a flag sidebar (you can't flag a flag)
 - **Where**: `src/routes/app/flags/+page.svelte`
 - **How**:
@@ -307,6 +322,7 @@ A product is saleable when:
 - Completed 2026-02-14 (removed `FlagSidebar` from `src/routes/app/flags/+page.svelte`).
 
 #### SR-15: Add empty-state treatment for flag sidebars
+
 - **What**: From todo.md — when a flag sidebar has no flags, show a light green outline with a thumbs-up icon instead of empty space
 - **Where**: `src/lib/components/FlagSidebar.svelte`
 - **How**:
@@ -318,11 +334,13 @@ A product is saleable when:
 - Completed 2026-02-14 (updated `src/lib/components/FlagSidebar.svelte` empty state with a light-green outlined card + thumbs-up outline icon; unhid empty state via `.sc-flags-sidebar.is-empty` CSS fix).
 
 #### SR-27: Flags Dashboard Layout Refresh (Centered + Filterable Grid) (P1)
+
 - **What**: Make `/app/flags` main body centered and present flags as a filterable grid (status/type/target type).
 - **Why**: Current flags dashboard reads like a list page; demo/readability improves with a grid + quick filters.
 - **Done when**: `/app/flags` content is visually centered (matches other directory pages), flags are shown in a grid, and filters update the grid without breaking moderation actions.
 
 #### SR-16: Full screen audit — all ~40 routes
+
 - **What**: Systematically visit every screen listed in `plans/human/todo.md` and verify:
   - Page loads without console errors
   - Layout isn't broken (no overflows, missing content, blank sections)
@@ -345,6 +363,7 @@ A product is saleable when:
 **Tickets:**
 
 #### SR-17: Add Terms of Service page
+
 - **What**: Add a `/terms` route with your ToS content
 - **How**:
   1. Draft ToS content (use a generator like Termly.io as a starting point, then customize)
@@ -354,6 +373,7 @@ A product is saleable when:
 - **Done when**: `/terms` renders, linked from footer
 
 #### SR-18: Add Privacy Policy page
+
 - **What**: Add a `/privacy` route with your privacy policy
 - **How**:
   1. Draft privacy policy (cover: what data you collect, how you use it, Supabase/Stripe as processors, cookies, user rights, contact info)
@@ -370,6 +390,7 @@ A product is saleable when:
 **Tickets:**
 
 #### SR-19: Add lightweight error reporting
+
 - **What**: Integrate a production error tracker. Recommended: **Sentry** (free tier covers early-stage SaaS) or **LogFlare** (Cloudflare-native).
 - **How (Sentry path)**:
   1. `npm install @sentry/sveltekit`
@@ -384,6 +405,7 @@ A product is saleable when:
 - **Done when**: Server errors reach you within minutes
 
 #### SR-20: Add uptime monitoring
+
 - **What**: External ping on `https://systemscraft.co` to alert on downtime
 - **How**: Use a free service (UptimeRobot, BetterUptime, or Cloudflare Health Checks)
   1. Create a monitor for `https://systemscraft.co` — check every 5 minutes
@@ -400,16 +422,19 @@ A product is saleable when:
 **Tickets**: Use existing Linear backlog (already detailed):
 
 #### SR-21 → EPI-47: Svelte 5 compatibility audit
+
 - Already specified in Linear
 - Fixes deprecation warnings that could break on next Svelte update
 - Run `npm run check` after and verify 0 warnings
 
 #### SR-22 → EPI-48: Unit test coverage for data layer
+
 - Already specified in Linear
 - Overlaps with WS-C above — merge or skip duplicates
 - Focus on any mappers/helpers NOT covered by SR-08 through SR-12
 
 #### SR-23 → EPI-49: Final quality gate + baseline comparison
+
 - Already specified in Linear
 - Run after all other work
 - Compare line counts and test counts against EPI-28 baseline
@@ -423,6 +448,7 @@ A product is saleable when:
 **Tickets:**
 
 #### SR-24: Pricing page content review
+
 - **What**: Verify pricing page matches live Stripe plans (names, prices, features)
 - **Where**: `src/routes/(marketing)/pricing/`
 - **How**:
@@ -432,6 +458,7 @@ A product is saleable when:
 - **Done when**: Pricing page accurately reflects what you're selling
 
 #### SR-25: Homepage / landing page content review
+
 - **What**: Make sure the homepage sells the product clearly
 - **Where**: `src/routes/(marketing)/+page.svelte`
 - **How**:
@@ -442,6 +469,7 @@ A product is saleable when:
 - **Done when**: A stranger landing on the page understands what SystemsCraft is
 
 #### SR-26: Prepare demo workspace
+
 - **What**: Create a pre-populated workspace with realistic sample data for live demos
 - **How**:
   1. Create a dedicated demo org in production
@@ -504,6 +532,7 @@ Phase 7 — Close out
 Every PR must pass these gates before merge:
 
 ### Automated (CI — already configured, extend with Playwright)
+
 1. `npm run check` — 0 errors
 2. `npm run lint` — 0 errors
 3. `npm run build` — succeeds
@@ -511,23 +540,25 @@ Every PR must pass these gates before merge:
 5. `npm run test:e2e` — all Playwright tests pass (after SR-03)
 
 ### Pre-deploy (manual or scripted)
+
 6. `SMOKE_BASE_URL=https://systemscraft.co npm run -s smoke:deployed`
 7. `SMOKE_BASE_URL=https://systemscraft.co npm run -s onboarding:deployed`
 
 ### Per-release (manual)
+
 8. Screen spot-check: visit `/app/processes`, `/app/roles`, `/app/systems`, `/app/flags`, `/app/team` — confirm no console errors, data loads
 9. CRUD spot-check: create one role, one system, one process — confirm they appear in lists and detail pages
 
 ## Metrics to Track
 
-| Metric | Baseline (2026-02-14) | Target |
-|--------|----------------------|--------|
-| Unit tests | 42 across 10 files | 70+ across 15+ files |
-| E2E tests | 0 | 15+ covering critical paths |
-| svelte-check errors | 0 | 0 (maintain) |
-| App route total lines | ~953 lines removed so far | Continue downward trend |
-| Time to detect prod error | Unknown (no monitoring) | < 5 minutes |
-| Screens with known issues | Unknown | 0 blocking issues |
+| Metric                    | Baseline (2026-02-14)     | Target                      |
+| ------------------------- | ------------------------- | --------------------------- |
+| Unit tests                | 42 across 10 files        | 70+ across 15+ files        |
+| E2E tests                 | 0                         | 15+ covering critical paths |
+| svelte-check errors       | 0                         | 0 (maintain)                |
+| App route total lines     | ~953 lines removed so far | Continue downward trend     |
+| Time to detect prod error | Unknown (no monitoring)   | < 5 minutes                 |
+| Screens with known issues | Unknown                   | 0 blocking issues           |
 
 ## Linear Issue Cleanup
 
