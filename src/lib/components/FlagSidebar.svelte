@@ -29,6 +29,11 @@
 <section
   class={`sc-section sc-flags-sidebar ${flags.length === 0 ? "is-empty" : ""}`}
 >
+  <div
+    class="sc-section-title px-1 text-xs font-bold uppercase tracking-widest text-slate-500 mb-4"
+  >
+    {title}
+  </div>
   {#if flags.length === 0}
     <div class="sc-flags-sidebar-empty sc-flags-sidebar-placeholder">
       <div class="flex flex-col items-center justify-center gap-2 py-10">

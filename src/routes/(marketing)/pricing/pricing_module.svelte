@@ -33,7 +33,7 @@
         <p class="mt-3 text-slate-400 leading-relaxed min-h-[3rem]">
           {plan.description}
         </p>
-        
+
         <div class="mt-8 mb-8">
           <span class="text-5xl font-bold text-white">{plan.price}</span>
           {#if plan.price !== "Custom"}
@@ -42,21 +42,33 @@
         </div>
 
         <div class="mt-auto pt-6 border-t border-white/5">
-          <div class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4">
+          <div
+            class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4"
+          >
             Included Features
           </div>
           <ul class="space-y-3">
             {#each plan.features as feature}
               <li class="flex items-start gap-3 text-slate-400 text-sm">
-                <svg class="w-5 h-5 text-primary flex-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                <svg
+                  class="w-5 h-5 text-primary flex-none"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
                 {feature}
               </li>
             {/each}
           </ul>
         </div>
-        
+
         <div class="pt-10">
           <div class="flex flex-row items-center">
             {#if plan.id === currentPlanId}

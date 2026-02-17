@@ -7,8 +7,8 @@
 </h1>
 
 <p class="text-[var(--mk-text-secondary)]">
-  You attempted to update your account with an incorrect current password, and have
-  been logged out for security.
+  You attempted to update your account with an incorrect current password, and
+  have been logged out for security.
 </p>
 <p class="mt-6 text-[var(--mk-text-secondary)]">
   If you know your password, please <a

@@ -19,7 +19,8 @@
       <div class="sc-card sc-card-flag sc-postit-card">
         <div class="sc-postit-header">
           <div class="sc-flag-banner">
-            <span aria-hidden="true">⚑</span> {flag.flagType.replace("_", " ")}
+            <span aria-hidden="true">⚑</span>
+            {flag.flagType.replace("_", " ")}
           </div>
           {#if canModerate}
             <div class="sc-postit-actions">

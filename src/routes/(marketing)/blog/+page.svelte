@@ -25,12 +25,18 @@
       <div
         class="card my-6 bg-[#141416] border border-white/5 hover:border-primary/30 transition-all shadow-xl flex-row overflow-hidden"
       >
-        <div class="flex-none w-2 md:w-4 bg-primary/20 group-hover:bg-primary/40 transition-colors"></div>
+        <div
+          class="flex-none w-2 md:w-4 bg-primary/20 group-hover:bg-primary/40 transition-colors"
+        ></div>
         <div class="py-8 px-8">
-          <div class="text-2xl font-bold text-white mb-2 group-hover:text-primary transition-colors">
+          <div
+            class="text-2xl font-bold text-white mb-2 group-hover:text-primary transition-colors"
+          >
             {post.title}
           </div>
-          <div class="text-sm font-medium text-accent/80 mb-3 uppercase tracking-wider">
+          <div
+            class="text-sm font-medium text-accent/80 mb-3 uppercase tracking-wider"
+          >
             {post.parsedDate?.toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",

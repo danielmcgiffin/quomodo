@@ -59,7 +59,7 @@ export const load = async ({ params, locals, url }) => {
 
   const { data: role, error: roleError } = await supabase
     .from("roles")
-  .select("id, slug, name, description_rich")
+    .select("id, slug, name, description_rich")
     .eq("org_id", context.orgId)
     .eq("slug", params.slug)
     .maybeSingle()

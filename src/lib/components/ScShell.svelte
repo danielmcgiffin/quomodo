@@ -175,7 +175,11 @@
       class="sc-sidebar-overlay"
       onclick={() => (isMobileMenuOpen = false)}
       onkeydown={(event) => {
-        if (event.key === "Escape" || event.key === "Enter" || event.key === " ") {
+        if (
+          event.key === "Escape" ||
+          event.key === "Enter" ||
+          event.key === " "
+        ) {
           isMobileMenuOpen = false
         }
       }}

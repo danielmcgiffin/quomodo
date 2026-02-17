@@ -203,6 +203,17 @@ const main = async () => {
 
   const lapsed = await ensureLapsedWorkspace({ userId: user.userId })
 
+  // Re-upsert the active org membership to ensure it's the most recent (default).
+  await supabase.from("org_members").upsert(
+    {
+      org_id: seededOrgId,
+      user_id: user.userId,
+      role: "owner",
+      accepted_at: new Date().toISOString(),
+    },
+    { onConflict: "org_id,user_id" },
+  )
+
   console.log("SystemsCraft E2E seed complete.")
   console.log(
     `e2e_user_id=${user.userId} (${user.created ? "created" : "reused"})`,

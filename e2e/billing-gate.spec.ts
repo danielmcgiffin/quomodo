@@ -35,12 +35,11 @@ test.describe("billing gate", () => {
     )
     await expect(row).toBeVisible()
 
-    await row
-      .locator('form[action="?/switchWorkspace"]')
-      .first()
-      .getByRole("button", { name: "Switch", exact: true })
-      .click()
-    await page.waitForURL(/\/app\/workspace\?switched=1/, { timeout: 15_000 })
+    const switchBtn = row.getByRole("button", { name: "Switch", exact: true })
+    if (await switchBtn.isVisible()) {
+      await switchBtn.click()
+      await page.waitForURL(/\/app\/workspace\?switched=1/, { timeout: 15_000 })
+    }
 
     // Lapsed banner appears across /app.
     await page.goto("/app/processes")

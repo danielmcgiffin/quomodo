@@ -16,19 +16,22 @@ export type BlogPost = {
 const blogPosts: BlogPost[] = [
   {
     title: "How we built a high-performance marketing experience",
-    description: "Insights into optimizing the SystemsCraft stack for speed and clarity.",
+    description:
+      "Insights into optimizing the SystemsCraft stack for speed and clarity.",
     link: "/blog/how_we_built_our_41kb_saas_website",
     date: "2024-03-10",
   },
   {
     title: "Exploring the power of structured systems",
-    description: "A deep dive into how structured information drives clarity in system design.",
+    description:
+      "A deep dive into how structured information drives clarity in system design.",
     link: "/blog/awesome_post",
     date: "2022-9-23",
   },
   {
     title: "The importance of operational excellence",
-    description: "Why maintaining high operational standards is key to sustainable product growth.",
+    description:
+      "Why maintaining high operational standards is key to sustainable product growth.",
     link: "/blog/example_blog_post",
     date: "2023-03-13",
   },

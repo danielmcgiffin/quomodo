@@ -126,7 +126,7 @@
 
   {#if !loading && searchQuery.length > 0 && results.length === 0 && !error}
     <div class="text-center mt-10 text-slate-400 text-xl">No results found</div>
-  {#if dev}
+    {#if dev}
       <div class="text-center mt-4 font-mono text-sm text-slate-500">
         Development mode only message: if you're missing content, rebuild your
         local search index with `npm run build`
@@ -144,12 +144,18 @@
         <div
           class="card bg-[#141416] border border-white/5 hover:border-primary/30 transition-all shadow-xl flex-row overflow-hidden focus:ring-2 focus:ring-primary outline-hidden"
         >
-          <div class="flex-none w-2 md:w-4 bg-primary/20 group-hover:bg-primary/40 transition-colors"></div>
+          <div
+            class="flex-none w-2 md:w-4 bg-primary/20 group-hover:bg-primary/40 transition-colors"
+          ></div>
           <div class="py-6 px-8">
-            <div class="text-xl font-bold text-white mb-1 group-hover:text-primary transition-colors">
+            <div
+              class="text-xl font-bold text-white mb-1 group-hover:text-primary transition-colors"
+            >
               {result.item.title}
             </div>
-            <div class="text-xs font-medium text-accent/80 mb-2 uppercase tracking-wider">
+            <div
+              class="text-xs font-medium text-accent/80 mb-2 uppercase tracking-wider"
+            >
               {result.item.path}
             </div>
             <div class="text-slate-400 line-clamp-2">
