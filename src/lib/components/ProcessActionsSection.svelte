@@ -1,8 +1,7 @@
 <script lang="ts">
   import {
+    dndzone,
     TRIGGERS,
-    dragHandle,
-    dragHandleZone,
     type DndEvent,
   } from "svelte-dnd-action"
   import { flip } from "svelte/animate"
@@ -105,8 +104,8 @@
     dragInProgress = false
 
     if (info.trigger === TRIGGERS.DRAG_STOPPED) {
-      const newIds = newItems.map((item) => item.id).join(",")
-      const oldIds = actions.map((item) => item.id).join(",")
+      const newIds = newItems.map((action) => action.id).join(",")
+      const oldIds = actions.map((action) => action.id).join(",")
       if (newIds !== oldIds) {
         orderedIdsValue = newIds
         // Use requestAnimationFrame to ensure form value is updated before submit
@@ -203,10 +202,11 @@
     </div>
   {:else}
     <div
-      use:dragHandleZone={{
+      use:dndzone={{
         items,
         flipDurationMs,
         dragDisabled: !canReorder,
+        handleSelector: ".sc-action-sequence",
       }}
       onconsider={handleDndConsider}
       onfinalize={handleDndFinalize}
@@ -263,7 +263,7 @@
           </div>
           <div class="sc-action-card-side">
             <div class="flex items-center justify-between gap-2">
-              <div class="sc-action-sequence" use:dragHandle>{index + 1}</div>
+              <div class="sc-action-sequence">{index + 1}</div>
             </div>
             <div class="sc-action-side-row">
               {#if action.ownerRole}

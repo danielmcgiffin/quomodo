@@ -757,7 +757,7 @@ export const readActionDraft = (formData: FormData): ActionDraft => {
   }
 }
 
-type ActionSequenceRow = { id: string; sequence: number }
+export type ActionSequenceRow = { id: string; sequence: number }
 
 export const resequenceProcessActions = async ({
   supabase,
