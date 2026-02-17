@@ -51,7 +51,8 @@
   <p class="mk-hero-audience">{marketingSite.hero.audience}</p>
   <div class="mk-cta-row">
     <a class="mk-btn mk-btn-primary" href={marketingSite.primaryCta.href}>
-      {marketingSite.primaryCta.label} <ArrowRight size={16} class="ml-2" />
+      {marketingSite.primaryCta.label}
+      <ArrowRight size={16} class="ml-2" />
     </a>
     <a class="mk-btn mk-btn-quiet" href="/method">Read The Method</a>
   </div>
@@ -176,7 +177,8 @@
   <div class="mk-enterprise-banner">
     <p>
       <strong>Need more than 100 seats?</strong>
-      If you require more than 100 seats, <a
+      If you require more than 100 seats,
+      <a
         href="https://cal.com/danny-cursus/15min"
         target="_blank"
         rel="noreferrer">reach out and we can talk</a
@@ -378,5 +380,4 @@
     color: var(--mk-gold-text);
     margin-bottom: 1rem;
   }
-
 </style>

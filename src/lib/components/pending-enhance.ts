@@ -13,7 +13,8 @@ const hasIconContent = (button: SubmitButton): boolean =>
 
 const pendingSubmit: SubmitFunction = ({ submitter }) => {
   const button =
-    submitter instanceof HTMLButtonElement || submitter instanceof HTMLInputElement
+    submitter instanceof HTMLButtonElement ||
+    submitter instanceof HTMLInputElement
       ? submitter
       : null
 
@@ -47,10 +48,16 @@ const pendingSubmit: SubmitFunction = ({ submitter }) => {
       delete button.dataset.pending
       button.disabled = previous?.disabled ?? false
       button.style.minWidth = previous?.minWidth ?? ""
-      if (button instanceof HTMLButtonElement && typeof previous?.html === "string") {
+      if (
+        button instanceof HTMLButtonElement &&
+        typeof previous?.html === "string"
+      ) {
         button.innerHTML = previous.html
       }
-      if (button instanceof HTMLInputElement && typeof previous?.value === "string") {
+      if (
+        button instanceof HTMLInputElement &&
+        typeof previous?.value === "string"
+      ) {
         button.value = previous.value
       }
       buttonState.delete(button)

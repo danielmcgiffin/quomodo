@@ -81,7 +81,9 @@
 </script>
 
 <button
-  class={inline ? `sc-inline-link-icon ${className}`.trim() : "sc-flag-hover-btn"}
+  class={inline
+    ? `sc-inline-link-icon ${className}`.trim()
+    : "sc-flag-hover-btn"}
   type="button"
   title={`Flag ${entityLabel}`}
   aria-label={`Flag ${entityLabel}`}

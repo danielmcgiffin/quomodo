@@ -46,9 +46,7 @@ const slugify = (v) =>
 /** ProseMirror doc with a single paragraph. */
 const p = (text) => ({
   type: "doc",
-  content: [
-    { type: "paragraph", content: [{ type: "text", text }] },
-  ],
+  content: [{ type: "paragraph", content: [{ type: "text", text }] }],
 })
 
 /** ProseMirror doc with multiple paragraphs. */
@@ -85,7 +83,9 @@ const ROLES = [
   {
     slug: "founder",
     name: "Founder",
-    desc: p("Sets company direction, owns escalation paths, and makes final calls on strategy and hiring."),
+    desc: p(
+      "Sets company direction, owns escalation paths, and makes final calls on strategy and hiring.",
+    ),
   },
   {
     slug: "ops-manager",
@@ -131,17 +131,22 @@ const ROLES = [
   {
     slug: "finance-admin",
     name: "Finance & Admin",
-    desc: pBullets("Handles billing, contracts, compliance, and corporate admin.", [
-      "Invoicing and accounts receivable",
-      "Payroll and benefits administration",
-      "Contract review and vendor payments",
-      "Tax filings and financial reporting",
-    ]),
+    desc: pBullets(
+      "Handles billing, contracts, compliance, and corporate admin.",
+      [
+        "Invoicing and accounts receivable",
+        "Payroll and benefits administration",
+        "Contract review and vendor payments",
+        "Tax filings and financial reporting",
+      ],
+    ),
   },
   {
     slug: "support-specialist",
     name: "Support Specialist",
-    desc: p("First-line customer support — triages tickets, resolves common issues, and escalates bugs to engineering."),
+    desc: p(
+      "First-line customer support — triages tickets, resolves common issues, and escalates bugs to engineering.",
+    ),
   },
 ]
 
@@ -169,19 +174,24 @@ const SYSTEMS = [
   {
     slug: "zoom",
     name: "Zoom",
-    desc: p("Video conferencing for client calls, team standups, and all-hands meetings."),
+    desc: p(
+      "Video conferencing for client calls, team standups, and all-hands meetings.",
+    ),
     location: "https://zoom.us",
     ownerSlug: "ops-manager",
   },
   {
     slug: "slack",
     name: "Slack",
-    desc: pBullets("Internal communication hub and integration notification center.", [
-      "#general — company announcements",
-      "#sales — deal updates and pipeline discussions",
-      "#engineering — technical discussions and deploy notifications",
-      "#support — customer issue triage and escalation",
-    ]),
+    desc: pBullets(
+      "Internal communication hub and integration notification center.",
+      [
+        "#general — company announcements",
+        "#sales — deal updates and pipeline discussions",
+        "#engineering — technical discussions and deploy notifications",
+        "#support — customer issue triage and escalation",
+      ],
+    ),
     location: "https://slack.com",
     ownerSlug: "ops-manager",
   },
@@ -232,26 +242,84 @@ const PROCESSES = [
     endState: "Client has logged in, completed setup, and had kickoff call",
     ownerSlug: "client-success",
     actions: [
-      { seq: 1, desc: p("Create client workspace folder from template."), roleSlug: "ops-manager", systemSlug: "google-drive" },
-      { seq: 2, desc: p("Move deal to 'Closed Won' and create onboarding task in HubSpot."), roleSlug: "sales-lead", systemSlug: "hubspot" },
-      { seq: 3, desc: p("Send welcome email with login credentials and getting-started guide."), roleSlug: "client-success", systemSlug: "hubspot" },
-      { seq: 4, desc: p("Schedule and run kickoff call — introduce team, walk through setup."), roleSlug: "client-success", systemSlug: "zoom" },
-      { seq: 5, desc: p("Post handoff summary in #sales with key contacts and notes."), roleSlug: "client-success", systemSlug: "slack" },
+      {
+        seq: 1,
+        desc: p("Create client workspace folder from template."),
+        roleSlug: "ops-manager",
+        systemSlug: "google-drive",
+      },
+      {
+        seq: 2,
+        desc: p(
+          "Move deal to 'Closed Won' and create onboarding task in HubSpot.",
+        ),
+        roleSlug: "sales-lead",
+        systemSlug: "hubspot",
+      },
+      {
+        seq: 3,
+        desc: p(
+          "Send welcome email with login credentials and getting-started guide.",
+        ),
+        roleSlug: "client-success",
+        systemSlug: "hubspot",
+      },
+      {
+        seq: 4,
+        desc: p(
+          "Schedule and run kickoff call — introduce team, walk through setup.",
+        ),
+        roleSlug: "client-success",
+        systemSlug: "zoom",
+      },
+      {
+        seq: 5,
+        desc: p("Post handoff summary in #sales with key contacts and notes."),
+        roleSlug: "client-success",
+        systemSlug: "slack",
+      },
     ],
   },
   {
     slug: "weekly-ops-review",
     name: "Weekly Ops Review",
-    desc: p("Monday ritual to review open work, unblock teams, and assign next actions for the week."),
+    desc: p(
+      "Monday ritual to review open work, unblock teams, and assign next actions for the week.",
+    ),
     trigger: "Monday 9:00 AM",
     endState: "All open items have an owner and a due date",
     ownerSlug: "ops-manager",
     actions: [
-      { seq: 1, desc: p("Pull open flags report and unresolved items list."), roleSlug: "ops-manager", systemSlug: "notion" },
-      { seq: 2, desc: p("Review engineering sprint status and blockers."), roleSlug: "engineering-lead", systemSlug: "linear" },
-      { seq: 3, desc: p("Review sales pipeline changes and forecast."), roleSlug: "sales-lead", systemSlug: "hubspot" },
-      { seq: 4, desc: p("Assign owners and deadlines to all unresolved items."), roleSlug: "ops-manager", systemSlug: "notion" },
-      { seq: 5, desc: p("Post weekly summary and action items to #general."), roleSlug: "ops-manager", systemSlug: "slack" },
+      {
+        seq: 1,
+        desc: p("Pull open flags report and unresolved items list."),
+        roleSlug: "ops-manager",
+        systemSlug: "notion",
+      },
+      {
+        seq: 2,
+        desc: p("Review engineering sprint status and blockers."),
+        roleSlug: "engineering-lead",
+        systemSlug: "linear",
+      },
+      {
+        seq: 3,
+        desc: p("Review sales pipeline changes and forecast."),
+        roleSlug: "sales-lead",
+        systemSlug: "hubspot",
+      },
+      {
+        seq: 4,
+        desc: p("Assign owners and deadlines to all unresolved items."),
+        roleSlug: "ops-manager",
+        systemSlug: "notion",
+      },
+      {
+        seq: 5,
+        desc: p("Post weekly summary and action items to #general."),
+        roleSlug: "ops-manager",
+        systemSlug: "slack",
+      },
     ],
   },
   // --- New processes ---
@@ -266,24 +334,75 @@ const PROCESSES = [
     endState: "Lead is qualified (or disqualified) with next step scheduled",
     ownerSlug: "sales-lead",
     actions: [
-      { seq: 1, desc: p("Review signup details and enrich contact in HubSpot (company size, industry, role)."), roleSlug: "sales-lead", systemSlug: "hubspot" },
-      { seq: 2, desc: p("Score lead against ICP criteria — disqualify if no fit, tag reason."), roleSlug: "sales-lead", systemSlug: "hubspot" },
-      { seq: 3, desc: p("Send personalized outreach email or book discovery call."), roleSlug: "sales-lead", systemSlug: "hubspot" },
-      { seq: 4, desc: p("Post qualified lead summary in #sales channel."), roleSlug: "sales-lead", systemSlug: "slack" },
+      {
+        seq: 1,
+        desc: p(
+          "Review signup details and enrich contact in HubSpot (company size, industry, role).",
+        ),
+        roleSlug: "sales-lead",
+        systemSlug: "hubspot",
+      },
+      {
+        seq: 2,
+        desc: p(
+          "Score lead against ICP criteria — disqualify if no fit, tag reason.",
+        ),
+        roleSlug: "sales-lead",
+        systemSlug: "hubspot",
+      },
+      {
+        seq: 3,
+        desc: p("Send personalized outreach email or book discovery call."),
+        roleSlug: "sales-lead",
+        systemSlug: "hubspot",
+      },
+      {
+        seq: 4,
+        desc: p("Post qualified lead summary in #sales channel."),
+        roleSlug: "sales-lead",
+        systemSlug: "slack",
+      },
     ],
   },
   {
     slug: "deal-closing",
     name: "Deal Closing",
-    desc: p("Moves a qualified opportunity from proposal through contract signature and payment setup."),
+    desc: p(
+      "Moves a qualified opportunity from proposal through contract signature and payment setup.",
+    ),
     trigger: "Prospect agrees to move forward after demo/proposal",
-    endState: "Contract signed, payment method on file, and onboarding triggered",
+    endState:
+      "Contract signed, payment method on file, and onboarding triggered",
     ownerSlug: "sales-lead",
     actions: [
-      { seq: 1, desc: p("Generate proposal document from template and customize pricing."), roleSlug: "sales-lead", systemSlug: "google-drive" },
-      { seq: 2, desc: p("Send proposal and handle objections — update deal stage in CRM."), roleSlug: "sales-lead", systemSlug: "hubspot" },
-      { seq: 3, desc: p("Create Stripe subscription and send payment link."), roleSlug: "finance-admin", systemSlug: "stripe" },
-      { seq: 4, desc: p("Confirm payment received and mark deal as Closed Won."), roleSlug: "sales-lead", systemSlug: "hubspot" },
+      {
+        seq: 1,
+        desc: p(
+          "Generate proposal document from template and customize pricing.",
+        ),
+        roleSlug: "sales-lead",
+        systemSlug: "google-drive",
+      },
+      {
+        seq: 2,
+        desc: p(
+          "Send proposal and handle objections — update deal stage in CRM.",
+        ),
+        roleSlug: "sales-lead",
+        systemSlug: "hubspot",
+      },
+      {
+        seq: 3,
+        desc: p("Create Stripe subscription and send payment link."),
+        roleSlug: "finance-admin",
+        systemSlug: "stripe",
+      },
+      {
+        seq: 4,
+        desc: p("Confirm payment received and mark deal as Closed Won."),
+        roleSlug: "sales-lead",
+        systemSlug: "hubspot",
+      },
     ],
   },
   {
@@ -297,26 +416,85 @@ const PROCESSES = [
     endState: "Issue resolved and customer notified, or workaround provided",
     ownerSlug: "support-specialist",
     actions: [
-      { seq: 1, desc: p("Document reproduction steps and attach screenshots in support ticket."), roleSlug: "support-specialist", systemSlug: "hubspot" },
-      { seq: 2, desc: p("Create engineering issue with severity tag and link to customer ticket."), roleSlug: "support-specialist", systemSlug: "linear" },
-      { seq: 3, desc: p("Post in #support with customer context and urgency level."), roleSlug: "support-specialist", systemSlug: "slack" },
-      { seq: 4, desc: p("Engineering triages, fixes, and comments resolution on the issue."), roleSlug: "engineering-lead", systemSlug: "linear" },
-      { seq: 5, desc: p("Notify customer of resolution and close support ticket."), roleSlug: "support-specialist", systemSlug: "hubspot" },
+      {
+        seq: 1,
+        desc: p(
+          "Document reproduction steps and attach screenshots in support ticket.",
+        ),
+        roleSlug: "support-specialist",
+        systemSlug: "hubspot",
+      },
+      {
+        seq: 2,
+        desc: p(
+          "Create engineering issue with severity tag and link to customer ticket.",
+        ),
+        roleSlug: "support-specialist",
+        systemSlug: "linear",
+      },
+      {
+        seq: 3,
+        desc: p("Post in #support with customer context and urgency level."),
+        roleSlug: "support-specialist",
+        systemSlug: "slack",
+      },
+      {
+        seq: 4,
+        desc: p(
+          "Engineering triages, fixes, and comments resolution on the issue.",
+        ),
+        roleSlug: "engineering-lead",
+        systemSlug: "linear",
+      },
+      {
+        seq: 5,
+        desc: p("Notify customer of resolution and close support ticket."),
+        roleSlug: "support-specialist",
+        systemSlug: "hubspot",
+      },
     ],
   },
   {
     slug: "monthly-revenue-review",
     name: "Monthly Revenue Review",
-    desc: p("End-of-month review of MRR, churn, expansion, and pipeline health with leadership."),
+    desc: p(
+      "End-of-month review of MRR, churn, expansion, and pipeline health with leadership.",
+    ),
     trigger: "First business day of each month",
-    endState: "Revenue dashboard updated, variances explained, and action items assigned",
+    endState:
+      "Revenue dashboard updated, variances explained, and action items assigned",
     ownerSlug: "founder",
     actions: [
-      { seq: 1, desc: p("Export Stripe MRR, churn, and expansion data for the month."), roleSlug: "finance-admin", systemSlug: "stripe" },
-      { seq: 2, desc: p("Pull pipeline and conversion metrics from CRM."), roleSlug: "sales-lead", systemSlug: "hubspot" },
-      { seq: 3, desc: p("Compile revenue dashboard and variance notes in shared doc."), roleSlug: "finance-admin", systemSlug: "google-drive" },
-      { seq: 4, desc: p("Run review meeting — discuss trends, risks, and targets."), roleSlug: "founder", systemSlug: "zoom" },
-      { seq: 5, desc: p("Post summary and action items to #general."), roleSlug: "ops-manager", systemSlug: "slack" },
+      {
+        seq: 1,
+        desc: p("Export Stripe MRR, churn, and expansion data for the month."),
+        roleSlug: "finance-admin",
+        systemSlug: "stripe",
+      },
+      {
+        seq: 2,
+        desc: p("Pull pipeline and conversion metrics from CRM."),
+        roleSlug: "sales-lead",
+        systemSlug: "hubspot",
+      },
+      {
+        seq: 3,
+        desc: p("Compile revenue dashboard and variance notes in shared doc."),
+        roleSlug: "finance-admin",
+        systemSlug: "google-drive",
+      },
+      {
+        seq: 4,
+        desc: p("Run review meeting — discuss trends, risks, and targets."),
+        roleSlug: "founder",
+        systemSlug: "zoom",
+      },
+      {
+        seq: 5,
+        desc: p("Post summary and action items to #general."),
+        roleSlug: "ops-manager",
+        systemSlug: "slack",
+      },
     ],
   },
   {
@@ -330,10 +508,36 @@ const PROCESSES = [
     endState: "Request is prioritized, scheduled, or declined with reasoning",
     ownerSlug: "engineering-lead",
     actions: [
-      { seq: 1, desc: p("Log request with customer context, use case, and revenue impact."), roleSlug: "client-success", systemSlug: "linear" },
-      { seq: 2, desc: p("Review against roadmap — check for duplicates and related work."), roleSlug: "engineering-lead", systemSlug: "linear" },
-      { seq: 3, desc: p("Prioritize in weekly product sync — accept, defer, or decline."), roleSlug: "engineering-lead", systemSlug: "zoom" },
-      { seq: 4, desc: p("Update requesting customer with decision and timeline."), roleSlug: "client-success", systemSlug: "hubspot" },
+      {
+        seq: 1,
+        desc: p(
+          "Log request with customer context, use case, and revenue impact.",
+        ),
+        roleSlug: "client-success",
+        systemSlug: "linear",
+      },
+      {
+        seq: 2,
+        desc: p(
+          "Review against roadmap — check for duplicates and related work.",
+        ),
+        roleSlug: "engineering-lead",
+        systemSlug: "linear",
+      },
+      {
+        seq: 3,
+        desc: p(
+          "Prioritize in weekly product sync — accept, defer, or decline.",
+        ),
+        roleSlug: "engineering-lead",
+        systemSlug: "zoom",
+      },
+      {
+        seq: 4,
+        desc: p("Update requesting customer with decision and timeline."),
+        roleSlug: "client-success",
+        systemSlug: "hubspot",
+      },
     ],
   },
   {
@@ -344,31 +548,80 @@ const PROCESSES = [
       "Cadence: weekly releases on Tuesdays.",
     ),
     trigger: "Release branch is ready and all checks pass",
-    endState: "New version live in production, changelog published, team notified",
+    endState:
+      "New version live in production, changelog published, team notified",
     ownerSlug: "engineering-lead",
     actions: [
-      { seq: 1, desc: p("Run full test suite and verify staging deployment."), roleSlug: "engineering-lead", systemSlug: "linear" },
-      { seq: 2, desc: p("Write changelog entry and update release notes doc."), roleSlug: "engineering-lead", systemSlug: "notion" },
-      { seq: 3, desc: p("Deploy to production and run smoke tests."), roleSlug: "engineering-lead", systemSlug: "linear" },
-      { seq: 4, desc: p("Announce release in #general and #support with key changes."), roleSlug: "ops-manager", systemSlug: "slack" },
+      {
+        seq: 1,
+        desc: p("Run full test suite and verify staging deployment."),
+        roleSlug: "engineering-lead",
+        systemSlug: "linear",
+      },
+      {
+        seq: 2,
+        desc: p("Write changelog entry and update release notes doc."),
+        roleSlug: "engineering-lead",
+        systemSlug: "notion",
+      },
+      {
+        seq: 3,
+        desc: p("Deploy to production and run smoke tests."),
+        roleSlug: "engineering-lead",
+        systemSlug: "linear",
+      },
+      {
+        seq: 4,
+        desc: p("Announce release in #general and #support with key changes."),
+        roleSlug: "ops-manager",
+        systemSlug: "slack",
+      },
     ],
   },
   {
     slug: "new-employee-onboarding",
     name: "New Employee Onboarding",
-    desc: pBullets("Gets a new hire from offer acceptance to fully productive team member.", [
-      "Day 1: accounts, tools, and orientation",
-      "Week 1: team introductions and first tasks",
-      "Month 1: full ramp with buddy check-ins",
-    ]),
+    desc: pBullets(
+      "Gets a new hire from offer acceptance to fully productive team member.",
+      [
+        "Day 1: accounts, tools, and orientation",
+        "Week 1: team introductions and first tasks",
+        "Month 1: full ramp with buddy check-ins",
+      ],
+    ),
     trigger: "Offer accepted and start date confirmed",
-    endState: "New hire has access to all tools, completed orientation, and shipped first contribution",
+    endState:
+      "New hire has access to all tools, completed orientation, and shipped first contribution",
     ownerSlug: "ops-manager",
     actions: [
-      { seq: 1, desc: p("Create accounts: Google Workspace, Slack, Linear, Notion, and app access."), roleSlug: "ops-manager", systemSlug: "notion" },
-      { seq: 2, desc: p("Send welcome packet with handbook link and Day 1 agenda."), roleSlug: "ops-manager", systemSlug: "slack" },
-      { seq: 3, desc: p("Run orientation session — company overview, values, and team intros."), roleSlug: "founder", systemSlug: "zoom" },
-      { seq: 4, desc: p("Assign onboarding buddy and first-week tasks."), roleSlug: "ops-manager", systemSlug: "linear" },
+      {
+        seq: 1,
+        desc: p(
+          "Create accounts: Google Workspace, Slack, Linear, Notion, and app access.",
+        ),
+        roleSlug: "ops-manager",
+        systemSlug: "notion",
+      },
+      {
+        seq: 2,
+        desc: p("Send welcome packet with handbook link and Day 1 agenda."),
+        roleSlug: "ops-manager",
+        systemSlug: "slack",
+      },
+      {
+        seq: 3,
+        desc: p(
+          "Run orientation session — company overview, values, and team intros.",
+        ),
+        roleSlug: "founder",
+        systemSlug: "zoom",
+      },
+      {
+        seq: 4,
+        desc: p("Assign onboarding buddy and first-week tasks."),
+        roleSlug: "ops-manager",
+        systemSlug: "linear",
+      },
     ],
   },
   {
@@ -382,29 +635,135 @@ const PROCESSES = [
     endState: "Customer renewed (or churn documented with post-mortem)",
     ownerSlug: "client-success",
     actions: [
-      { seq: 1, desc: p("Review account health: usage metrics, support tickets, NPS score."), roleSlug: "client-success", systemSlug: "hubspot" },
-      { seq: 2, desc: p("Schedule renewal check-in call with primary contact."), roleSlug: "client-success", systemSlug: "zoom" },
-      { seq: 3, desc: p("Present renewal terms — handle objections, discuss expansion."), roleSlug: "client-success", systemSlug: "zoom" },
-      { seq: 4, desc: p("Process renewal payment or flag at-risk account for founder review."), roleSlug: "finance-admin", systemSlug: "stripe" },
-      { seq: 5, desc: p("Update CRM with renewal outcome and next review date."), roleSlug: "client-success", systemSlug: "hubspot" },
+      {
+        seq: 1,
+        desc: p(
+          "Review account health: usage metrics, support tickets, NPS score.",
+        ),
+        roleSlug: "client-success",
+        systemSlug: "hubspot",
+      },
+      {
+        seq: 2,
+        desc: p("Schedule renewal check-in call with primary contact."),
+        roleSlug: "client-success",
+        systemSlug: "zoom",
+      },
+      {
+        seq: 3,
+        desc: p(
+          "Present renewal terms — handle objections, discuss expansion.",
+        ),
+        roleSlug: "client-success",
+        systemSlug: "zoom",
+      },
+      {
+        seq: 4,
+        desc: p(
+          "Process renewal payment or flag at-risk account for founder review.",
+        ),
+        roleSlug: "finance-admin",
+        systemSlug: "stripe",
+      },
+      {
+        seq: 5,
+        desc: p("Update CRM with renewal outcome and next review date."),
+        roleSlug: "client-success",
+        systemSlug: "hubspot",
+      },
     ],
   },
 ]
 
 const FLAGS = [
   // Open flags
-  { targetType: "process", targetSlug: "client-onboarding", flagType: "stale", message: "Onboarding checklist hasn't been reviewed since January — several steps may be outdated.", status: "open" },
-  { targetType: "system", targetSlug: "hubspot", flagType: "needs_review", message: "Deal stages were reconfigured last month. Verify all processes reference the correct stage names.", status: "open" },
-  { targetType: "role", targetSlug: "support-specialist", flagType: "question", message: "Should support specialists have direct access to Stripe for refund processing, or should that stay with Finance?", status: "open" },
-  { targetType: "process", targetSlug: "feature-request-triage", flagType: "comment", message: "Consider adding a step for notifying the marketing team when a frequently-requested feature ships.", status: "open" },
-  { targetType: "system", targetSlug: "notion", flagType: "stale", message: "Several SOPs in the Operations workspace are still referencing the old onboarding flow.", status: "open" },
+  {
+    targetType: "process",
+    targetSlug: "client-onboarding",
+    flagType: "stale",
+    message:
+      "Onboarding checklist hasn't been reviewed since January — several steps may be outdated.",
+    status: "open",
+  },
+  {
+    targetType: "system",
+    targetSlug: "hubspot",
+    flagType: "needs_review",
+    message:
+      "Deal stages were reconfigured last month. Verify all processes reference the correct stage names.",
+    status: "open",
+  },
+  {
+    targetType: "role",
+    targetSlug: "support-specialist",
+    flagType: "question",
+    message:
+      "Should support specialists have direct access to Stripe for refund processing, or should that stay with Finance?",
+    status: "open",
+  },
+  {
+    targetType: "process",
+    targetSlug: "feature-request-triage",
+    flagType: "comment",
+    message:
+      "Consider adding a step for notifying the marketing team when a frequently-requested feature ships.",
+    status: "open",
+  },
+  {
+    targetType: "system",
+    targetSlug: "notion",
+    flagType: "stale",
+    message:
+      "Several SOPs in the Operations workspace are still referencing the old onboarding flow.",
+    status: "open",
+  },
   // Resolved flags
-  { targetType: "process", targetSlug: "deal-closing", flagType: "incorrect", message: "Step 3 said 'send invoice' but we switched to Stripe payment links in December.", status: "resolved", resolutionNote: "Updated the action to reference Stripe payment links instead of manual invoicing." },
-  { targetType: "system", targetSlug: "google-drive", flagType: "needs_review", message: "Client folder template is missing the new compliance checklist section.", status: "resolved", resolutionNote: "Added compliance checklist tab to the client folder template on Feb 5." },
-  { targetType: "role", targetSlug: "ops-manager", flagType: "question", message: "Does the Ops Manager own the vendor evaluation process or does that sit with Finance?", status: "resolved", resolutionNote: "Confirmed: Ops Manager owns vendor evaluation, Finance handles contract/payment only." },
+  {
+    targetType: "process",
+    targetSlug: "deal-closing",
+    flagType: "incorrect",
+    message:
+      "Step 3 said 'send invoice' but we switched to Stripe payment links in December.",
+    status: "resolved",
+    resolutionNote:
+      "Updated the action to reference Stripe payment links instead of manual invoicing.",
+  },
+  {
+    targetType: "system",
+    targetSlug: "google-drive",
+    flagType: "needs_review",
+    message:
+      "Client folder template is missing the new compliance checklist section.",
+    status: "resolved",
+    resolutionNote:
+      "Added compliance checklist tab to the client folder template on Feb 5.",
+  },
+  {
+    targetType: "role",
+    targetSlug: "ops-manager",
+    flagType: "question",
+    message:
+      "Does the Ops Manager own the vendor evaluation process or does that sit with Finance?",
+    status: "resolved",
+    resolutionNote:
+      "Confirmed: Ops Manager owns vendor evaluation, Finance handles contract/payment only.",
+  },
   // Dismissed flags
-  { targetType: "process", targetSlug: "weekly-ops-review", flagType: "comment", message: "Could we move this to Tuesday mornings instead?", status: "dismissed" },
-  { targetType: "system", targetSlug: "slack", flagType: "comment", message: "Should we consolidate #support and #engineering into one channel?", status: "dismissed" },
+  {
+    targetType: "process",
+    targetSlug: "weekly-ops-review",
+    flagType: "comment",
+    message: "Could we move this to Tuesday mornings instead?",
+    status: "dismissed",
+  },
+  {
+    targetType: "system",
+    targetSlug: "slack",
+    flagType: "comment",
+    message:
+      "Should we consolidate #support and #engineering into one channel?",
+    status: "dismissed",
+  },
 ]
 
 // ---------------------------------------------------------------------------
@@ -438,7 +797,10 @@ const main = async () => {
     org = data
   }
 
-  if (!org) throw new Error(`No org found. Create it first via the app or sc_seed_demo.`)
+  if (!org)
+    throw new Error(
+      `No org found. Create it first via the app or sc_seed_demo.`,
+    )
 
   const orgId = org.id
   const ownerId = org.owner_id
@@ -478,7 +840,8 @@ const main = async () => {
         .select("id")
         .single()
 
-      if (error) throw new Error(`Role insert failed (${role.slug}): ${error.message}`)
+      if (error)
+        throw new Error(`Role insert failed (${role.slug}): ${error.message}`)
       roleMap[role.slug] = inserted.id
       console.log(`  created: ${role.name}`)
     }
@@ -525,7 +888,8 @@ const main = async () => {
         .select("id")
         .single()
 
-      if (error) throw new Error(`System insert failed (${sys.slug}): ${error.message}`)
+      if (error)
+        throw new Error(`System insert failed (${sys.slug}): ${error.message}`)
       systemMap[sys.slug] = inserted.id
       console.log(`  created: ${sys.name}`)
     }
@@ -576,7 +940,10 @@ const main = async () => {
         .select("id")
         .single()
 
-      if (error) throw new Error(`Process insert failed (${proc.slug}): ${error.message}`)
+      if (error)
+        throw new Error(
+          `Process insert failed (${proc.slug}): ${error.message}`,
+        )
       processId = inserted.id
       console.log(`  created: ${proc.name}`)
     }
@@ -601,7 +968,10 @@ const main = async () => {
           system_id: systemMap[action.systemSlug],
         })
 
-        if (error) throw new Error(`Action insert failed (${proc.slug} #${action.seq}): ${error.message}`)
+        if (error)
+          throw new Error(
+            `Action insert failed (${proc.slug} #${action.seq}): ${error.message}`,
+          )
       }
       console.log(`    ${proc.actions.length} actions`)
     }
@@ -621,10 +991,13 @@ const main = async () => {
     let targetId
     if (flag.targetType === "role") targetId = roleMap[flag.targetSlug]
     else if (flag.targetType === "system") targetId = systemMap[flag.targetSlug]
-    else if (flag.targetType === "process") targetId = processMap[flag.targetSlug]
+    else if (flag.targetType === "process")
+      targetId = processMap[flag.targetSlug]
 
     if (!targetId) {
-      console.log(`  skipped: ${flag.targetType}/${flag.targetSlug} (not found)`)
+      console.log(
+        `  skipped: ${flag.targetType}/${flag.targetSlug} (not found)`,
+      )
       continue
     }
 
@@ -648,17 +1021,34 @@ const main = async () => {
     if (error) throw new Error(`Flag insert failed: ${error.message}`)
     flagCount++
   }
-  console.log(`  ${flagCount} flags created (${FLAGS.filter((f) => f.status === "open").length} open, ${FLAGS.filter((f) => f.status === "resolved").length} resolved, ${FLAGS.filter((f) => f.status === "dismissed").length} dismissed)`)
+  console.log(
+    `  ${flagCount} flags created (${FLAGS.filter((f) => f.status === "open").length} open, ${FLAGS.filter((f) => f.status === "resolved").length} resolved, ${FLAGS.filter((f) => f.status === "dismissed").length} dismissed)`,
+  )
 
   // -----------------------------------------------------------------------
   // Summary
   // -----------------------------------------------------------------------
   const counts = await Promise.all([
-    supabase.from("roles").select("id", { count: "exact", head: true }).eq("org_id", orgId),
-    supabase.from("systems").select("id", { count: "exact", head: true }).eq("org_id", orgId),
-    supabase.from("processes").select("id", { count: "exact", head: true }).eq("org_id", orgId),
-    supabase.from("actions").select("id", { count: "exact", head: true }).eq("org_id", orgId),
-    supabase.from("flags").select("id", { count: "exact", head: true }).eq("org_id", orgId),
+    supabase
+      .from("roles")
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", orgId),
+    supabase
+      .from("systems")
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", orgId),
+    supabase
+      .from("processes")
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", orgId),
+    supabase
+      .from("actions")
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", orgId),
+    supabase
+      .from("flags")
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", orgId),
   ])
 
   console.log("\n=== Demo org seeded ===")

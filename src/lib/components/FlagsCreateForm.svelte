@@ -35,12 +35,7 @@
   description="Report stale, incorrect, or questionable details."
   maxWidth="760px"
 >
-  <form
-    class="sc-form"
-    method="POST"
-    action="?/createFlag"
-    use:pendingEnhance
-  >
+  <form class="sc-form" method="POST" action="?/createFlag" use:pendingEnhance>
     {#if createFlagError}
       <div class="sc-form-error">{createFlagError}</div>
     {/if}

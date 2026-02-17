@@ -101,7 +101,8 @@ const isCruftUser = (user) => {
   if (email === "e2e-tester@example.com") return true
 
   // Onboarding smoke test users (hashed/random email-like strings)
-  if (!email.includes("@") || /^[a-z0-9_-]{20,}$/i.test(email.split("@")[0])) return true
+  if (!email.includes("@") || /^[a-z0-9_-]{20,}$/i.test(email.split("@")[0]))
+    return true
 
   return false
 }
@@ -143,7 +144,9 @@ const main = async () => {
 
   console.log("=== DELETING ===")
   for (const o of cruftOrgs) {
-    console.log(`  ${o.id}  "${o.name}"  slug=${o.slug}  owner=${emailMap[o.owner_id] ?? "?"}`)
+    console.log(
+      `  ${o.id}  "${o.name}"  slug=${o.slug}  owner=${emailMap[o.owner_id] ?? "?"}`,
+    )
   }
   console.log("")
 
@@ -175,7 +178,9 @@ const main = async () => {
   for (const o of cruftOrgs) {
     const { error } = await supabase.from("orgs").delete().eq("id", o.id)
     if (error) {
-      console.error(`  FAILED to delete org ${o.id} ("${o.name}"): ${error.message}`)
+      console.error(
+        `  FAILED to delete org ${o.id} ("${o.name}"): ${error.message}`,
+      )
     } else {
       deletedOrgs++
     }
@@ -188,7 +193,9 @@ const main = async () => {
   for (const u of cruftUsers) {
     const { error } = await supabase.auth.admin.deleteUser(u.id)
     if (error) {
-      console.error(`  FAILED to delete user ${u.id} (${u.email}): ${error.message}`)
+      console.error(
+        `  FAILED to delete user ${u.id} (${u.email}): ${error.message}`,
+      )
     } else {
       deletedUsers++
     }

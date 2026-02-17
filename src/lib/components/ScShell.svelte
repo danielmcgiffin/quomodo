@@ -166,15 +166,13 @@
   }
 
   const onWindowPopState = (event: PopStateEvent) => {
-    const state = event.state as
-      | {
-          scStack?: boolean
-          scStackHref?: string
-          scStackFrameHref?: string
-          scStackTitle?: string
-          scStackKind?: "process" | "role" | "system"
-        }
-      | null
+    const state = event.state as {
+      scStack?: boolean
+      scStackHref?: string
+      scStackFrameHref?: string
+      scStackTitle?: string
+      scStackKind?: "process" | "role" | "system"
+    } | null
     if (
       state?.scStack &&
       typeof state.scStackHref === "string" &&
@@ -456,7 +454,11 @@
       ></button>
       <aside class="sc-shell-stack-panel" aria-label="Stack navigation panel">
         <div class="sc-shell-stack-head">
-          <button class="sc-btn secondary" type="button" onclick={closeStackTarget}>
+          <button
+            class="sc-btn secondary"
+            type="button"
+            onclick={closeStackTarget}
+          >
             Back
           </button>
           <div class="sc-shell-stack-title">

@@ -882,6 +882,29 @@ export const createOrUpdateActionRecord = async ({
       .limit(1)
       .maybeSingle()
     sequence = (maxRow?.sequence ?? 0) + 1
+  } else {
+    // Shift existing actions at or above this sequence up by 1
+    const { data: toShift } = await supabase
+      .from("actions")
+      .select("id, sequence")
+      .eq("org_id", orgId)
+      .eq("process_id", process.id)
+      .gte("sequence", sequence)
+      .order("sequence", { ascending: false })
+
+    if (toShift && toShift.length > 0) {
+      for (const row of toShift) {
+        const { error: shiftError } = await supabase
+          .from("actions")
+          .update({ sequence: row.sequence + 1 })
+          .eq("org_id", orgId)
+          .eq("id", row.id)
+
+        if (shiftError) {
+          return { ok: false, status: 400, message: shiftError.message }
+        }
+      }
+    }
   }
 
   const { error } = await supabase.from("actions").insert({

@@ -185,7 +185,11 @@
                     name="redirectTo"
                     value="/app/workspace?switched=1"
                   />
-                  <button class="sc-btn secondary" type="submit" data-loading-label="Switching...">
+                  <button
+                    class="sc-btn secondary"
+                    type="submit"
+                    data-loading-label="Switching..."
+                  >
                     Switch
                   </button>
                 </form>

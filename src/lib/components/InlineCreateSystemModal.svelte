@@ -20,6 +20,10 @@
     actionTitleDraft = "",
     actionDescriptionDraft = "",
     actionDescriptionRichDraft = "",
+    selectedOwnerRoleId = "",
+    selectedSystemId = "",
+    editingActionId = "",
+    actionSequenceDraft = "",
     maxWidth = "760px",
   }: {
     open?: boolean
@@ -33,6 +37,10 @@
     actionTitleDraft?: string
     actionDescriptionDraft?: string
     actionDescriptionRichDraft?: string
+    selectedOwnerRoleId?: string
+    selectedSystemId?: string
+    editingActionId?: string
+    actionSequenceDraft?: string
     maxWidth?: string
   } = $props()
 
@@ -52,6 +60,26 @@
       type="hidden"
       name="action_description_rich_draft"
       value={actionDescriptionRichDraft}
+    />
+    <input
+      type="hidden"
+      name="selected_owner_role_id"
+      value={selectedOwnerRoleId}
+    />
+    <input
+      type="hidden"
+      name="selected_system_id"
+      value={selectedSystemId}
+    />
+    <input
+      type="hidden"
+      name="editing_action_id"
+      value={editingActionId}
+    />
+    <input
+      type="hidden"
+      name="action_sequence_draft"
+      value={actionSequenceDraft}
     />
     {#if errorMessage}
       <div class="sc-form-error">{errorMessage}</div>

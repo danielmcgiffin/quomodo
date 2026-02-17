@@ -1,10 +1,7 @@
 <script lang="ts">
-  import {
-    dndzone,
-    TRIGGERS,
-    type DndEvent,
-  } from "svelte-dnd-action"
+  import { dndzone, TRIGGERS, type DndEvent } from "svelte-dnd-action"
   import { flip } from "svelte/animate"
+  import ActionInlineEditor from "$lib/components/ActionInlineEditor.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
   import RichText from "$lib/components/RichText.svelte"
   import RolePortal from "$lib/components/RolePortal.svelte"
@@ -32,6 +29,15 @@
     system: System | null
   }
 
+  type ActionDraftSnapshot = {
+    actionDescriptionDraft: string
+    actionDescriptionRichDraft: string
+    selectedOwnerRoleId: string
+    selectedSystemId: string
+    editingActionId: string
+    actionSequenceDraft: string
+  }
+
   let {
     actions,
     processSlug,
@@ -43,8 +49,20 @@
     createFlagTargetId,
     createFlagTargetPath,
     reorderActionError,
-    onCreateAction,
-    onEditAction,
+    allRoles,
+    allSystems,
+    editingActionId = null,
+    insertingAtSequence = null,
+    restoredDraft = null,
+    createdRoleId,
+    createdSystemId,
+    createActionError,
+    deleteActionError,
+    onOpenEditor,
+    onOpenInsert,
+    onCloseEditor,
+    onRequestCreateRole,
+    onRequestCreateSystem,
   }: {
     actions: ActionEntry[]
     processSlug: string
@@ -56,8 +74,20 @@
     createFlagTargetId?: string
     createFlagTargetPath?: string
     reorderActionError?: string
-    onCreateAction: () => void
-    onEditAction: (action: ActionEntry) => void
+    allRoles: Role[]
+    allSystems: System[]
+    editingActionId?: string | null
+    insertingAtSequence?: number | null
+    restoredDraft?: ActionDraftSnapshot | null
+    createdRoleId?: string
+    createdSystemId?: string
+    createActionError?: string
+    deleteActionError?: string
+    onOpenEditor: (action: ActionEntry) => void
+    onOpenInsert: (sequence: number) => void
+    onCloseEditor: () => void
+    onRequestCreateRole: (draft: ActionDraftSnapshot) => void
+    onRequestCreateSystem: (draft: ActionDraftSnapshot) => void
   } = $props()
 
   const actionFieldTargets = [
@@ -68,8 +98,12 @@
   ]
 
   const visibleActionCount = $derived(actions.length)
+  const isEditing = $derived(editingActionId != null || insertingAtSequence != null)
   const previewText = (html: string) =>
-    html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+    html
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
   const isInteractiveTarget = (target: EventTarget | null): boolean =>
     target instanceof Element &&
     Boolean(
@@ -92,20 +126,20 @@
   let orderFormElement: HTMLFormElement | null = $state(null)
   let orderedIdsValue = $state("")
 
-  function handleDndConsider(e: CustomEvent<any>) {
+  function handleDndConsider(e: CustomEvent<DndEvent<ActionEntry>>) {
     const { items: newItems } = e.detail
     items = newItems
     dragInProgress = true
   }
 
-  function handleDndFinalize(e: CustomEvent<any>) {
+  function handleDndFinalize(e: CustomEvent<DndEvent<ActionEntry>>) {
     const { items: newItems, info } = e.detail
     items = newItems
     dragInProgress = false
 
     if (info.trigger === TRIGGERS.DRAG_STOPPED) {
-      const newIds = newItems.map((action: any) => action.id).join(",")
-      const oldIds = actions.map((action: any) => action.id).join(",")
+      const newIds = newItems.map((action) => action.id).join(",")
+      const oldIds = actions.map((action) => action.id).join(",")
       if (newIds !== oldIds) {
         orderedIdsValue = newIds
         // Use requestAnimationFrame to ensure form value is updated before submit
@@ -131,8 +165,14 @@
     expandedActionIds = new Set(items.map((action) => action.id))
   }
 
-  const handleCardIntent = (target: EventTarget | null, action: ActionEntry) => {
+  const handleCardIntent = (
+    target: EventTarget | null,
+    action: ActionEntry,
+  ) => {
     if (isInteractiveTarget(target)) {
+      return
+    }
+    if (isEditing) {
       return
     }
     const isExpanded = expandedActionIds.has(action.id)
@@ -141,7 +181,7 @@
       return
     }
     if (isTextEditTarget(target)) {
-      onEditAction(action)
+      onOpenEditor(action)
       return
     }
     const next = new Set(expandedActionIds)
@@ -162,14 +202,96 @@
   }
 </script>
 
+{#snippet actionCardBody(action: ActionEntry, index: number)}
+  <div class="sc-action-card-main">
+    <div class="sc-action-title-row">
+      <div class="font-bold text-lg">
+        {action.title || `Action ${action.sequence}`}
+      </div>
+      <CopyLinkButton
+        variant="icon"
+        href={`/app/processes/${processSlug}#step-${action.sequence}`}
+        label={`Copy link to action ${action.sequence}`}
+      />
+      <InlineEntityFlagControl
+        inline={true}
+        action="?/createFlag"
+        targetType="action"
+        targetId={action.id}
+        entityLabel={action.title || `Action ${action.sequence}`}
+        {viewerRole}
+        fieldTargets={actionFieldTargets}
+        errorMessage={createFlagError}
+        errorTargetType={createFlagTargetType}
+        errorTargetId={createFlagTargetId}
+        errorTargetPath={createFlagTargetPath}
+      />
+    </div>
+    <div class="sc-action-text-hit">
+      {#if expandedActionIds.has(action.id)}
+        <div class="sc-action-description">
+          <RichText html={action.descriptionHtml} />
+        </div>
+      {:else}
+        <div class="sc-page-subtitle sc-action-preview">
+          {previewText(action.descriptionHtml) || "No description."}
+        </div>
+      {/if}
+    </div>
+  </div>
+  <div class="sc-action-card-side">
+    <div class="flex items-center justify-between gap-2">
+      <div class="sc-action-sequence">{index + 1}</div>
+    </div>
+    <div class="sc-action-side-row">
+      {#if action.ownerRole}
+        <RolePortal role={action.ownerRole} />
+      {:else}
+        <span class="sc-page-subtitle">No owner</span>
+      {/if}
+    </div>
+    <div class="sc-action-side-row">
+      {#if action.system}
+        <SystemPortal system={action.system} />
+      {:else}
+        <span class="sc-page-subtitle">No system</span>
+      {/if}
+    </div>
+  </div>
+{/snippet}
+
+{#snippet insertButton(sequence: number)}
+  {#if canReorder && !isEditing}
+    <div class="sc-action-insert-zone">
+      <button
+        class="sc-action-insert-btn"
+        type="button"
+        onclick={() => onOpenInsert(sequence)}
+        aria-label={`Insert action at step ${sequence}`}
+      >
+        +
+      </button>
+    </div>
+  {/if}
+{/snippet}
+
 <div class="sc-section">
   <div class="flex justify-between items-center gap-4 flex-wrap">
     <div class="sc-section-title">What Happens?</div>
     <div class="sc-actions">
-      <button class="sc-btn secondary mb-2" type="button" onclick={toggleExpandAll}>
+      <button
+        class="sc-btn secondary mb-2"
+        type="button"
+        onclick={toggleExpandAll}
+      >
         {areAllExpanded ? "Collapse all" : "Expand all"}
       </button>
-      <button class="sc-btn mb-2" type="button" onclick={onCreateAction}>
+      <button
+        class="sc-btn mb-2"
+        type="button"
+        onclick={() => onOpenInsert(items.length + 1)}
+        disabled={isEditing}
+      >
         Write an Action
       </button>
     </div>
@@ -189,99 +311,89 @@
 
   <div class="sc-page-subtitle sc-stack-top-8">
     Showing {visibleActionCount} of {totalActions} actions.
-    {#if canReorder}
+    {#if canReorder && !isEditing}
       <span class="ml-2 text-xs italic opacity-70"
         >Drag step numbers to reorder</span
       >
     {/if}
   </div>
 
-  {#if items.length === 0}
+  {#if items.length === 0 && insertingAtSequence == null}
     <div class="sc-card sc-stack-top-8">
       <div class="sc-page-subtitle">No actions connected yet.</div>
     </div>
   {:else}
+    <!-- eslint-disable @typescript-eslint/no-explicit-any -->
     <div
       use:dndzone={{
         items,
         flipDurationMs,
-        dragDisabled: !canReorder,
-        handleSelector: ".sc-action-sequence",
+        dragDisabled: !canReorder || isEditing,
       } as any}
-      onconsider={handleDndConsider}
-      onfinalize={handleDndFinalize}
+      onconsider={handleDndConsider as any}
+      onfinalize={handleDndFinalize as any}
       class="sc-stack-top-8"
     >
+    <!-- eslint-enable @typescript-eslint/no-explicit-any -->
       {#each items as action, index (action.id)}
-        <div
-          animate:flip={{ duration: flipDurationMs }}
-          class="sc-card sc-entity-card sc-action-card sc-action-card-clickable"
-          class:is-highlighted={action.id === highlightedActionId}
-          id={`step-${action.sequence}`}
-          style="scroll-margin-top: 96px;"
-          role="button"
-          tabindex="0"
-          aria-label={`Expand action ${action.sequence}`}
-          onclick={(event) => onCardClick(event, action)}
-          onkeydown={(event) => onCardKeydown(event, action)}
-        >
-          <div class="sc-action-card-main">
-            <div class="sc-action-title-row">
-              <div class="font-bold text-lg">
-                {action.title || `Action ${action.sequence}`}
-              </div>
-              <CopyLinkButton
-                variant="icon"
-                href={`/app/processes/${processSlug}#step-${action.sequence}`}
-                label={`Copy link to action ${action.sequence}`}
-              />
-              <InlineEntityFlagControl
-                inline={true}
-                action="?/createFlag"
-                targetType="action"
-                targetId={action.id}
-                entityLabel={action.title || `Action ${action.sequence}`}
-                {viewerRole}
-                fieldTargets={actionFieldTargets}
-                errorMessage={createFlagError}
-                errorTargetType={createFlagTargetType}
-                errorTargetId={createFlagTargetId}
-                errorTargetPath={createFlagTargetPath}
+        <div animate:flip={{ duration: flipDurationMs }}>
+          {@render insertButton(index + 1)}
+          {#if editingActionId === action.id}
+            <div
+              class="sc-card sc-entity-card sc-action-card sc-action-card-editing"
+              id={`step-${action.sequence}`}
+              style="scroll-margin-top: 96px;"
+            >
+              <ActionInlineEditor
+                action={action}
+                {allRoles}
+                {allSystems}
+                {createdRoleId}
+                {createdSystemId}
+                {createActionError}
+                {deleteActionError}
+                onCancel={onCloseEditor}
+                {onRequestCreateRole}
+                {onRequestCreateSystem}
+                {restoredDraft}
               />
             </div>
-            <div class="sc-action-text-hit">
-              {#if expandedActionIds.has(action.id)}
-                <div class="sc-action-description">
-                  <RichText html={action.descriptionHtml} />
-                </div>
-              {:else}
-                <div class="sc-page-subtitle sc-action-preview">
-                  {previewText(action.descriptionHtml) || "No description."}
-                </div>
-              {/if}
+          {:else}
+            <div
+              class="sc-card sc-entity-card sc-action-card sc-action-card-clickable"
+              class:is-highlighted={action.id === highlightedActionId}
+              id={`step-${action.sequence}`}
+              style="scroll-margin-top: 96px;"
+              role="button"
+              tabindex="0"
+              aria-label={`Expand action ${action.sequence}`}
+              onclick={(event) => onCardClick(event, action)}
+              onkeydown={(event) => onCardKeydown(event, action)}
+            >
+              {@render actionCardBody(action, index)}
             </div>
-          </div>
-          <div class="sc-action-card-side">
-            <div class="flex items-center justify-between gap-2">
-              <div class="sc-action-sequence">{index + 1}</div>
-            </div>
-            <div class="sc-action-side-row">
-              {#if action.ownerRole}
-                <RolePortal role={action.ownerRole} />
-              {:else}
-                <span class="sc-page-subtitle">No owner</span>
-              {/if}
-            </div>
-            <div class="sc-action-side-row">
-              {#if action.system}
-                <SystemPortal system={action.system} />
-              {:else}
-                <span class="sc-page-subtitle">No system</span>
-              {/if}
-            </div>
-          </div>
+          {/if}
         </div>
       {/each}
+    </div>
+    {@render insertButton(items.length + 1)}
+  {/if}
+
+  {#if insertingAtSequence != null}
+    <div class="sc-card sc-entity-card sc-action-card sc-action-card-editing sc-stack-top-8">
+      <ActionInlineEditor
+        insertAtSequence={insertingAtSequence}
+        {allRoles}
+        {allSystems}
+        {createdRoleId}
+        {createdSystemId}
+        {createActionError}
+        {deleteActionError}
+        onCancel={onCloseEditor}
+        {onRequestCreateRole}
+        {onRequestCreateSystem}
+        {restoredDraft}
+      />
     </div>
   {/if}
 </div>
@@ -313,8 +425,53 @@
     background: color-mix(in srgb, var(--sc-white) 70%, transparent);
   }
 
-  .sc-action-card .sc-action-text-hit:hover {
+  .sc-action-card-clickable .sc-action-text-hit:hover {
     outline: 1px solid var(--sc-border-strong);
     cursor: text;
+  }
+
+  .sc-action-card-editing {
+    border: 2px solid var(--sc-green, #22c55e);
+    cursor: default;
+  }
+
+  .sc-action-insert-zone {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 0;
+    overflow: visible;
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .sc-stack-top-8:hover .sc-action-insert-zone,
+  .sc-section:hover > .sc-action-insert-zone {
+    opacity: 1;
+  }
+
+  .sc-action-insert-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--sc-green, #22c55e);
+    background: var(--sc-surface, #fff);
+    color: var(--sc-green, #22c55e);
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    padding: 0;
+  }
+
+  .sc-action-insert-btn:hover {
+    background: var(--sc-green, #22c55e);
+    color: white;
   }
 </style>

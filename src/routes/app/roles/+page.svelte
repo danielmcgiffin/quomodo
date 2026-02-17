@@ -128,7 +128,11 @@
             <div class="sc-page-subtitle">
               This role becomes a portal across the atlas.
             </div>
-            <button class="sc-btn" type="submit" data-loading-label="Creating...">
+            <button
+              class="sc-btn"
+              type="submit"
+              data-loading-label="Creating..."
+            >
               Create Role
             </button>
           </div>

@@ -212,8 +212,7 @@
               <button
                 class="sc-btn secondary"
                 type="submit"
-                data-loading-label="Cancelling..."
-                >Cancel transfer</button
+                data-loading-label="Cancelling...">Cancel transfer</button
               >
             </form>
           </div>
@@ -275,7 +274,11 @@
           </div>
 
           <div class="sc-form-actions sc-stack-top-10">
-            <button class="sc-btn" type="submit" data-loading-label="Submitting...">
+            <button
+              class="sc-btn"
+              type="submit"
+              data-loading-label="Submitting..."
+            >
               Initiate transfer
             </button>
           </div>
@@ -350,7 +353,11 @@
               {#if invite.canRevoke}
                 <form method="POST" action="?/revokeInvite" use:pendingEnhance>
                   <input type="hidden" name="inviteId" value={invite.id} />
-                  <button class="sc-btn secondary" type="submit" data-loading-label="Revoking...">
+                  <button
+                    class="sc-btn secondary"
+                    type="submit"
+                    data-loading-label="Revoking..."
+                  >
                     Revoke
                   </button>
                 </form>
@@ -436,14 +443,17 @@
                     <button
                       class="sc-btn secondary"
                       type="submit"
-                      data-loading-label="Updating..."
-                      >Update role</button
+                      data-loading-label="Updating...">Update role</button
                     >
                   </form>
                 {/if}
 
                 {#if member.canRemoveMember}
-                  <form method="POST" action="?/removeMember" use:pendingEnhance>
+                  <form
+                    method="POST"
+                    action="?/removeMember"
+                    use:pendingEnhance
+                  >
                     <input
                       type="hidden"
                       name="membershipId"
@@ -452,8 +462,7 @@
                     <button
                       class="sc-btn secondary"
                       type="submit"
-                      data-loading-label="Removing..."
-                      >Remove member</button
+                      data-loading-label="Removing...">Remove member</button
                     >
                   </form>
                 {/if}

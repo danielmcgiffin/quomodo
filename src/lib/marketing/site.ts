@@ -1,22 +1,22 @@
-export type NavItem = { label: string; href: string };
-export type CTA = { label: string; href: string };
+export type NavItem = { label: string; href: string }
+export type CTA = { label: string; href: string }
 
-export type FeatureItem = { title: string; desc: string; icon: string };
-export type StepItem = { n: string; title: string; desc: string };
-export type FaqItem = { q: string; a: string };
+export type FeatureItem = { title: string; desc: string; icon: string }
+export type StepItem = { n: string; title: string; desc: string }
+export type FaqItem = { q: string; a: string }
 
 export type PricingPlan = {
-  id: string;
-  name: string;
-  price: string;
-  desc: string;
-  perks: string[];
-  cta: CTA;
-  featured: boolean;
-  badge?: string;
-  stripe_price_id?: string | null;
-  stripe_product_id?: string | null;
-};
+  id: string
+  name: string
+  price: string
+  desc: string
+  perks: string[]
+  cta: CTA
+  featured: boolean
+  badge?: string
+  stripe_price_id?: string | null
+  stripe_product_id?: string | null
+}
 
 export const marketingSite = {
   brand: "SystemsCraft",
@@ -77,10 +77,10 @@ export const marketingSite = {
     punchline:
       "The problem isn't missing documentation — it's that nothing is connected to anything.",
   } satisfies {
-    eyebrow: string;
-    headline: string;
-    bullets: string[];
-    punchline: string;
+    eyebrow: string
+    headline: string
+    bullets: string[]
+    punchline: string
   },
 
   // ───────────────────────────────────────────
@@ -114,10 +114,10 @@ export const marketingSite = {
       },
     ],
   } satisfies {
-    eyebrow: string;
-    headline: string;
-    subhead: string;
-    steps: StepItem[];
+    eyebrow: string
+    headline: string
+    subhead: string
+    steps: StepItem[]
   },
 
   // ───────────────────────────────────────────
@@ -150,7 +150,8 @@ export const marketingSite = {
   // IMPLEMENTATION CALLOUT
   // ───────────────────────────────────────────
   implementationCallout: {
-    headline: "Is the idea of setting up a new system giving you a headache already?",
+    headline:
+      "Is the idea of setting up a new system giving you a headache already?",
     text: "Most teams get their first bottleneck mapped in a single sitting. If you'd rather have us do it with you, we offer implementation sessions to get your atlas built and your team trained.",
     cta: { label: "Book a call", href: "https://cal.com/danny-cursus/15min" },
   },
@@ -196,10 +197,10 @@ export const marketingSite = {
       },
     ],
   } satisfies {
-    eyebrow: string;
-    headline: string;
-    subhead: string;
-    items: FeatureItem[];
+    eyebrow: string
+    headline: string
+    subhead: string
+    items: FeatureItem[]
   },
 
   // ───────────────────────────────────────────
@@ -231,11 +232,7 @@ export const marketingSite = {
         badge: "Great for getting started",
         price: "$49",
         desc: "For small teams getting their ops out of heads and into links.",
-        perks: [
-          "Up to 10 employees",
-          "Maintenance alerts",
-          "Email support",
-        ],
+        perks: ["Up to 10 employees", "Maintenance alerts", "Email support"],
         cta: { label: "Get started", href: "/login/sign_up" },
         featured: false,
         stripe_price_id: "price_1T0MQHLeepTzGf1NbD28pMhu",
@@ -309,10 +306,10 @@ export const marketingSite = {
       },
     ],
   } satisfies {
-    eyebrow: string;
-    headline: string;
-    subhead: string;
-    items: FaqItem[];
+    eyebrow: string
+    headline: string
+    subhead: string
+    items: FaqItem[]
   },
 
   footerLinks: [

@@ -71,6 +71,7 @@
     ),
   )
 </script>
+
 <div class="sc-process-page">
   <div class="sc-process-layout">
     <div class="sc-process-main sc-rail-main">
@@ -114,7 +115,11 @@
         </div>
       </div>
 
-      <div class="sc-tabs sc-stack-top-12" role="tablist" aria-label="Role views">
+      <div
+        class="sc-tabs sc-stack-top-12"
+        role="tablist"
+        aria-label="Role views"
+      >
         <button
           class={`sc-tab ${activeTab === "actions" ? "is-active" : ""}`}
           type="button"
@@ -141,7 +146,9 @@
 
       {#if activeTab === "actions"}
         <div class="sc-section sc-stack-top-8">
-          <div class="sc-page-subtitle">{totalActionCount} actions across connected processes.</div>
+          <div class="sc-page-subtitle">
+            {totalActionCount} actions across connected processes.
+          </div>
 
           {#if data.actionsByProcess.length === 0}
             <div class="sc-card sc-stack-top-8">
@@ -167,7 +174,9 @@
                   <div class="sc-role-action-grid">
                     {#each entry.actions as action}
                       <article class="sc-card sc-role-action-card">
-                        <div class="sc-action-label">Action {action.sequence}</div>
+                        <div class="sc-action-label">
+                          Action {action.sequence}
+                        </div>
                         <div class="sc-stack-top-8">
                           <RichText html={action.descriptionHtml} />
                         </div>
@@ -319,5 +328,4 @@
     border-color: var(--sc-border);
     padding: 12px;
   }
-
 </style>

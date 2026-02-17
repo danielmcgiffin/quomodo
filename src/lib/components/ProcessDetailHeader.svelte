@@ -1,5 +1,4 @@
 <script lang="ts">
-  import RichText from "$lib/components/RichText.svelte"
   import RichTextEditor from "$lib/components/RichTextEditor.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
   import CopyLinkButton from "$lib/components/CopyLinkButton.svelte"
@@ -173,7 +172,11 @@
         use:pendingEnhance
       >
         <input type="hidden" name="process_id" value={process.id} />
-        <button class="sc-btn secondary" type="submit" data-loading-label="Deleting...">
+        <button
+          class="sc-btn secondary"
+          type="submit"
+          data-loading-label="Deleting..."
+        >
           Delete Process
         </button>
       </form>

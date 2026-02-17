@@ -92,6 +92,8 @@
               <div class="sc-process-fact">
                 <div class="sc-process-fact-label">Description</div>
                 <div class="sc-process-fact-value sc-rich">
+                  <!-- process.descriptionHtml is sanitized on the server via sanitize-html -->
+                  <!-- eslint-disable-next-line svelte/no-at-html-tags -->
                   {@html process.descriptionHtml || "<p>Not set</p>"}
                 </div>
               </div>

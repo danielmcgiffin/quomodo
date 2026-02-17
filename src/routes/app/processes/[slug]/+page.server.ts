@@ -129,9 +129,14 @@ export const load = async ({ params, locals, url }) => {
   const roleById = new Map(roles.map((role) => [role.id, role]))
   const systemById = new Map(systems.map((system) => [system.id, system]))
 
-  const actionRows = (((actionsResult.data ?? []) as unknown) as Array<
-    Omit<ProcessDetailActionRow, "title"> & { title?: string; action_name?: string }
-  >).map((row) => ({
+  const actionRows = (
+    (actionsResult.data ?? []) as unknown as Array<
+      Omit<ProcessDetailActionRow, "title"> & {
+        title?: string
+        action_name?: string
+      }
+    >
+  ).map((row) => ({
     ...row,
     title: row.title || row.action_name || `Action ${row.sequence}`,
   })) as ProcessDetailActionRow[]
@@ -262,7 +267,7 @@ export const actions = {
         return failAction(result.status, result.message)
       }
 
-      redirect(303, `/app/processes/${params.slug}`)
+      return { createActionSuccess: true }
     },
     {
       permission: canEditAtlas,
@@ -294,7 +299,7 @@ export const actions = {
         return failDelete(result.status, result.message)
       }
 
-      redirect(303, `/app/processes/${params.slug}`)
+      return { deleteActionSuccess: true }
     },
     {
       permission: canEditAtlas,
@@ -385,14 +390,24 @@ export const actions = {
   createRole: wrapAction(
     async ({ context, supabase, formData }) => {
       const roleDraft = readRoleDraft(formData)
-      const actionTitleDraft = String(
-        formData.get("action_title_draft") ?? "",
-      )
+      const actionTitleDraft = String(formData.get("action_title_draft") ?? "")
       const actionDescriptionDraft = String(
         formData.get("action_description_draft") ?? "",
       )
       const actionDescriptionRichDraft = String(
         formData.get("action_description_rich_draft") ?? "",
+      )
+      const selectedOwnerRoleId = String(
+        formData.get("selected_owner_role_id") ?? "",
+      )
+      const selectedSystemId = String(
+        formData.get("selected_system_id") ?? "",
+      )
+      const editingActionId = String(
+        formData.get("editing_action_id") ?? "",
+      )
+      const actionSequenceDraft = String(
+        formData.get("action_sequence_draft") ?? "",
       )
       const result = await createRoleRecord({
         supabase,
@@ -406,6 +421,10 @@ export const actions = {
           actionTitleDraft,
           actionDescriptionDraft,
           actionDescriptionRichDraft,
+          selectedOwnerRoleId,
+          selectedSystemId,
+          editingActionId,
+          actionSequenceDraft,
         })
       }
 
@@ -415,6 +434,10 @@ export const actions = {
         actionTitleDraft,
         actionDescriptionDraft,
         actionDescriptionRichDraft,
+        selectedOwnerRoleId,
+        selectedSystemId,
+        editingActionId,
+        actionSequenceDraft,
       }
     },
     {
@@ -426,14 +449,24 @@ export const actions = {
   createSystem: wrapAction(
     async ({ context, supabase, formData }) => {
       const systemDraft = readSystemDraft(formData)
-      const actionTitleDraft = String(
-        formData.get("action_title_draft") ?? "",
-      )
+      const actionTitleDraft = String(formData.get("action_title_draft") ?? "")
       const actionDescriptionDraft = String(
         formData.get("action_description_draft") ?? "",
       )
       const actionDescriptionRichDraft = String(
         formData.get("action_description_rich_draft") ?? "",
+      )
+      const selectedOwnerRoleId = String(
+        formData.get("selected_owner_role_id") ?? "",
+      )
+      const selectedSystemId = String(
+        formData.get("selected_system_id") ?? "",
+      )
+      const editingActionId = String(
+        formData.get("editing_action_id") ?? "",
+      )
+      const actionSequenceDraft = String(
+        formData.get("action_sequence_draft") ?? "",
       )
       const result = await createSystemRecord({
         supabase,
@@ -447,6 +480,10 @@ export const actions = {
           actionTitleDraft,
           actionDescriptionDraft,
           actionDescriptionRichDraft,
+          selectedOwnerRoleId,
+          selectedSystemId,
+          editingActionId,
+          actionSequenceDraft,
         })
       }
 
@@ -456,6 +493,10 @@ export const actions = {
         actionTitleDraft,
         actionDescriptionDraft,
         actionDescriptionRichDraft,
+        selectedOwnerRoleId,
+        selectedSystemId,
+        editingActionId,
+        actionSequenceDraft,
       }
     },
     {

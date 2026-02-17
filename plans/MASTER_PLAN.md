@@ -136,6 +136,8 @@ There are uncommitted changes on `master`:
   - Moved participating roles/systems to right sidebar above flags
   - Action steps start collapsed with per-step expand + expand/collapse-all controls
   - Removed process traverse card from detail page
+- Scope added:
+  - `EPI-101` (`SR-46`) created for systems list redesign (usage-first cards, hover peek, stack-nav card/link behavior, logo ingestion workflow)
 
 ---
 

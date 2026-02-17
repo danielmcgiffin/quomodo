@@ -204,7 +204,11 @@
             <div class="sc-page-subtitle">
               This system becomes a portal across every linked action.
             </div>
-            <button class="sc-btn" type="submit" data-loading-label="Creating...">
+            <button
+              class="sc-btn"
+              type="submit"
+              data-loading-label="Creating..."
+            >
               Create System
             </button>
           </div>

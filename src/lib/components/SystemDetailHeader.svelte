@@ -176,7 +176,11 @@
         use:pendingEnhance
       >
         <input type="hidden" name="system_id" value={system.id} />
-        <button class="sc-btn secondary" type="submit" data-loading-label="Deleting...">
+        <button
+          class="sc-btn secondary"
+          type="submit"
+          data-loading-label="Deleting..."
+        >
           Delete System
         </button>
       </form>

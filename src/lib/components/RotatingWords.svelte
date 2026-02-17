@@ -1,40 +1,43 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte"
 
-  export let words: string[] = [];
-  export let intervalMs = 2400;
-  export let animMs = 380;
+  export let words: string[] = []
+  export let intervalMs = 2400
+  export let animMs = 380
 
-  let cur = 0;
-  let next = 1;
-  let animating = false;
+  let cur = 0
+  let next = 1
+  let animating = false
 
-  let reducedMotion = false;
-  let intervalTimer: number | undefined;
-  let timeoutTimer: number | undefined;
+  let reducedMotion = false
+  let intervalTimer: number | undefined
+  let timeoutTimer: number | undefined
 
-  const longest = () => words.reduce((a, b) => (a.length > b.length ? a : b), words[0] ?? "");
+  const longest = () =>
+    words.reduce((a, b) => (a.length > b.length ? a : b), words[0] ?? "")
 
   function tick() {
-    if (words.length <= 1 || animating) return;
-    animating = true;
-    next = (cur + 1) % words.length;
+    if (words.length <= 1 || animating) return
+    animating = true
+    next = (cur + 1) % words.length
 
     timeoutTimer = window.setTimeout(() => {
-      cur = next;
-      animating = false;
-    }, animMs);
+      cur = next
+      animating = false
+    }, animMs)
   }
 
   onMount(() => {
-    reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
-    if (!reducedMotion && words.length > 1) intervalTimer = window.setInterval(tick, intervalMs);
-  });
+    reducedMotion =
+      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false
+    if (!reducedMotion && words.length > 1)
+      intervalTimer = window.setInterval(tick, intervalMs)
+  })
 
   onDestroy(() => {
-    if (intervalTimer) window.clearInterval(intervalTimer);
-    if (timeoutTimer) window.clearTimeout(timeoutTimer);
-  });
+    if (intervalTimer) window.clearInterval(intervalTimer)
+    if (timeoutTimer) window.clearTimeout(timeoutTimer)
+  })
 </script>
 
 <span class="rw" style={`--anim:${animMs}ms;`}>
@@ -42,7 +45,9 @@
   <span class="rw-reserve">{longest()}</span>
 
   <span class="rw-stack">
-    <span class="rw-word rw-current" class:out={animating}>{words[cur] ?? ""}</span>
+    <span class="rw-word rw-current" class:out={animating}
+      >{words[cur] ?? ""}</span
+    >
     {#if animating}
       <span class="rw-word rw-next in">{words[next] ?? ""}</span>
     {/if}
@@ -87,7 +92,8 @@
   .rw-current.out {
     opacity: 0;
     transform: translate3d(0, calc(-50% + 30px), 0);
-    transition: transform var(--anim) cubic-bezier(0.16, 1, 0.3, 1),
+    transition:
+      transform var(--anim) cubic-bezier(0.16, 1, 0.3, 1),
       opacity var(--anim) cubic-bezier(0.16, 1, 0.3, 1);
   }
 
