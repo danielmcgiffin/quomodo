@@ -237,6 +237,7 @@ export const actions = {
       const failAction = (status: number, createActionError: string) =>
         fail(status, {
           createActionError,
+          actionTitleDraft: draft.title,
           actionDescriptionDraft: draft.description,
           actionDescriptionRichDraft: draft.descriptionRichRaw,
           selectedOwnerRoleId: draft.ownerRoleId,
@@ -329,9 +330,58 @@ export const actions = {
     },
   ),
 
+  updateActionOrder: wrapAction(
+    async ({ context, supabase, formData, params }) => {
+      const actionIdsRaw = String(formData.get("action_ids") ?? "").trim()
+      const failUpdate = (status: number, reorderActionError: string) =>
+        fail(status, { reorderActionError })
+
+      if (!actionIdsRaw) {
+        return failUpdate(400, "Action ids are required.")
+      }
+
+      const actionIds = actionIdsRaw.split(",")
+      const { data: process, error: processError } = await supabase
+        .from("processes")
+        .select("id")
+        .eq("org_id", context.orgId)
+        .eq("slug", params.slug)
+        .maybeSingle()
+
+      if (processError || !process) {
+        return failUpdate(404, "Process not found.")
+      }
+
+      const orderedActions = actionIds.map((id, index) => ({
+        id,
+        sequence: index + 1,
+      }))
+
+      const resequenceError = await resequenceProcessActions({
+        supabase,
+        orgId: context.orgId,
+        processId: process.id,
+        orderedActions,
+      })
+
+      if (resequenceError) {
+        return failUpdate(400, resequenceError)
+      }
+
+      return { updateActionOrderSuccess: true }
+    },
+    {
+      permission: canEditAtlas,
+      forbiddenPayload: { reorderActionError: "Insufficient permissions." },
+    },
+  ),
+
   createRole: wrapAction(
     async ({ context, supabase, formData }) => {
       const roleDraft = readRoleDraft(formData)
+      const actionTitleDraft = String(
+        formData.get("action_title_draft") ?? "",
+      )
       const actionDescriptionDraft = String(
         formData.get("action_description_draft") ?? "",
       )
@@ -347,6 +397,7 @@ export const actions = {
       if (!result.ok) {
         return fail(result.status, {
           createRoleError: result.message,
+          actionTitleDraft,
           actionDescriptionDraft,
           actionDescriptionRichDraft,
         })
@@ -355,6 +406,7 @@ export const actions = {
       return {
         createRoleSuccess: true,
         createdRoleId: result.id,
+        actionTitleDraft,
         actionDescriptionDraft,
         actionDescriptionRichDraft,
       }
@@ -368,6 +420,9 @@ export const actions = {
   createSystem: wrapAction(
     async ({ context, supabase, formData }) => {
       const systemDraft = readSystemDraft(formData)
+      const actionTitleDraft = String(
+        formData.get("action_title_draft") ?? "",
+      )
       const actionDescriptionDraft = String(
         formData.get("action_description_draft") ?? "",
       )
@@ -383,6 +438,7 @@ export const actions = {
       if (!result.ok) {
         return fail(result.status, {
           createSystemError: result.message,
+          actionTitleDraft,
           actionDescriptionDraft,
           actionDescriptionRichDraft,
         })
@@ -391,6 +447,7 @@ export const actions = {
       return {
         createSystemSuccess: true,
         createdSystemId: result.id,
+        actionTitleDraft,
         actionDescriptionDraft,
         actionDescriptionRichDraft,
       }

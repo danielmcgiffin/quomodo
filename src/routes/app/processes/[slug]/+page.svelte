@@ -20,6 +20,7 @@
   type ActionEntry = {
     id: string
     sequence: number
+    title: string
     descriptionRich: string
     descriptionHtml: string
     ownerRole: SidebarRole | null
@@ -82,16 +83,18 @@
 
   const canEditProcess = $derived.by(() => data.viewerRole !== "member")
 
-  const actionRoles = $derived.by(() =>
-    data.actions
+  const actionRoles = $derived.by(() => {
+    const roles = data.actions
       .map((action) => action.ownerRole)
-      .filter((role): role is SidebarRole => Boolean(role)),
-  )
-  const actionSystems = $derived.by(() =>
-    data.actions
+      .filter((role): role is SidebarRole => Boolean(role))
+    return Array.from(new Map(roles.map((r) => [r.id, r])).values())
+  })
+  const actionSystems = $derived.by(() => {
+    const systems = data.actions
       .map((action) => action.system)
-      .filter((system): system is SidebarSystem => Boolean(system)),
-  )
+      .filter((system): system is SidebarSystem => Boolean(system))
+    return Array.from(new Map(systems.map((s) => [s.id, s])).values())
+  })
 </script>
 
 <div class="sc-process-page">

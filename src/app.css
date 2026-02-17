@@ -872,6 +872,8 @@ button[disabled].authBtn::before {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 180px;
   gap: 20px;
+  padding-left: 48px; /* Make room for the left-edge number */
+  position: relative;
 }
 
 .sc-action-card-clickable {
@@ -896,41 +898,32 @@ button[disabled].authBtn::before {
 }
 
 .sc-action-sequence {
-  font-size: var(--sc-font-l);
-  font-weight: 700;
-  line-height: 1;
-  color: var(--sc-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--sc-font-md);
+  font-weight: 800;
+  background: var(--sc-bg-inset);
+  color: var(--sc-text-muted);
+  border-right: 1px solid var(--sc-border);
+  border-top-left-radius: var(--sc-radius-lg);
+  border-bottom-left-radius: var(--sc-radius-lg);
+  cursor: grab;
+  user-select: none;
+}
+
+.sc-action-sequence:active {
+  cursor: grabbing;
 }
 
 .sc-action-side-row {
   display: inline-flex;
   justify-content: flex-end;
-}
-
-.sc-action-order-controls {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.sc-action-order-form {
-  margin: 0;
-}
-
-.sc-action-order-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: var(--sc-radius-md);
-  border: 1px solid var(--sc-border);
-  background: var(--sc-bg-inset);
-  color: var(--sc-text);
-  font-weight: 700;
-  line-height: 1;
-}
-
-.sc-action-order-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 .sc-process-badge-rows {
@@ -1337,6 +1330,15 @@ button[disabled].authBtn::before {
   margin-top: 6px;
 }
 
+.sc-rich-editor-content .sc-rich-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--sc-radius-md);
+  border: 1px solid var(--sc-border);
+  margin: 1rem auto;
+  display: block;
+}
+
 .sc-rich-editor-required {
   position: absolute;
   width: 1px;
@@ -1542,6 +1544,15 @@ button[disabled].authBtn::before {
 
 .sc-rich li + li {
   margin-top: 6px;
+}
+
+.sc-rich-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--sc-radius-md);
+  border: 1px solid var(--sc-border);
+  margin: 1rem auto;
+  display: block;
 }
 
 @media (max-width: 740px) {

@@ -728,6 +728,7 @@ export const createFlagForProcessDetail = async ({
 }
 
 export type ActionDraft = {
+  title: string
   description: string
   descriptionRich?: RichTextDocument
   descriptionRichRaw?: string
@@ -745,6 +746,7 @@ export const readActionDraft = (formData: FormData): ActionDraft => {
   })
 
   return {
+    title: String(formData.get("title") ?? "").trim(),
     description: descriptionDraft.text,
     descriptionRich: descriptionDraft.rich,
     descriptionRichRaw: descriptionDraft.richRaw,
@@ -855,6 +857,7 @@ export const createOrUpdateActionRecord = async ({
     const { error: updateError } = await supabase
       .from("actions")
       .update({
+        title: draft.title,
         description_rich: draft.descriptionRich,
         owner_role_id: draft.ownerRoleId,
         system_id: draft.systemId,
@@ -886,6 +889,7 @@ export const createOrUpdateActionRecord = async ({
     org_id: orgId,
     process_id: process.id,
     sequence,
+    title: draft.title,
     description_rich: draft.descriptionRich,
     owner_role_id: draft.ownerRoleId,
     system_id: draft.systemId,

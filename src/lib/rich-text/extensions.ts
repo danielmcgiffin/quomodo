@@ -1,4 +1,5 @@
 import Link from "@tiptap/extension-link"
+import Image from "@tiptap/extension-image"
 import StarterKit from "@tiptap/starter-kit"
 import type { Extensions } from "@tiptap/core"
 
@@ -17,6 +18,13 @@ export const createRichTextExtensions = (): Extensions => [
     HTMLAttributes: {
       rel: "noopener noreferrer nofollow",
       target: "_blank",
+    },
+  }),
+  Image.configure({
+    inline: true,
+    allowBase64: true,
+    HTMLAttributes: {
+      class: "sc-rich-image",
     },
   }),
 ]

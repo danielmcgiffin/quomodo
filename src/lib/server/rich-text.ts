@@ -22,6 +22,7 @@ const allowedTags = [
   "ol",
   "li",
   "a",
+  "img",
 ]
 
 const htmlLooksLikeMarkup = (value: string) => /<\/?[a-z][\s\S]*>/i.test(value)
@@ -104,6 +105,14 @@ const renderRichNode = (node: unknown): string => {
       return `<li>${renderRichNodes(content)}</li>`
     case "hardBreak":
       return "<br>"
+    case "image": {
+      const typedImage = node as { attrs?: Record<string, unknown> }
+      const srcRaw = typedImage.attrs?.src
+      const src = typeof srcRaw === "string" ? escapeHtml(srcRaw) : ""
+      const altRaw = typedImage.attrs?.alt
+      const alt = typeof altRaw === "string" ? escapeHtml(altRaw) : ""
+      return `<img src="${src}" alt="${alt}" class="sc-rich-image">`
+    }
     case "text": {
       const text = escapeHtml(
         typeof typedNode.text === "string" ? typedNode.text : "",
@@ -160,8 +169,9 @@ const sanitizeRichHtml = (value: string) =>
     allowedTags,
     allowedAttributes: {
       a: ["href", "target", "rel"],
+      img: ["src", "alt", "title", "class"],
     },
-    allowedSchemes: ["http", "https", "mailto"],
+    allowedSchemes: ["http", "https", "mailto", "data"],
     transformTags: {
       a: (
         _tagName: string,

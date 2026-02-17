@@ -16,6 +16,7 @@
     title = "Add System",
     description = "Create a system.",
     helperText = "This system is immediately available.",
+    actionTitleDraft = "",
     actionDescriptionDraft = "",
     actionDescriptionRichDraft = "",
     maxWidth = "760px",
@@ -28,6 +29,7 @@
     title?: string
     description?: string
     helperText?: string
+    actionTitleDraft?: string
     actionDescriptionDraft?: string
     actionDescriptionRichDraft?: string
     maxWidth?: string
@@ -39,6 +41,7 @@
 
 <ScModal bind:open {title} {description} {maxWidth}>
   <form class="sc-form" method="POST" {action}>
+    <input type="hidden" name="action_title_draft" value={actionTitleDraft} />
     <input
       type="hidden"
       name="action_description_draft"

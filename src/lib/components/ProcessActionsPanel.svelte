@@ -18,6 +18,7 @@
   type ActionEntry = {
     id: string
     sequence: number
+    title: string
     descriptionRich: string
     descriptionHtml: string
     ownerRole: SidebarRole | null
@@ -34,6 +35,7 @@
     createSystemSuccess?: boolean
     createdRoleId?: string
     createdSystemId?: string
+    actionTitleDraft?: string
     actionDescriptionDraft?: string
     actionDescriptionRichDraft?: string
     selectedOwnerRoleId?: string
@@ -114,6 +116,7 @@
   let isCreateActionModalOpen = $state(false)
   let isCreateRoleModalOpen = $state(false)
   let isCreateSystemModalOpen = $state(false)
+  let actionTitleDraft = $state("")
   let actionDescriptionDraft = $state("")
   let actionDescriptionRichDraft = $state("")
   let selectedOwnerRoleId = $state("")
@@ -132,6 +135,7 @@
 
   const openCreateActionModal = () => {
     editingActionId = null
+    actionTitleDraft = ""
     actionDescriptionDraft = ""
     actionDescriptionRichDraft = ""
     selectedOwnerRoleId = form?.createdRoleId ?? ""
@@ -144,6 +148,7 @@
       return
     }
     editingActionId = action.id
+    actionTitleDraft = action.title
     actionDescriptionDraft = htmlToDraftText(action.descriptionHtml)
     actionDescriptionRichDraft = action.descriptionRich
     selectedOwnerRoleId = action.ownerRole?.id ?? ""
@@ -160,6 +165,7 @@
     }
     event.preventDefault()
     editingActionId = action.id
+    actionTitleDraft = action.title
     actionDescriptionDraft = htmlToDraftText(action.descriptionHtml)
     actionDescriptionRichDraft = action.descriptionRich
     selectedOwnerRoleId = action.ownerRole?.id ?? ""
@@ -168,6 +174,9 @@
   }
 
   $effect(() => {
+    if (typeof form?.actionTitleDraft === "string") {
+      actionTitleDraft = form.actionTitleDraft
+    }
     if (typeof form?.actionDescriptionDraft === "string") {
       actionDescriptionDraft = form.actionDescriptionDraft
     }
@@ -245,6 +254,7 @@
 <ActionEditorModal
   bind:open={isCreateActionModalOpen}
   bind:editingActionId
+  bind:actionTitleDraft
   bind:actionDescriptionDraft
   bind:actionDescriptionRichDraft
   bind:selectedOwnerRoleId
@@ -269,6 +279,7 @@
   errorMessage={form?.createRoleError}
   description="Create a role without leaving action authoring."
   helperText="This role is immediately available for action ownership."
+  {actionTitleDraft}
   {actionDescriptionDraft}
   {actionDescriptionRichDraft}
 />
@@ -281,6 +292,7 @@
   errorMessage={form?.createSystemError}
   description="Create a system without leaving action authoring."
   helperText="This system is immediately available for action linking."
+  {actionTitleDraft}
   {actionDescriptionDraft}
   {actionDescriptionRichDraft}
 />

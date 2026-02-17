@@ -8,6 +8,7 @@
   let {
     open = $bindable(false),
     editingActionId = $bindable<string | null>(null),
+    actionTitleDraft = $bindable(""),
     actionDescriptionDraft = $bindable(""),
     actionDescriptionRichDraft = $bindable(""),
     selectedOwnerRoleId = $bindable(""),
@@ -23,6 +24,7 @@
   }: {
     open?: boolean
     editingActionId?: string | null
+    actionTitleDraft?: string
     actionDescriptionDraft?: string
     actionDescriptionRichDraft?: string
     selectedOwnerRoleId?: string
@@ -49,7 +51,7 @@
   bind:open
   title={editingActionId ? "Edit Action" : "Add Action"}
   description={editingActionId
-    ? "Update this action's description, role, and system."
+    ? "Update this action's title, description, role, and system."
     : "Capture one action in this process and link role + system."}
   maxWidth="760px"
 >
@@ -67,6 +69,18 @@
     {#if editingActionId}
       <input type="hidden" name="action_id" value={editingActionId} />
     {/if}
+
+    <div class="sc-form-row">
+      <input
+        class="sc-search sc-field"
+        type="text"
+        name="title"
+        placeholder="Action Title (e.g. 'Log into HubSpot')"
+        bind:value={actionTitleDraft}
+        required
+      />
+    </div>
+
     <div class="sc-form-row sc-action-modal-description-row">
       <RichTextEditor
         fieldName="description_rich"

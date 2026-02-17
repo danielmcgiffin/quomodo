@@ -123,6 +123,7 @@ export type ProcessDetailActionRow = {
   id: string
   process_id: string
   sequence: number
+  title: string
   description_rich: unknown
   owner_role_id: string
   system_id: string
@@ -150,6 +151,7 @@ export const mapProcessDetailActions = ({
     id: row.id,
     processId: row.process_id,
     sequence: row.sequence,
+    title: row.title,
     descriptionHtml: richToHtml(row.description_rich),
     ownerRole: roleById.get(row.owner_role_id),
     system: systemById.get(row.system_id),
