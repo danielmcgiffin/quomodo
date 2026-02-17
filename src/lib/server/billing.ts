@@ -3,11 +3,11 @@ import { error as kitError } from "@sveltejs/kit"
 import Stripe from "stripe"
 import type { SupabaseClient, User } from "@supabase/supabase-js"
 import type { Database } from "../../DatabaseDefinitions"
-import {
-  pricingPlans,
-  defaultPlanId,
-} from "../../routes/(marketing)/pricing/pricing_plans"
+import { marketingSite } from "$lib/marketing/site"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
+
+const pricingPlans = marketingSite.pricing.plans
+const defaultPlanId = marketingSite.defaultPlanId
 
 const stripe = new Stripe(privateEnv.PRIVATE_STRIPE_API_KEY, {
   apiVersion: "2023-08-16",
@@ -70,7 +70,7 @@ const computeBillingSnapshotFromStripe = ({
     const mappedPlanId = mapStripeSubscriptionToPlanId(primary)
     if (!mappedPlanId) {
       throw new Error(
-        `Stripe subscription could not be mapped to pricing_plans.ts (org=${orgId})`,
+        `Stripe subscription could not be mapped to marketingSite.pricing.plans (org=${orgId})`,
       )
     }
     return {

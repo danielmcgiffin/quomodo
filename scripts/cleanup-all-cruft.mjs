@@ -199,14 +199,10 @@ const main = async () => {
   const { count: remainingOrgs } = await supabase
     .from("orgs")
     .select("id", { count: "exact", head: true })
-  const {
-    data: { users: remainingUsers },
-  } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1 })
 
   console.log("")
   console.log("=== DONE ===")
   console.log(`Remaining orgs: ${remainingOrgs}`)
-  console.log(`Remaining users: check Supabase dashboard`)
 }
 
 main().catch((err) => {

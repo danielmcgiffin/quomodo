@@ -6,6 +6,7 @@ export type StepItem = { n: string; title: string; desc: string };
 export type FaqItem = { q: string; a: string };
 
 export type PricingPlan = {
+  id: string;
   name: string;
   price: string;
   desc: string;
@@ -13,11 +14,14 @@ export type PricingPlan = {
   cta: CTA;
   featured: boolean;
   badge?: string;
+  stripe_price_id?: string | null;
+  stripe_product_id?: string | null;
 };
 
 export const marketingSite = {
   brand: "SystemsCraft",
   tagline: "Your Operational Atlas",
+  defaultPlanId: "free",
 
   nav: [
     { label: "Home", href: "/" },
@@ -205,6 +209,22 @@ export const marketingSite = {
     subhead: "Pick your company size. Upgrade when you grow.",
     plans: [
       {
+        id: "free",
+        name: "Free",
+        price: "$0",
+        desc: "One workspace to map your first operational atlas.",
+        perks: [
+          "1 workspace",
+          "Core atlas functions (roles, systems, processes, actions, flags)",
+          "Single user",
+        ],
+        cta: { label: "Get started", href: "/app/processes" },
+        featured: false,
+        stripe_price_id: null,
+        stripe_product_id: null,
+      },
+      {
+        id: "starter",
         name: "Starter",
         badge: "Great for getting started",
         price: "$49",
@@ -216,8 +236,11 @@ export const marketingSite = {
         ],
         cta: { label: "Get started", href: "/app/processes" },
         featured: false,
+        stripe_price_id: "price_1T0MQHLeepTzGf1NbD28pMhu",
+        stripe_product_id: "prod_TyJ2z0btpQXugh",
       },
       {
+        id: "growth",
         name: "Growth",
         price: "$99",
         desc: "For teams starting to feel the coordination tax.",
@@ -229,8 +252,11 @@ export const marketingSite = {
         ],
         cta: { label: "Start Growth", href: "/app/processes" },
         featured: true,
+        stripe_price_id: "price_1T0MS3LeepTzGf1NDO7Pl11a",
+        stripe_product_id: "prod_TyJ4L2QxWhOsPg",
       },
       {
+        id: "scale",
         name: "Scale",
         price: "$299",
         desc: "For multi-team workflows and real cross-department handoffs.",
@@ -245,6 +271,7 @@ export const marketingSite = {
         featured: false,
       },
       {
+        id: "enterprise",
         name: "Enterprise",
         price: "Custom",
         desc: "For larger companies, or teams withing larger companies, reach out and let's find a price that makes sense.",

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import PricingModule from "../../../(marketing)/pricing/pricing_module.svelte"
+  import PricingModule from "$lib/marketing/PricingModule.svelte"
 </script>
 
 <svelte:head>

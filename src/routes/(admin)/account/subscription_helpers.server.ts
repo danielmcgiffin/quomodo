@@ -3,7 +3,10 @@ import type { Database } from "../../../DatabaseDefinitions"
 
 import { env as privateEnv } from "$env/dynamic/private"
 import Stripe from "stripe"
-import { pricingPlans } from "../../(marketing)/pricing/pricing_plans"
+import { marketingSite } from "$lib/marketing/site"
+
+const pricingPlans = marketingSite.pricing.plans
+
 const stripe = new Stripe(privateEnv.PRIVATE_STRIPE_API_KEY, {
   apiVersion: "2023-08-16",
 })
@@ -116,7 +119,7 @@ export const fetchSubscription = async ({
     })
     if (!appSubscription) {
       return {
-        error: `Stripe subscription could not be mapped to pricing_plans.ts (product=${productId}, price=${priceId})`,
+        error: `Stripe subscription could not be mapped to marketingSite.pricing.plans (product=${productId}, price=${priceId})`,
       }
     }
   }
