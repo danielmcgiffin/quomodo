@@ -270,22 +270,6 @@ export const marketingSite = {
         cta: { label: "Start Scale", href: "/app/processes" },
         featured: false,
       },
-      {
-        id: "enterprise",
-        name: "Enterprise",
-        price: "Custom",
-        desc: "For larger companies, or teams withing larger companies, reach out and let's find a price that makes sense.",
-        perks: [
-          "Custom-configured workspaces",
-          "Dedicated onboarding",
-          "Priority support",
-        ],
-        cta: {
-          label: "Talk to us",
-          href: "https://cal.com/danny-cursus/15min",
-        },
-        featured: false,
-      },
     ],
   },
 

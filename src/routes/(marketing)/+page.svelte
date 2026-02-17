@@ -171,6 +171,18 @@
   </div>
 
   <PricingModule />
+
+  <div class="mk-enterprise-banner">
+    <p>
+      <strong>Need more than 100 seats?</strong>
+      If you require more than 100 seats, <a
+        href="https://cal.com/danny-cursus/15min"
+        target="_blank"
+        rel="noreferrer">reach out and we can talk</a
+      >. This enterprise offering includes custom-configured workspaces,
+      dedicated onboarding, and platinum support.
+    </p>
+  </div>
 </section>
 
 <!-- FAQ -->

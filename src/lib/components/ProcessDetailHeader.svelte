@@ -2,6 +2,9 @@
   import RichText from "$lib/components/RichText.svelte"
   import RichTextEditor from "$lib/components/RichTextEditor.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
+  import CopyLinkButton from "$lib/components/CopyLinkButton.svelte"
+  import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
+  import { pendingEnhance } from "$lib/components/pending-enhance"
 
   type SidebarRole = {
     id: string
@@ -36,10 +39,33 @@
     process: ProcessData
     allRoles: SidebarRole[]
     canEdit: boolean
+    viewerRole: "owner" | "admin" | "editor" | "member"
+    createFlagError?: string
+    createFlagTargetType?: string
+    createFlagTargetId?: string
+    createFlagTargetPath?: string
     form?: ProcessForm
   }
 
-  let { process, allRoles, canEdit, form }: Props = $props()
+  let {
+    process,
+    allRoles,
+    canEdit,
+    viewerRole,
+    createFlagError,
+    createFlagTargetType,
+    createFlagTargetId,
+    createFlagTargetPath,
+    form,
+  }: Props = $props()
+
+  const processFieldTargets = [
+    { path: "name", label: "Name" },
+    { path: "description", label: "Description" },
+    { path: "trigger", label: "Trigger" },
+    { path: "end_state", label: "End state" },
+    { path: "owner_role_id", label: "Owner role" },
+  ]
 
   const htmlToDraftText = (html: string): string =>
     html
@@ -109,13 +135,30 @@
 
 <div class="flex justify-between items-start gap-4 flex-wrap">
   <div class="flex flex-col">
-    <div class="sc-page-title">{process.name}</div>
-    <div class="sc-page-subtitle">
-      <RichText html={process.descriptionHtml} />
+    <div class="sc-process-title-row">
+      <div class="sc-page-title">{process.name}</div>
+      <CopyLinkButton
+        variant="icon"
+        href={`/app/processes/${process.slug}`}
+        label="Copy process link"
+      />
+      <InlineEntityFlagControl
+        inline={true}
+        action="?/createFlag"
+        targetType="process"
+        targetId={process.id}
+        entityLabel={process.name}
+        {viewerRole}
+        fieldTargets={processFieldTargets}
+        errorMessage={createFlagError}
+        errorTargetType={createFlagTargetType}
+        errorTargetId={createFlagTargetId}
+        errorTargetPath={createFlagTargetPath}
+      />
     </div>
   </div>
-  {#if canEdit}
-    <div class="sc-actions">
+  <div class="sc-actions">
+    {#if canEdit}
       <button
         class="sc-btn secondary"
         type="button"
@@ -127,12 +170,15 @@
         method="POST"
         action="?/deleteProcess"
         onsubmit={confirmDeleteProcess}
+        use:pendingEnhance
       >
         <input type="hidden" name="process_id" value={process.id} />
-        <button class="sc-btn secondary" type="submit">Delete Process</button>
+        <button class="sc-btn secondary" type="submit" data-loading-label="Deleting...">
+          Delete Process
+        </button>
       </form>
-    </div>
-  {/if}
+    {/if}
+  </div>
 </div>
 
 {#if form?.deleteProcessError}
@@ -147,7 +193,12 @@
   description="Update the trigger, outcome, and owner role."
   maxWidth="860px"
 >
-  <form class="sc-form" method="POST" action="?/updateProcess">
+  <form
+    class="sc-form"
+    method="POST"
+    action="?/updateProcess"
+    use:pendingEnhance
+  >
     {#if form?.updateProcessError}
       <div class="sc-form-error">{form.updateProcessError}</div>
     {/if}
@@ -200,7 +251,22 @@
           <option value={role.id}>{role.name}</option>
         {/each}
       </select>
-      <button class="sc-btn" type="submit">Save Process</button>
+      <button class="sc-btn" type="submit" data-loading-label="Saving...">
+        Save Process
+      </button>
     </div>
   </form>
 </ScModal>
+
+<style>
+  .sc-process-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .sc-process-title-row .sc-page-title {
+    margin-bottom: 0;
+  }
+</style>
