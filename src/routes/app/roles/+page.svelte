@@ -3,6 +3,7 @@
   import ScModal from "$lib/components/ScModal.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
   import FlagSidebar from "$lib/components/FlagSidebar.svelte"
+  import { getAvatarColor } from "$lib/colors"
 
   type RoleEntry = {
     id: string
@@ -152,7 +153,7 @@
               >
                 <span
                   class="sc-avatar"
-                  style="--avatar-size:36px;--avatar-font:14px;"
+                  style={`--avatar-size:36px;--avatar-font:14px; --avatar-bg: ${getAvatarColor(role.name)};`}
                   >{role.initials}</span
                 >
                 <span class="min-w-0 truncate">{role.name}</span>

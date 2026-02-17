@@ -1135,7 +1135,7 @@ button[disabled].authBtn::before {
   width: var(--avatar-size);
   height: var(--avatar-size);
   border-radius: 9999px;
-  background: var(--sc-green);
+  background: var(--avatar-bg, var(--sc-green));
   color: #fff;
   font-size: var(--avatar-font);
   font-weight: 700;

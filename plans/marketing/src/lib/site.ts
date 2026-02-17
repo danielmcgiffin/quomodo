@@ -15,24 +15,20 @@ export type PricingPlan = {
   badge?: string;
 };
 
-export const marketingSite = {
-  brand: "SystemsCraft",
-  tagline: "Your Operational Atlas",
+export const site = {
+  brand: "Quaestor",
 
   nav: [
     { label: "Home", href: "/" },
     { label: "Method", href: "/method" },
+    { label: "Blog", href: "https://blog.cursus.tools" },
+    { label: "Demo", href: "https://qstr.cursus.tools/demo/process" },
     { label: "Partners", href: "/partners" },
     { label: "Contact", href: "/contact" },
   ] satisfies NavItem[],
 
-  primaryCta: {
-    label: "Enter App",
-    href: "/app/processes",
-  } satisfies CTA,
-
-  secondaryCta: {
-    label: "Book Intro Call",
+  navCta: {
+    label: "Book a call",
     href: "https://cal.com/danny-cursus/15min",
   } satisfies CTA,
 
@@ -40,24 +36,36 @@ export const marketingSite = {
   // HERO
   // ───────────────────────────────────────────
   hero: {
-    eyebrow: "No more documentation theater",
     kicker: "Your Operational Atlas",
     headline: "No more",
-    title: "Map once. Use everywhere.",
-    subtitle:
-      "SystemsCraft maps who does what, in which system, as a connected graph — so your team finds answers instead of asking you.",
+    subhead:
+      "Quaestor maps who does what, in which system, as a connected graph — so your team finds answers instead of asking you.",
+    primaryCta: {
+      label: "See it in action",
+      href: "https://qstr.cursus.tools",
+    },
+    secondaryCta: { label: "Read the method", href: "/method" },
+  } satisfies {
+    kicker: string;
+    headline: string;
+    subhead: string;
+    primaryCta: CTA;
+    secondaryCta: CTA;
   },
 
   // ───────────────────────────────────────────
   // DEMO
   // ───────────────────────────────────────────
   demo: {
-    gifSrc: "/images/example-home.png", // Using existing image
-    alt: "SystemsCraft showing connected processes, roles, and systems.",
+    gifSrc: "/role-details.png",
+    posterSrc: "/demo-poster.jpg",
+    alt: "Quaestor showing connected processes, roles, and systems.",
   },
 
   // ───────────────────────────────────────────
   // "FOR YOU" — the emotional hook
+  // Dual-ICP: owner reads their own pain,
+  // consultant reads every client they've inherited
   // ───────────────────────────────────────────
   forYou: {
     eyebrow: "You Know the Feeling",
@@ -150,10 +158,10 @@ export const marketingSite = {
   },
 
   // ───────────────────────────────────────────
-  // FEATURES / PILLARS
+  // FEATURES
   // ───────────────────────────────────────────
   features: {
-    eyebrow: "Why SystemsCraft",
+    eyebrow: "Why Quaestor",
     headline: "A map beats a folder. Ownership beats guessing.",
     subhead:
       "Everything connects. Everything has an owner. Everything stays current.",
@@ -214,7 +222,7 @@ export const marketingSite = {
           "Maintenance alerts",
           "Email support",
         ],
-        cta: { label: "Get started", href: "/app/processes" },
+        cta: { label: "Get started", href: "https://qstr.cursus.tools" },
         featured: false,
       },
       {
@@ -227,7 +235,7 @@ export const marketingSite = {
           "Unlimited editors",
           "Priority support",
         ],
-        cta: { label: "Start Growth", href: "/app/processes" },
+        cta: { label: "Start Growth", href: "https://qstr.cursus.tools" },
         featured: true,
       },
       {
@@ -241,7 +249,7 @@ export const marketingSite = {
           "Implementation guidance",
         ],
         badge: "Most popular",
-        cta: { label: "Start Scale", href: "/app/processes" },
+        cta: { label: "Start Scale", href: "https://qstr.cursus.tools" },
         featured: false,
       },
       {
@@ -263,7 +271,7 @@ export const marketingSite = {
   },
 
   // ───────────────────────────────────────────
-  // FAQ
+  // FAQ — dual-ICP, objection-resolving
   // ───────────────────────────────────────────
   faq: {
     eyebrow: "FAQ",
@@ -272,7 +280,7 @@ export const marketingSite = {
     items: [
       {
         q: "How is this different from Notion / Confluence / a wiki?",
-        a: "Wikis store pages. SystemsCraft stores relationships — roles, processes, and systems linked into a single graph. Change a role's responsibilities and every connected process updates. That's not something a wiki can do, because a wiki doesn't know what's connected to what.",
+        a: "Wikis store pages. Quaestor stores relationships — roles, processes, and systems linked into a single graph. Change a role's responsibilities and every connected process updates. That's not something a wiki can do, because a wiki doesn't know what's connected to what.",
       },
       {
         q: "How long does setup take?",
@@ -302,17 +310,11 @@ export const marketingSite = {
     items: FaqItem[];
   },
 
-  footerLinks: [
-    { label: "Method", href: "/method" },
-    { label: "Partners", href: "/partners" },
-    { label: "Contact", href: "/contact" },
-    { label: "Product", href: "/app/processes" },
-    { label: "Terms", href: "/terms" },
-    { label: "Privacy", href: "/privacy" },
-  ] satisfies NavItem[],
-
+  // ───────────────────────────────────────────
+  // FOOTER
+  // ───────────────────────────────────────────
   footer: {
     tagline: "Your Operational Atlas",
-    copyrightName: "SystemsCraft",
+    copyrightName: "Quaestor",
   } as const,
-}
+} as const;
