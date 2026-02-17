@@ -1,7 +1,7 @@
 # SystemsCraft Master Plan
 
 Owner: Claude (PM) + Danny McGiffin (Founder)
-Last updated: 2026-02-14
+Last updated: 2026-02-17
 Status: Active — single source of truth for all project planning
 
 ---
@@ -54,6 +54,26 @@ Everything below is shipped, deployed, and validated.
 - `EPI-35` DB types regenerated, app typing fixed
 - `EPI-36` Systems + roles detail pages componentized (427 → ~255, 367 → ~233)
 
+### Marketing Clarity (shipped 2026-02-17)
+
+- `SR-25` Homepage messaging tightened for stranger clarity:
+  - Primary CTA now routes directly to sign-up
+  - Marketing pricing CTAs route to sign-up (account billing flows still use subscribe links)
+  - Hero now states the intended audience near the value prop
+  - Mobile + link checks validated (including 375px viewport and CTA path)
+
+### App Interaction Feedback (shipped 2026-02-17)
+
+- `SR-27` App-shell form loading states:
+  - Added `use:enhance` pending behavior across create/edit/delete/moderation forms
+  - Submit buttons now disable with pending labels to prevent double-submits
+  - Existing server actions and redirects unchanged
+- `EPI-98` Type-check baseline restored:
+  - Fixed process-detail action typing/import regressions
+  - Aligned mapper test fixture with required action shape (`title`)
+  - Resolved drag-and-drop typing issues and removed empty CSS warning rule
+  - `npm run -s check` back to `0 errors, 0 warnings`
+
 ### Founder Decisions (Locked)
 
 1. Billing: per-workspace, owner is billing authority
@@ -96,6 +116,26 @@ There are uncommitted changes on `master`:
 - Roles/systems detail page refactors
 - `DatabaseDefinitions.ts` update
 - Migration file rename
+- `EPI-92` role detail redesign in progress:
+  - Actions-first + details tab split implemented on `/app/roles/[slug]`
+  - Systems moved to sidebar above flags, filters/process list removed
+  - Cross-entity stack navigation behavior implemented as slide-in panel on process/system portal clicks
+- `EPI-90` detail-page filter cleanup implemented:
+  - Removed role/system filter dropdowns from process action detail view
+  - Removed process/role usage filters from system detail view
+- `EPI-85` universal share links implemented:
+  - Added reusable `CopyLinkButton` and wired role/system/process detail headers
+  - Added per-action step anchors + copy-link buttons on process detail cards
+  - Added flag anchors + copy-link buttons on `/app/flags`
+- `EPI-79` stack navigation implemented in app shell:
+  - Added global slide-in detail panel for entity links (`/app/processes/[slug]`, `/app/roles/[slug]`, `/app/systems/[slug]`)
+  - Preserves originating page context and supports back-to-list via history pop
+  - Added panel header `Go to` action to navigate to full-page detail view
+- `EPI-84` process detail redesign implemented:
+  - Actions-first layout with process metadata in a collapsed disclosure card
+  - Moved participating roles/systems to right sidebar above flags
+  - Action steps start collapsed with per-step expand + expand/collapse-all controls
+  - Removed process traverse card from detail page
 
 ---
 

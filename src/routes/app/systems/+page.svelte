@@ -6,6 +6,7 @@
   import InlineCreateRoleModal from "$lib/components/InlineCreateRoleModal.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
   import FlagSidebar from "$lib/components/FlagSidebar.svelte"
+  import { pendingEnhance } from "$lib/components/pending-enhance"
 
   type Props = {
     data: {
@@ -143,7 +144,12 @@
         description="Capture the system details and ownership. System name is required."
         maxWidth="760px"
       >
-        <form class="sc-form" method="POST" action="?/createSystem">
+        <form
+          class="sc-form"
+          method="POST"
+          action="?/createSystem"
+          use:pendingEnhance
+        >
           {#if form?.createSystemError}
             <div class="sc-form-error">{form.createSystemError}</div>
           {/if}
@@ -198,7 +204,9 @@
             <div class="sc-page-subtitle">
               This system becomes a portal across every linked action.
             </div>
-            <button class="sc-btn" type="submit">Create System</button>
+            <button class="sc-btn" type="submit" data-loading-label="Creating...">
+              Create System
+            </button>
           </div>
           {#if form?.createRoleSuccess}
             <div class="sc-page-subtitle">

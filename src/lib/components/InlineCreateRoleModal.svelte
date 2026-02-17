@@ -1,6 +1,7 @@
 <script lang="ts">
   import ScModal from "$lib/components/ScModal.svelte"
   import RichTextEditor from "$lib/components/RichTextEditor.svelte"
+  import { pendingEnhance } from "$lib/components/pending-enhance"
 
   let {
     open = $bindable(false),
@@ -31,7 +32,7 @@
 </script>
 
 <ScModal bind:open {title} {description} {maxWidth}>
-  <form class="sc-form" method="POST" {action}>
+  <form class="sc-form" method="POST" {action} use:pendingEnhance>
     <input type="hidden" name="action_title_draft" value={actionTitleDraft} />
     <input
       type="hidden"
@@ -64,7 +65,9 @@
     </div>
     <div class="sc-form-actions">
       <div class="sc-page-subtitle">{helperText}</div>
-      <button class="sc-btn" type="submit">Create Role</button>
+      <button class="sc-btn" type="submit" data-loading-label="Creating...">
+        Create Role
+      </button>
     </div>
   </form>
 </ScModal>

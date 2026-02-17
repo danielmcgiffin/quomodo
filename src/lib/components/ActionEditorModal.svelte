@@ -1,6 +1,7 @@
 <script lang="ts">
   import ScModal from "$lib/components/ScModal.svelte"
   import RichTextEditor from "$lib/components/RichTextEditor.svelte"
+  import { pendingEnhance } from "$lib/components/pending-enhance"
 
   type Role = { id: string; name: string }
   type System = { id: string; name: string }
@@ -59,6 +60,7 @@
     class="sc-form sc-action-modal-form"
     method="POST"
     action="?/createAction"
+    use:pendingEnhance
   >
     {#if createActionError}
       <div class="sc-form-error">{createActionError}</div>
@@ -133,7 +135,7 @@
       </button>
     </div>
     <div class="sc-form-row sc-action-modal-submit-row">
-      <button class="sc-btn" type="submit">
+      <button class="sc-btn" type="submit" data-loading-label="Saving...">
         {editingActionId ? "Save Action" : "Create Action"}
       </button>
     </div>
@@ -144,10 +146,13 @@
       method="POST"
       action="?/deleteAction"
       onsubmit={confirmDeleteAction}
+      use:pendingEnhance
     >
       <input type="hidden" name="action_id" value={editingActionId} />
       <div class="sc-form-row sc-action-modal-submit-row">
-        <button class="sc-btn secondary" type="submit">Delete Action</button>
+        <button class="sc-btn secondary" type="submit" data-loading-label="Deleting...">
+          Delete Action
+        </button>
       </div>
     </form>
   {/if}

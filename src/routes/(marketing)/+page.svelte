@@ -48,6 +48,7 @@
     />
   </h1>
   <p>{marketingSite.hero.subtitle}</p>
+  <p class="mk-hero-audience">{marketingSite.hero.audience}</p>
   <div class="mk-cta-row">
     <a class="mk-btn mk-btn-primary" href={marketingSite.primaryCta.href}>
       {marketingSite.primaryCta.label} <ArrowRight size={16} class="ml-2" />
@@ -170,7 +171,7 @@
     <p>{marketingSite.pricing.subhead}</p>
   </div>
 
-  <PricingModule />
+  <PricingModule useStripeLinks={false} />
 
   <div class="mk-enterprise-banner">
     <p>
@@ -378,7 +379,4 @@
     margin-bottom: 1rem;
   }
 
-  .mk-feature-icon :global(svg) {
-    /* Ensuring icon color follows parent if not specified */
-  }
 </style>

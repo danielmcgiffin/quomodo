@@ -3,7 +3,8 @@
   import ProcessActionsPanel from "$lib/components/ProcessActionsPanel.svelte"
   import ProcessDetailHeader from "$lib/components/ProcessDetailHeader.svelte"
   import ProcessOverviewCard from "$lib/components/ProcessOverviewCard.svelte"
-  import ProcessTraverseCard from "$lib/components/ProcessTraverseCard.svelte"
+  import RolePortal from "$lib/components/RolePortal.svelte"
+  import SystemPortal from "$lib/components/SystemPortal.svelte"
 
   type SidebarRole = {
     id: string
@@ -104,13 +105,16 @@
         process={data.process}
         allRoles={data.allRoles}
         canEdit={canEditProcess}
+        viewerRole={data.viewerRole}
+        createFlagError={form?.createFlagError}
+        createFlagTargetType={form?.createFlagTargetType}
+        createFlagTargetId={form?.createFlagTargetId}
+        createFlagTargetPath={form?.createFlagTargetPath}
         {form}
       />
 
       <ProcessOverviewCard
         process={data.process}
-        {actionRoles}
-        {actionSystems}
         viewerRole={data.viewerRole}
         createFlagError={form?.createFlagError}
         createFlagTargetType={form?.createFlagTargetType}
@@ -120,6 +124,7 @@
 
       <ProcessActionsPanel
         actions={data.actions}
+        processSlug={data.process.slug}
         allRoles={data.allRoles}
         allSystems={data.allSystems}
         viewerRole={data.viewerRole}
@@ -129,6 +134,36 @@
     </div>
 
     <aside class="sc-process-sidebar">
+      <div class="sc-section">
+        <div class="sc-section-title sc-sidebar-title">Who's Involved</div>
+        <div class="sc-card">
+          <div class="sc-byline">
+            {#if actionRoles.length === 0}
+              <span class="sc-page-subtitle">No action owners yet.</span>
+            {:else}
+              {#each actionRoles as role}
+                <RolePortal {role} />
+              {/each}
+            {/if}
+          </div>
+        </div>
+      </div>
+
+      <div class="sc-section">
+        <div class="sc-section-title sc-sidebar-title">What Systems</div>
+        <div class="sc-card">
+          <div class="sc-byline">
+            {#if actionSystems.length === 0}
+              <span class="sc-page-subtitle">No systems linked yet.</span>
+            {:else}
+              {#each actionSystems as system}
+                <SystemPortal {system} />
+              {/each}
+            {/if}
+          </div>
+        </div>
+      </div>
+
       <FlagSidebar
         title="Flags"
         flags={data.processFlags.map((flag) => ({
@@ -143,6 +178,4 @@
       />
     </aside>
   </div>
-
-  <ProcessTraverseCard process={data.process} {actionRoles} {actionSystems} />
 </div>

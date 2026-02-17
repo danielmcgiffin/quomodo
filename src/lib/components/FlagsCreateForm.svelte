@@ -1,5 +1,6 @@
 <script lang="ts">
   import ScModal from "$lib/components/ScModal.svelte"
+  import { pendingEnhance } from "$lib/components/pending-enhance"
 
   let {
     targetOptions,
@@ -34,7 +35,12 @@
   description="Report stale, incorrect, or questionable details."
   maxWidth="760px"
 >
-  <form class="sc-form" method="POST" action="?/createFlag">
+  <form
+    class="sc-form"
+    method="POST"
+    action="?/createFlag"
+    use:pendingEnhance
+  >
     {#if createFlagError}
       <div class="sc-form-error">{createFlagError}</div>
     {/if}
@@ -74,7 +80,9 @@
         Use flags to track maintenance work across roles, systems, processes,
         and actions.
       </div>
-      <button class="sc-btn" type="submit">Create Flag</button>
+      <button class="sc-btn" type="submit" data-loading-label="Creating...">
+        Create Flag
+      </button>
     </div>
   </form>
 </ScModal>

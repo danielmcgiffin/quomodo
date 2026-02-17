@@ -14,6 +14,7 @@ import {
   createFlagForProcessDetail,
   deleteProcessRecord,
   reorderActionRecord,
+  resequenceProcessActions,
   createRoleRecord,
   createSystemRecord,
   readActionDraft,
@@ -128,7 +129,12 @@ export const load = async ({ params, locals, url }) => {
   const roleById = new Map(roles.map((role) => [role.id, role]))
   const systemById = new Map(systems.map((system) => [system.id, system]))
 
-  const actionRows = (actionsResult.data ?? []) as ProcessDetailActionRow[]
+  const actionRows = (((actionsResult.data ?? []) as unknown) as Array<
+    Omit<ProcessDetailActionRow, "title"> & { title?: string; action_name?: string }
+  >).map((row) => ({
+    ...row,
+    title: row.title || row.action_name || `Action ${row.sequence}`,
+  })) as ProcessDetailActionRow[]
   const actionDescriptionRichById = new Map(
     actionRows.map((row) => [row.id, richToJsonString(row.description_rich)]),
   )

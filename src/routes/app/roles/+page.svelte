@@ -1,6 +1,7 @@
 <script lang="ts">
   import RichTextEditor from "$lib/components/RichTextEditor.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
+  import { pendingEnhance } from "$lib/components/pending-enhance"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
   import FlagSidebar from "$lib/components/FlagSidebar.svelte"
   import { getAvatarColor } from "$lib/colors"
@@ -97,7 +98,12 @@
         description="Capture who owns what. Role name is required."
         maxWidth="760px"
       >
-        <form class="sc-form" method="POST" action="?/createRole">
+        <form
+          class="sc-form"
+          method="POST"
+          action="?/createRole"
+          use:pendingEnhance
+        >
           {#if form?.createRoleError}
             <div class="sc-form-error">{form.createRoleError}</div>
           {/if}
@@ -122,7 +128,9 @@
             <div class="sc-page-subtitle">
               This role becomes a portal across the atlas.
             </div>
-            <button class="sc-btn" type="submit">Create Role</button>
+            <button class="sc-btn" type="submit" data-loading-label="Creating...">
+              Create Role
+            </button>
           </div>
         </form>
       </ScModal>

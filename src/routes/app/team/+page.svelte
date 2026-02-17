@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { pendingEnhance } from "$lib/components/pending-enhance"
+
   type WorkspaceRole = "owner" | "admin" | "editor" | "member"
 
   type Props = {
@@ -202,8 +204,15 @@
               : `stay as ${data.pendingOwnershipTransfer.priorOwnerDisposition}`}
           </div>
           <div class="sc-stack-top-10">
-            <form method="POST" action="?/cancelOwnershipTransfer">
-              <button class="sc-btn secondary" type="submit"
+            <form
+              method="POST"
+              action="?/cancelOwnershipTransfer"
+              use:pendingEnhance
+            >
+              <button
+                class="sc-btn secondary"
+                type="submit"
+                data-loading-label="Cancelling..."
                 >Cancel transfer</button
               >
             </form>
@@ -219,6 +228,7 @@
           class="sc-form sc-stack-top-10"
           method="POST"
           action="?/initiateOwnershipTransfer"
+          use:pendingEnhance
         >
           <div class="sc-form-row">
             <select class="sc-search sc-field" name="recipientUserId" required>
@@ -265,7 +275,9 @@
           </div>
 
           <div class="sc-form-actions sc-stack-top-10">
-            <button class="sc-btn" type="submit">Initiate transfer</button>
+            <button class="sc-btn" type="submit" data-loading-label="Submitting...">
+              Initiate transfer
+            </button>
           </div>
         </form>
       {/if}
@@ -277,7 +289,12 @@
     <div class="sc-muted-line sc-stack-top-6">
       Invites are persisted, role-scoped, and can be revoked before acceptance.
     </div>
-    <form class="sc-form sc-stack-top-10" method="POST" action="?/createInvite">
+    <form
+      class="sc-form sc-stack-top-10"
+      method="POST"
+      action="?/createInvite"
+      use:pendingEnhance
+    >
       <div class="sc-form-row">
         <input
           class="sc-search sc-field"
@@ -295,7 +312,9 @@
         </select>
       </div>
       <div class="sc-form-actions">
-        <button class="sc-btn" type="submit">Send invite</button>
+        <button class="sc-btn" type="submit" data-loading-label="Sending...">
+          Send invite
+        </button>
       </div>
     </form>
   </section>
@@ -329,9 +348,11 @@
                 </div>
               </div>
               {#if invite.canRevoke}
-                <form method="POST" action="?/revokeInvite">
+                <form method="POST" action="?/revokeInvite" use:pendingEnhance>
                   <input type="hidden" name="inviteId" value={invite.id} />
-                  <button class="sc-btn secondary" type="submit">Revoke</button>
+                  <button class="sc-btn secondary" type="submit" data-loading-label="Revoking...">
+                    Revoke
+                  </button>
                 </form>
               {/if}
             </div>
@@ -395,6 +416,7 @@
                     class="sc-form-row"
                     method="POST"
                     action="?/updateMemberRole"
+                    use:pendingEnhance
                   >
                     <input
                       type="hidden"
@@ -411,20 +433,26 @@
                         <option value={roleOption}>{roleOption}</option>
                       {/each}
                     </select>
-                    <button class="sc-btn secondary" type="submit"
+                    <button
+                      class="sc-btn secondary"
+                      type="submit"
+                      data-loading-label="Updating..."
                       >Update role</button
                     >
                   </form>
                 {/if}
 
                 {#if member.canRemoveMember}
-                  <form method="POST" action="?/removeMember">
+                  <form method="POST" action="?/removeMember" use:pendingEnhance>
                     <input
                       type="hidden"
                       name="membershipId"
                       value={member.id}
                     />
-                    <button class="sc-btn secondary" type="submit"
+                    <button
+                      class="sc-btn secondary"
+                      type="submit"
+                      data-loading-label="Removing..."
                       >Remove member</button
                     >
                   </form>

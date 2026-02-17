@@ -2,6 +2,8 @@
   import ProcessPortal from "$lib/components/ProcessPortal.svelte"
   import RolePortal from "$lib/components/RolePortal.svelte"
   import SystemPortal from "$lib/components/SystemPortal.svelte"
+  import CopyLinkButton from "$lib/components/CopyLinkButton.svelte"
+  import { pendingEnhance } from "$lib/components/pending-enhance"
   import type { FlagsDashboardEntry } from "$lib/server/app/mappers/flags"
 
   let {
@@ -16,15 +18,20 @@
 <div class="sc-section">
   <div class="sc-flag-grid">
     {#each flags as flag}
-      <div class="sc-card sc-card-flag sc-postit-card">
+      <div class="sc-card sc-card-flag sc-postit-card" id={`flag-${flag.id}`}>
         <div class="sc-postit-header">
           <div class="sc-flag-banner">
             <span aria-hidden="true">⚑</span>
             {flag.flagType.replace("_", " ")}
           </div>
-          {#if canModerate}
-            <div class="sc-postit-actions">
-              <form method="POST" action="?/resolveFlag">
+          <div class="sc-postit-actions">
+            <CopyLinkButton
+              variant="icon"
+              href={`/app/flags#flag-${flag.id}`}
+              label="Copy link to flag"
+            />
+            {#if canModerate}
+              <form method="POST" action="?/resolveFlag" use:pendingEnhance>
                 <input type="hidden" name="id" value={flag.id} />
                 <button class="sc-icon-btn" type="submit" title="Resolve">
                   <svg
@@ -41,7 +48,7 @@
                   </svg>
                 </button>
               </form>
-              <form method="POST" action="?/dismissFlag">
+              <form method="POST" action="?/dismissFlag" use:pendingEnhance>
                 <input type="hidden" name="id" value={flag.id} />
                 <button class="sc-icon-btn" type="submit" title="Dismiss">
                   <svg
@@ -58,8 +65,8 @@
                   </svg>
                 </button>
               </form>
-            </div>
-          {/if}
+            {/if}
+          </div>
         </div>
 
         <div class="sc-postit-body">

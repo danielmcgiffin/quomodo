@@ -31,8 +31,8 @@ export const marketingSite = {
   ] satisfies NavItem[],
 
   primaryCta: {
-    label: "Enter App",
-    href: "/app/processes",
+    label: "Start Free",
+    href: "/login/sign_up",
   } satisfies CTA,
 
   secondaryCta: {
@@ -50,6 +50,8 @@ export const marketingSite = {
     title: "Map once. Use everywhere.",
     subtitle:
       "SystemsCraft maps who does what, in which system, as a connected graph — so your team finds answers instead of asking you.",
+    audience:
+      "Built for founders and operators who are tired of being the human router for process questions.",
   },
 
   // ───────────────────────────────────────────
@@ -218,7 +220,7 @@ export const marketingSite = {
           "Core atlas functions (roles, systems, processes, actions, flags)",
           "Single user",
         ],
-        cta: { label: "Get started", href: "/app/processes" },
+        cta: { label: "Get started", href: "/login/sign_up" },
         featured: false,
         stripe_price_id: null,
         stripe_product_id: null,
@@ -234,7 +236,7 @@ export const marketingSite = {
           "Maintenance alerts",
           "Email support",
         ],
-        cta: { label: "Get started", href: "/app/processes" },
+        cta: { label: "Get started", href: "/login/sign_up" },
         featured: false,
         stripe_price_id: "price_1T0MQHLeepTzGf1NbD28pMhu",
         stripe_product_id: "prod_TyJ2z0btpQXugh",
@@ -250,7 +252,7 @@ export const marketingSite = {
           "Unlimited editors",
           "Priority support",
         ],
-        cta: { label: "Start Growth", href: "/app/processes" },
+        cta: { label: "Start Growth", href: "/login/sign_up" },
         featured: true,
         stripe_price_id: "price_1T0MS3LeepTzGf1NDO7Pl11a",
         stripe_product_id: "prod_TyJ4L2QxWhOsPg",
@@ -267,7 +269,7 @@ export const marketingSite = {
           "Implementation guidance",
         ],
         badge: "Most popular",
-        cta: { label: "Start Scale", href: "/app/processes" },
+        cta: { label: "Start Scale", href: "/login/sign_up" },
         featured: false,
       },
     ],

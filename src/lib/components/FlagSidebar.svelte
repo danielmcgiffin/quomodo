@@ -64,6 +64,7 @@
     {#each flags as flag (flag.id)}
       <a
         class={`sc-card sc-card-flag sc-flag-link ${flag.id === highlightedFlagId ? "is-highlighted" : ""}`}
+        id={`flag-${flag.id}`}
         href={flag.href}
       >
         <div class="sc-byline">

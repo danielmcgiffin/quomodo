@@ -49,6 +49,7 @@
 
   type Props = {
     actions: ActionEntry[]
+    processSlug: string
     allRoles: SidebarRole[]
     allSystems: SidebarSystem[]
     viewerRole: "owner" | "admin" | "editor" | "member"
@@ -58,6 +59,7 @@
 
   let {
     actions,
+    processSlug,
     allRoles,
     allSystems,
     viewerRole,
@@ -71,48 +73,6 @@
       .replace(/\s+/g, " ")
       .trim()
 
-  const uniqueById = <T extends { id: string }>(
-    items: (T | null | undefined)[],
-  ): T[] => {
-    const seen = new Set<string>()
-    const result: T[] = []
-    for (const item of items) {
-      if (!item || seen.has(item.id)) {
-        continue
-      }
-      seen.add(item.id)
-      result.push(item)
-    }
-    return result
-  }
-
-  const actionRoles = $derived.by(() =>
-    uniqueById(actions.map((action: ActionEntry) => action.ownerRole ?? null)),
-  )
-  const actionSystems = $derived.by(() =>
-    uniqueById(actions.map((action: ActionEntry) => action.system ?? null)),
-  )
-
-  let selectedActionRoleId = $state("")
-  let selectedActionSystemId = $state("")
-  const filteredActions = $derived.by(() =>
-    actions.filter((action: ActionEntry) => {
-      if (
-        selectedActionRoleId &&
-        action.ownerRole?.id !== selectedActionRoleId
-      ) {
-        return false
-      }
-      if (
-        selectedActionSystemId &&
-        action.system?.id !== selectedActionSystemId
-      ) {
-        return false
-      }
-      return true
-    }),
-  )
-
   let isCreateActionModalOpen = $state(false)
   let isCreateRoleModalOpen = $state(false)
   let isCreateSystemModalOpen = $state(false)
@@ -125,14 +85,6 @@
   let actionToastMessage = $state("")
   let toastTimer: ReturnType<typeof setTimeout> | null = null
 
-  const isInteractiveTarget = (target: EventTarget | null): boolean =>
-    target instanceof Element &&
-    Boolean(
-      target.closest(
-        "a, button, input, textarea, select, label, [role='button']",
-      ),
-    )
-
   const openCreateActionModal = () => {
     editingActionId = null
     actionTitleDraft = ""
@@ -143,27 +95,7 @@
     isCreateActionModalOpen = true
   }
 
-  const openEditActionModal = (event: MouseEvent, action: ActionEntry) => {
-    if (isInteractiveTarget(event.target)) {
-      return
-    }
-    editingActionId = action.id
-    actionTitleDraft = action.title
-    actionDescriptionDraft = htmlToDraftText(action.descriptionHtml)
-    actionDescriptionRichDraft = action.descriptionRich
-    selectedOwnerRoleId = action.ownerRole?.id ?? ""
-    selectedSystemId = action.system?.id ?? ""
-    isCreateActionModalOpen = true
-  }
-
-  const onActionCardKeydown = (event: KeyboardEvent, action: ActionEntry) => {
-    if (isInteractiveTarget(event.target)) {
-      return
-    }
-    if (event.key !== "Enter" && event.key !== " ") {
-      return
-    }
-    event.preventDefault()
+  const openEditActionModal = (action: ActionEntry) => {
     editingActionId = action.id
     actionTitleDraft = action.title
     actionDescriptionDraft = htmlToDraftText(action.descriptionHtml)
@@ -233,11 +165,8 @@
 </script>
 
 <ProcessActionsSection
-  actions={filteredActions}
-  {actionRoles}
-  {actionSystems}
-  bind:selectedRoleId={selectedActionRoleId}
-  bind:selectedSystemId={selectedActionSystemId}
+  {actions}
+  {processSlug}
   totalActions={actions.length}
   {viewerRole}
   {highlightedActionId}
@@ -248,7 +177,6 @@
   createFlagTargetPath={form?.createFlagTargetPath}
   onCreateAction={openCreateActionModal}
   onEditAction={openEditActionModal}
-  onActionKeydown={onActionCardKeydown}
 />
 
 <ActionEditorModal

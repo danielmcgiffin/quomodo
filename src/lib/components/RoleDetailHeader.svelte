@@ -1,6 +1,8 @@
 <script lang="ts">
   import RichTextEditor from "$lib/components/RichTextEditor.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
+  import CopyLinkButton from "$lib/components/CopyLinkButton.svelte"
+  import { pendingEnhance } from "$lib/components/pending-enhance"
 
   type RoleData = {
     id: string
@@ -22,10 +24,18 @@
   type Props = {
     role: RoleData
     canEdit: boolean
+    showTitle?: boolean
+    showActions?: boolean
     form?: RoleForm
   }
 
-  let { role, canEdit, form }: Props = $props()
+  let {
+    role,
+    canEdit,
+    showTitle = true,
+    showActions = true,
+    form,
+  }: Props = $props()
 
   const htmlToDraftText = (html: string): string =>
     html
@@ -86,23 +96,35 @@
 </script>
 
 <div class="flex justify-between items-start gap-4 flex-wrap">
-  <div class="flex flex-col">
-    <div class="sc-page-title">{role.name}</div>
-  </div>
+  {#if showTitle}
+    <div class="flex flex-col">
+      <div class="sc-page-title">{role.name}</div>
+    </div>
+  {/if}
 
-  {#if canEdit}
+  {#if showActions}
     <div class="sc-actions">
-      <button
-        class="sc-btn secondary"
-        type="button"
-        onclick={openEditRoleModal}
-      >
-        Edit Role
-      </button>
-      <form method="POST" action="?/deleteRole" onsubmit={confirmDeleteRole}>
-        <input type="hidden" name="role_id" value={role.id} />
-        <button class="sc-btn secondary" type="submit">Delete Role</button>
-      </form>
+      <CopyLinkButton href={`/app/roles/${role.slug}`} />
+      {#if canEdit}
+        <button
+          class="sc-btn secondary"
+          type="button"
+          onclick={openEditRoleModal}
+        >
+          Edit Role
+        </button>
+        <form
+          method="POST"
+          action="?/deleteRole"
+          onsubmit={confirmDeleteRole}
+          use:pendingEnhance
+        >
+          <input type="hidden" name="role_id" value={role.id} />
+          <button class="sc-btn secondary" type="submit" data-loading-label="Deleting...">
+            Delete Role
+          </button>
+        </form>
+      {/if}
     </div>
   {/if}
 </div>
@@ -117,7 +139,7 @@
   description="Update ownership details and role context."
   maxWidth="760px"
 >
-  <form class="sc-form" method="POST" action="?/updateRole">
+  <form class="sc-form" method="POST" action="?/updateRole" use:pendingEnhance>
     <input type="hidden" name="role_id" value={role.id} />
     {#if form?.updateRoleError}
       <div class="sc-form-error">{form.updateRoleError}</div>
@@ -144,7 +166,9 @@
       <div class="sc-page-subtitle">
         Linked process/system views update from this role record.
       </div>
-      <button class="sc-btn" type="submit">Save Role</button>
+      <button class="sc-btn" type="submit" data-loading-label="Saving...">
+        Save Role
+      </button>
     </div>
   </form>
 </ScModal>

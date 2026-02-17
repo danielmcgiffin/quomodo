@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { pendingEnhance } from "$lib/components/pending-enhance"
+
   type WorkspaceRole = "owner" | "admin" | "editor" | "member"
 
   type Props = {
@@ -79,6 +81,7 @@
         class="sc-form sc-stack-top-10"
         method="POST"
         action="?/renameWorkspace"
+        use:pendingEnhance
       >
         {#if form?.renameWorkspaceError}
           <div class="sc-form-error">{form.renameWorkspaceError}</div>
@@ -95,7 +98,9 @@
           />
         </div>
         <div class="sc-form-actions">
-          <button class="sc-btn" type="submit">Rename workspace</button>
+          <button class="sc-btn" type="submit" data-loading-label="Saving...">
+            Rename workspace
+          </button>
         </div>
       </form>
     {:else}
@@ -114,6 +119,7 @@
       class="sc-form sc-stack-top-10"
       method="POST"
       action="?/createWorkspace"
+      use:pendingEnhance
     >
       {#if form?.createWorkspaceError}
         <div class="sc-form-error">{form.createWorkspaceError}</div>
@@ -130,7 +136,9 @@
         />
       </div>
       <div class="sc-form-actions">
-        <button class="sc-btn" type="submit">Create workspace</button>
+        <button class="sc-btn" type="submit" data-loading-label="Creating...">
+          Create workspace
+        </button>
       </div>
     </form>
   </section>
@@ -162,7 +170,11 @@
               {#if workspace.isCurrent}
                 <span class="sc-pill">Current</span>
               {:else}
-                <form method="POST" action="?/switchWorkspace">
+                <form
+                  method="POST"
+                  action="?/switchWorkspace"
+                  use:pendingEnhance
+                >
                   <input
                     type="hidden"
                     name="workspaceId"
@@ -173,7 +185,9 @@
                     name="redirectTo"
                     value="/app/workspace?switched=1"
                   />
-                  <button class="sc-btn secondary" type="submit">Switch</button>
+                  <button class="sc-btn secondary" type="submit" data-loading-label="Switching...">
+                    Switch
+                  </button>
                 </form>
               {/if}
               {#if workspace.isOwned}

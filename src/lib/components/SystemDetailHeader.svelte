@@ -1,6 +1,9 @@
 <script lang="ts">
   import RichTextEditor from "$lib/components/RichTextEditor.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
+  import CopyLinkButton from "$lib/components/CopyLinkButton.svelte"
+  import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
+  import { pendingEnhance } from "$lib/components/pending-enhance"
 
   type SidebarRole = {
     id: string
@@ -33,10 +36,32 @@
     system: SystemData
     allRoles: SidebarRole[]
     canEdit: boolean
+    viewerRole?: "owner" | "admin" | "editor" | "member"
+    createFlagError?: string
+    createFlagTargetType?: string
+    createFlagTargetId?: string
+    createFlagTargetPath?: string
     form?: SystemForm
   }
 
-  let { system, allRoles, canEdit, form }: Props = $props()
+  let {
+    system,
+    allRoles,
+    canEdit,
+    viewerRole = "member",
+    createFlagError,
+    createFlagTargetType,
+    createFlagTargetId,
+    createFlagTargetPath,
+    form,
+  }: Props = $props()
+
+  const systemFieldTargets = [
+    { path: "name", label: "Name" },
+    { path: "description", label: "Description" },
+    { path: "location", label: "Location" },
+    { path: "owner_role_id", label: "Owner role" },
+  ]
 
   const htmlToDraftText = (html: string): string =>
     html
@@ -112,11 +137,31 @@
 
 <div class="flex justify-between items-start gap-4 flex-wrap">
   <div class="flex flex-col">
-    <div class="sc-page-title">{system.name}</div>
+    <div class="sc-system-title-row">
+      <div class="sc-page-title">{system.name}</div>
+      <CopyLinkButton
+        variant="icon"
+        href={`/app/systems/${system.slug}`}
+        label="Copy system link"
+      />
+      <InlineEntityFlagControl
+        inline={true}
+        action="?/createFlag"
+        targetType="system"
+        targetId={system.id}
+        entityLabel={system.name}
+        {viewerRole}
+        fieldTargets={systemFieldTargets}
+        errorMessage={createFlagError}
+        errorTargetType={createFlagTargetType}
+        errorTargetId={createFlagTargetId}
+        errorTargetPath={createFlagTargetPath}
+      />
+    </div>
   </div>
 
-  {#if canEdit}
-    <div class="sc-actions">
+  <div class="sc-actions">
+    {#if canEdit}
       <button
         class="sc-btn secondary"
         type="button"
@@ -128,12 +173,15 @@
         method="POST"
         action="?/deleteSystem"
         onsubmit={confirmDeleteSystem}
+        use:pendingEnhance
       >
         <input type="hidden" name="system_id" value={system.id} />
-        <button class="sc-btn secondary" type="submit">Delete System</button>
+        <button class="sc-btn secondary" type="submit" data-loading-label="Deleting...">
+          Delete System
+        </button>
       </form>
-    </div>
-  {/if}
+    {/if}
+  </div>
 </div>
 
 {#if form?.deleteSystemError}
@@ -148,7 +196,12 @@
   description="Update ownership and context for this system."
   maxWidth="760px"
 >
-  <form class="sc-form" method="POST" action="?/updateSystem">
+  <form
+    class="sc-form"
+    method="POST"
+    action="?/updateSystem"
+    use:pendingEnhance
+  >
     <input type="hidden" name="system_id" value={system.id} />
     {#if form?.updateSystemError}
       <div class="sc-form-error">{form.updateSystemError}</div>
@@ -193,7 +246,22 @@
       <div class="sc-page-subtitle">
         Owner linkage updates immediately for system detail and traversals.
       </div>
-      <button class="sc-btn" type="submit">Save System</button>
+      <button class="sc-btn" type="submit" data-loading-label="Saving...">
+        Save System
+      </button>
     </div>
   </form>
 </ScModal>
+
+<style>
+  .sc-system-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .sc-system-title-row .sc-page-title {
+    margin-bottom: 0;
+  }
+</style>

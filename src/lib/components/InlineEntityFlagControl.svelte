@@ -1,5 +1,6 @@
 <script lang="ts">
   import ScModal from "$lib/components/ScModal.svelte"
+  import { pendingEnhance } from "$lib/components/pending-enhance"
 
   type EntityType = "process" | "role" | "system" | "action"
   type MembershipRole = "owner" | "admin" | "editor" | "member"
@@ -15,6 +16,8 @@
     errorTargetType = "",
     errorTargetId = "",
     errorTargetPath = "",
+    inline = false,
+    className = "",
   }: {
     action?: string
     targetType: EntityType
@@ -26,6 +29,8 @@
     errorTargetType?: string
     errorTargetId?: string
     errorTargetPath?: string
+    inline?: boolean
+    className?: string
   } = $props()
 
   let open = $state(false)
@@ -76,7 +81,7 @@
 </script>
 
 <button
-  class="sc-flag-hover-btn"
+  class={inline ? `sc-inline-link-icon ${className}`.trim() : "sc-flag-hover-btn"}
   type="button"
   title={`Flag ${entityLabel}`}
   aria-label={`Flag ${entityLabel}`}
@@ -98,7 +103,7 @@
   description="Report stale, incorrect, or questionable details."
   maxWidth="680px"
 >
-  <form class="sc-form" method="POST" {action}>
+  <form class="sc-form" method="POST" {action} use:pendingEnhance>
     {#if showError}
       <div class="sc-form-error">{errorMessage}</div>
     {/if}
@@ -149,7 +154,9 @@
       <div class="sc-page-subtitle">
         Members can create `comment` flags. Elevated roles can create all types.
       </div>
-      <button class="sc-btn" type="submit">Create Flag</button>
+      <button class="sc-btn" type="submit" data-loading-label="Creating...">
+        Create Flag
+      </button>
     </div>
   </form>
 </ScModal>

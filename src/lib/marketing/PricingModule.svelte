@@ -8,6 +8,7 @@
     callToAction?: string
     currentPlanId?: string
     center?: boolean
+    useStripeLinks?: boolean
   }
 
   let {
@@ -15,6 +16,7 @@
     callToAction,
     currentPlanId = "",
     center = true,
+    useStripeLinks = true,
   }: Props = $props()
 </script>
 
@@ -48,7 +50,7 @@
           </div>
         {:else}
           <a
-            href={plan.stripe_price_id
+            href={useStripeLinks && plan.stripe_price_id
               ? "/account/subscribe/" + plan.stripe_price_id
               : plan.cta.href}
             class="mk-btn mk-btn-primary w-full"

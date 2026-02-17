@@ -16,7 +16,7 @@
 </section>
 
 <div class="mk-section">
-  <PricingModule />
+  <PricingModule useStripeLinks={false} />
 
   <div class="mk-enterprise-banner">
     <p>

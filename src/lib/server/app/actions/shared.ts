@@ -857,7 +857,6 @@ export const createOrUpdateActionRecord = async ({
     const { error: updateError } = await supabase
       .from("actions")
       .update({
-        title: draft.title,
         description_rich: draft.descriptionRich,
         owner_role_id: draft.ownerRoleId,
         system_id: draft.systemId,
@@ -889,7 +888,6 @@ export const createOrUpdateActionRecord = async ({
     org_id: orgId,
     process_id: process.id,
     sequence,
-    title: draft.title,
     description_rich: draft.descriptionRich,
     owner_role_id: draft.ownerRoleId,
     system_id: draft.systemId,
