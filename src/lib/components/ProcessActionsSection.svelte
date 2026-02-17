@@ -92,20 +92,20 @@
   let orderFormElement: HTMLFormElement | null = $state(null)
   let orderedIdsValue = $state("")
 
-  function handleDndConsider(e: CustomEvent<DndEvent<ActionEntry>>) {
+  function handleDndConsider(e: CustomEvent<any>) {
     const { items: newItems } = e.detail
     items = newItems
     dragInProgress = true
   }
 
-  function handleDndFinalize(e: CustomEvent<DndEvent<ActionEntry>>) {
+  function handleDndFinalize(e: CustomEvent<any>) {
     const { items: newItems, info } = e.detail
     items = newItems
     dragInProgress = false
 
     if (info.trigger === TRIGGERS.DRAG_STOPPED) {
-      const newIds = newItems.map((action) => action.id).join(",")
-      const oldIds = actions.map((action) => action.id).join(",")
+      const newIds = newItems.map((action: any) => action.id).join(",")
+      const oldIds = actions.map((action: any) => action.id).join(",")
       if (newIds !== oldIds) {
         orderedIdsValue = newIds
         // Use requestAnimationFrame to ensure form value is updated before submit
@@ -207,7 +207,7 @@
         flipDurationMs,
         dragDisabled: !canReorder,
         handleSelector: ".sc-action-sequence",
-      }}
+      } as any}
       onconsider={handleDndConsider}
       onfinalize={handleDndFinalize}
       class="sc-stack-top-8"
