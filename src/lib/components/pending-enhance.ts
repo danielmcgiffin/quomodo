@@ -40,20 +40,22 @@ const pendingSubmit: SubmitFunction = ({ submitter }) => {
     }
   }
 
-  return async () => {
-    if (!button) return
-    const previous = buttonState.get(button)
-    button.removeAttribute("aria-busy")
-    delete button.dataset.pending
-    button.disabled = previous?.disabled ?? false
-    button.style.minWidth = previous?.minWidth ?? ""
-    if (button instanceof HTMLButtonElement && typeof previous?.html === "string") {
-      button.innerHTML = previous.html
+  return async ({ update }) => {
+    if (button) {
+      const previous = buttonState.get(button)
+      button.removeAttribute("aria-busy")
+      delete button.dataset.pending
+      button.disabled = previous?.disabled ?? false
+      button.style.minWidth = previous?.minWidth ?? ""
+      if (button instanceof HTMLButtonElement && typeof previous?.html === "string") {
+        button.innerHTML = previous.html
+      }
+      if (button instanceof HTMLInputElement && typeof previous?.value === "string") {
+        button.value = previous.value
+      }
+      buttonState.delete(button)
     }
-    if (button instanceof HTMLInputElement && typeof previous?.value === "string") {
-      button.value = previous.value
-    }
-    buttonState.delete(button)
+    await update()
   }
 }
 
