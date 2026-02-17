@@ -306,6 +306,15 @@
       Pending, accepted, revoked, and expired invites are tracked here.
     </div>
 
+    <div class="sc-stack-top-6">
+      <a
+        href="/app/team/invites/revoked"
+        class="text-sm text-[var(--sc-green)] hover:underline"
+      >
+        See revoked invitations here
+      </a>
+    </div>
+
     {#if data.invites.length === 0}
       <div class="sc-muted-line sc-stack-top-10">No invites found.</div>
     {:else}

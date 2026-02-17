@@ -187,4 +187,30 @@ export const actions = {
       forbiddenPayload: { dismissFlagError: "Insufficient permissions." },
     },
   ),
+
+  deleteFlag: wrapAction(
+    async ({ context, supabase, formData }) => {
+      const id = String(formData.get("id") ?? "").trim()
+
+      if (!id) {
+        return fail(400, { deleteFlagError: "Flag id is required." })
+      }
+
+      const { error } = await supabase
+        .from("flags")
+        .delete()
+        .eq("id", id)
+        .eq("org_id", context.orgId)
+
+      if (error) {
+        return fail(400, { deleteFlagError: error.message })
+      }
+
+      return { ok: true }
+    },
+    {
+      permission: canModerateFlags,
+      forbiddenPayload: { deleteFlagError: "Insufficient permissions." },
+    },
+  ),
 }

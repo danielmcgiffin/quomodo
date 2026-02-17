@@ -1,6 +1,6 @@
 import { fail, redirect } from "@sveltejs/kit"
 import { env } from "$env/dynamic/private"
-import { sendAdminEmail, sendUserEmail } from "$lib/mailer"
+import { getPreferredFromEmail, sendAdminEmail, sendUserEmail } from "$lib/mailer"
 import { WebsiteBaseUrl, WebsiteName } from "../../../../config"
 
 export const actions = {
@@ -314,10 +314,7 @@ export const actions = {
       await sendUserEmail({
         user: session.user,
         subject: `Welcome to ${WebsiteName}`,
-        from_email:
-          env.PRIVATE_FROM_ADMIN_EMAIL ||
-          env.PRIVATE_ADMIN_EMAIL ||
-          "no-reply@systemscraft.co",
+        from_email: getPreferredFromEmail(),
         template_name: "welcome_email",
         template_properties: {
           companyName: WebsiteName,

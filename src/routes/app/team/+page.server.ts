@@ -1,7 +1,7 @@
 import { error as kitError, fail, redirect } from "@sveltejs/kit"
 import { env } from "$env/dynamic/private"
 import { WebsiteBaseUrl, WebsiteName } from "../../../config"
-import { sendTemplatedEmail } from "$lib/mailer"
+import { getPreferredFromEmail, sendTemplatedEmail } from "$lib/mailer"
 import {
   canManageDirectory,
   ensureOrgContext,
@@ -136,6 +136,7 @@ export const load = async ({ locals, url }) => {
         "id, email, role, invited_by_user_id, created_at, expires_at, accepted_at, revoked_at",
       )
       .eq("org_id", context.orgId)
+      .is("revoked_at", null)
       .order("created_at", { ascending: false }),
     transferPromise,
   ])
@@ -408,10 +409,7 @@ export const actions = {
     }
 
     const inviteLink = `${WebsiteBaseUrl}/invite/${token}`
-    const fromEmail =
-      env.PRIVATE_FROM_ADMIN_EMAIL ||
-      env.PRIVATE_ADMIN_EMAIL ||
-      "no-reply@systemscraft.co"
+    const fromEmail = getPreferredFromEmail()
 
     await sendTemplatedEmail({
       subject: `You're invited to join ${context.orgName} on ${WebsiteName}`,
@@ -685,10 +683,7 @@ export const actions = {
       })
     }
 
-    const fromEmail =
-      env.PRIVATE_FROM_ADMIN_EMAIL ||
-      env.PRIVATE_ADMIN_EMAIL ||
-      "no-reply@systemscraft.co"
+    const fromEmail = getPreferredFromEmail()
     const transferLink = `${WebsiteBaseUrl}/transfer/${token}`
 
     // Notify recipient and prior owner (initiator).

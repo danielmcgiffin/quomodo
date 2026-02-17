@@ -127,7 +127,6 @@
 
     <aside class="sc-process-sidebar">
       <FlagSidebar
-        title="Flags"
         flags={data.processFlags.map((flag) => ({
           id: flag.id,
           href: `/app/processes/${data.process.slug}?flagId=${flag.id}`,

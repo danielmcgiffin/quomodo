@@ -9,9 +9,11 @@
     targetPath?: string
   }
 
-  export const title = "Flags"
-  export let flags: FlagSidebarItem[] = []
-  export let highlightedFlagId: string | null = null
+  interface Props {
+    flags?: FlagSidebarItem[]
+    highlightedFlagId?: string | null
+  }
+  let { flags = [], highlightedFlagId = null }: Props = $props()
 </script>
 
 <section

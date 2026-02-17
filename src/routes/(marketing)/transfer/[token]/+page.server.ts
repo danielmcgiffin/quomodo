@@ -1,7 +1,7 @@
 import { fail, redirect } from "@sveltejs/kit"
 import { env } from "$env/dynamic/private"
 import { WebsiteBaseUrl, WebsiteName } from "../../../../config"
-import { sendTemplatedEmail } from "$lib/mailer"
+import { getPreferredFromEmail, sendTemplatedEmail } from "$lib/mailer"
 import { ensureOrgContext, setActiveWorkspaceCookie } from "$lib/server/atlas"
 import { hashOwnershipTransferToken } from "$lib/server/ownership-transfers"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
@@ -167,10 +167,7 @@ export const actions = {
         .eq("id", orgId)
         .maybeSingle()
 
-      const fromEmail =
-        env.PRIVATE_FROM_ADMIN_EMAIL ||
-        env.PRIVATE_ADMIN_EMAIL ||
-        "no-reply@systemscraft.co"
+      const fromEmail = getPreferredFromEmail()
 
       const workspaceName = orgResult.data?.name ?? "Workspace"
       const workspaceLink = `${WebsiteBaseUrl}/app/team?ownershipTransferAccepted=1`

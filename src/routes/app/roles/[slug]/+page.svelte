@@ -1,11 +1,11 @@
 <script lang="ts">
-  import RolePortal from "$lib/components/RolePortal.svelte"
   import ProcessPortal from "$lib/components/ProcessPortal.svelte"
   import SystemPortal from "$lib/components/SystemPortal.svelte"
   import RichText from "$lib/components/RichText.svelte"
   import RoleDetailHeader from "$lib/components/RoleDetailHeader.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
   import FlagSidebar from "$lib/components/FlagSidebar.svelte"
+  import RoleProcessGraph from "$lib/components/RoleProcessGraph.svelte"
 
   type Props = {
     data: {
@@ -54,8 +54,6 @@
   }
 
   let { data, form }: Props = $props()
-  let selectedActionProcessSlug = $state("")
-  let selectedActionSystemSlug = $state("")
 
   const roleFieldTargets = [
     { path: "name", label: "Name" },
@@ -64,35 +62,6 @@
 
   const canManageRole = () =>
     data.org.membershipRole === "owner" || data.org.membershipRole === "admin"
-
-  const filteredActionsByProcess = $derived.by(() =>
-    data.actionsByProcess
-      .filter((entry) =>
-        selectedActionProcessSlug
-          ? entry.process.slug === selectedActionProcessSlug
-          : true,
-      )
-      .map((entry) => ({
-        ...entry,
-        actions: entry.actions.filter((action) =>
-          selectedActionSystemSlug
-            ? action.system?.slug === selectedActionSystemSlug
-            : true,
-        ),
-      })),
-  )
-  const totalActionCount = $derived.by(() =>
-    data.actionsByProcess.reduce(
-      (count, entry) => count + entry.actions.length,
-      0,
-    ),
-  )
-  const filteredActionCount = $derived.by(() =>
-    filteredActionsByProcess.reduce(
-      (count, entry) => count + entry.actions.length,
-      0,
-    ),
-  )
 
   // Draft handling + edit modal are encapsulated in RoleDetailHeader to keep the page lean.
 </script>
@@ -136,64 +105,9 @@
 
       <div class="sc-section">
         <div class="sc-section-title">What Actions?</div>
-        <div class="sc-form-row">
-          <select
-            class="sc-search sc-field"
-            bind:value={selectedActionProcessSlug}
-          >
-            <option value="">All processes</option>
-            {#each data.actionsByProcess as entry}
-              <option value={entry.process.slug}>{entry.process.name}</option>
-            {/each}
-          </select>
-          <select
-            class="sc-search sc-field"
-            bind:value={selectedActionSystemSlug}
-          >
-            <option value="">All systems</option>
-            {#each data.systemsAccessed as system}
-              <option value={system.slug}>{system.name}</option>
-            {/each}
-          </select>
+        <div class="sc-card">
+          <RoleProcessGraph role={data.role} actionsByProcess={data.actionsByProcess} />
         </div>
-        <div class="sc-page-subtitle sc-stack-top-8">
-          Showing {filteredActionCount} of {totalActionCount} actions.
-        </div>
-
-        {#if filteredActionsByProcess.length === 0}
-          <div class="sc-card sc-stack-top-8">
-            <div class="sc-page-subtitle">
-              No actions match the selected filters.
-            </div>
-          </div>
-        {:else}
-          {#each filteredActionsByProcess as entry}
-            <div class="sc-card">
-              <div class="sc-meta">
-                <ProcessPortal process={entry.process} />
-              </div>
-              {#if entry.actions.length === 0}
-                <div class="sc-stack-top-8 sc-muted-line">
-                  No direct actions recorded.
-                </div>
-              {:else}
-                {#each entry.actions as action}
-                  <div class="sc-stack-top-10">
-                    <div class="sc-action-label">Action {action.sequence}</div>
-                    <RichText html={action.descriptionHtml} />
-                    <div class="sc-byline sc-stack-top-6">
-                      <RolePortal role={data.role} size="sm" />
-                      <span>· in</span>
-                      {#if action.system}
-                        <SystemPortal system={action.system} size="sm" />
-                      {/if}
-                    </div>
-                  </div>
-                {/each}
-              {/if}
-            </div>
-          {/each}
-        {/if}
       </div>
 
       <div class="sc-section">
@@ -224,7 +138,6 @@
 
     <aside class="sc-process-sidebar">
       <FlagSidebar
-        title="Flags"
         flags={data.openFlags.map((flag) => ({
           id: flag.id,
           href: `/app/roles/${flag.role.slug}?flagId=${flag.id}`,
