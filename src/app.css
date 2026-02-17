@@ -958,19 +958,40 @@ button[disabled].authBtn::before {
 .sc-process-badges {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  /* Start with no gap, we'll use negative margin for overlap */
+  gap: 0;
+  flex-wrap: nowrap; /* Keep them in a line */
 }
 
 .sc-process-badge {
   display: inline-flex;
+  position: relative;
+  transition:
+    transform 0.1s ease,
+    z-index 0.1s ease;
+}
+
+/* Overlap subsequent badges */
+.sc-process-badge + .sc-process-badge {
+  margin-left: var(--overlap, -4px);
+}
+
+.sc-process-badge:hover {
+  z-index: 10;
+  transform: translateY(-2px);
 }
 
 .sc-process-badge .sc-portal {
-  border: 1px solid var(--sc-border);
+  border: 2px solid var(--sc-white); /* Thicker border for better overlap separation */
   border-radius: var(--sc-radius-full);
   background: var(--sc-bg-inset);
-  padding: 2px;
+  padding: 0; /* Removing padding to keep them tight */
+  overflow: hidden;
+}
+
+.sc-process-badge .sc-portal-system .sc-system,
+.sc-process-badge .sc-portal-role .sc-avatar {
+  border: none; /* Let the portal border handle the visual separation */
 }
 
 .sc-card-flag {

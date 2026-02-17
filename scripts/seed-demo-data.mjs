@@ -13,6 +13,7 @@
  *
  * Optional:
  *   DEMO_ORG_NAME  (default: "SystemsCraft Demo Org")
+ *   DEMO_ORG_ID    (target a specific org by ID — skips name lookup)
  */
 
 import { createClient } from "@supabase/supabase-js"
@@ -411,20 +412,33 @@ const FLAGS = [
 // ---------------------------------------------------------------------------
 
 const main = async () => {
+  const targetOrgId = process.env.DEMO_ORG_ID
   const orgName = process.env.DEMO_ORG_NAME || "SystemsCraft Demo Org"
-  console.log(`Looking for org: "${orgName}"`)
 
-  // Find the demo org
-  const { data: org, error: orgError } = await supabase
-    .from("orgs")
-    .select("id, owner_id")
-    .eq("name", orgName)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle()
+  let org
+  if (targetOrgId) {
+    console.log(`Looking for org by ID: ${targetOrgId}`)
+    const { data, error } = await supabase
+      .from("orgs")
+      .select("id, owner_id")
+      .eq("id", targetOrgId)
+      .single()
+    if (error) throw new Error(`Org lookup failed: ${error.message}`)
+    org = data
+  } else {
+    console.log(`Looking for org by name: "${orgName}"`)
+    const { data, error } = await supabase
+      .from("orgs")
+      .select("id, owner_id")
+      .eq("name", orgName)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (error) throw new Error(`Org lookup failed: ${error.message}`)
+    org = data
+  }
 
-  if (orgError) throw new Error(`Org lookup failed: ${orgError.message}`)
-  if (!org) throw new Error(`No org found with name "${orgName}". Create it first via the app or sc_seed_demo.`)
+  if (!org) throw new Error(`No org found. Create it first via the app or sc_seed_demo.`)
 
   const orgId = org.id
   const ownerId = org.owner_id

@@ -82,7 +82,10 @@
           <div class="sc-process-badge-rows">
             <div class="sc-process-badge-row">
               <span class="sc-process-badge-label">Roles</span>
-              <div class="sc-process-badges">
+              <div
+                class="sc-process-badges"
+                style={`--overlap: ${process.roleBadges.length > 3 ? "-10px" : "-4px"}`}
+              >
                 {#if process.roleBadges.length === 0}
                   <span class="sc-page-subtitle">None</span>
                 {:else}
@@ -97,7 +100,10 @@
 
             <div class="sc-process-badge-row">
               <span class="sc-process-badge-label">Systems</span>
-              <div class="sc-process-badges">
+              <div
+                class="sc-process-badges"
+                style={`--overlap: ${process.systemBadges.length > 3 ? "-10px" : "-4px"}`}
+              >
                 {#if process.systemBadges.length === 0}
                   <span class="sc-page-subtitle">None</span>
                 {:else}
