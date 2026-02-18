@@ -329,6 +329,8 @@
         items,
         flipDurationMs,
         dragDisabled: !canReorder || isEditing,
+        handleSelector: ".sc-action-sequence",
+        msecsToDrag: 300,
       } as any}
       onconsider={handleDndConsider as any}
       onfinalize={handleDndFinalize as any}
