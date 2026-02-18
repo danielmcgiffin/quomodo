@@ -140,6 +140,7 @@
     cursor: pointer;
     background: var(--sc-white);
     border: 1px solid var(--sc-border);
+    font-weight: normal;
     transition:
       border-color 220ms ease,
       box-shadow 220ms ease,
@@ -244,5 +245,6 @@
     background: var(--sc-white);
     font-family: inherit;
     color: inherit;
+    font-weight: normal;
   }
 </style>

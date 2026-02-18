@@ -25,6 +25,7 @@
   }
 
   type ActionDraftSnapshot = {
+    actionTitleDraft: string
     actionDescriptionDraft: string
     actionDescriptionRichDraft: string
     selectedOwnerRoleId: string
@@ -45,6 +46,7 @@
     createSystemSuccess?: boolean
     createdRoleId?: string
     createdSystemId?: string
+    actionTitleDraft?: string
     actionDescriptionDraft?: string
     actionDescriptionRichDraft?: string
     selectedOwnerRoleId?: string
@@ -78,6 +80,7 @@
   }: Props = $props()
 
   const emptyDraftSnapshot = (): ActionDraftSnapshot => ({
+    actionTitleDraft: "",
     actionDescriptionDraft: "",
     actionDescriptionRichDraft: "",
     selectedOwnerRoleId: "",
@@ -96,20 +99,18 @@
   let editingActionId = $state<string | null>(null)
   let insertingAtSequence = $state<number | null>(null)
   let restoredDraft = $state<ActionDraftSnapshot | null>(null)
-  let formProcessed = $state(false)
+  let lastHandledForm: ProcessForm | undefined = undefined
 
   const openEditor = (action: ActionEntry) => {
     editingActionId = action.id
     insertingAtSequence = null
     restoredDraft = null
-    formProcessed = false
   }
 
   const openInsert = (sequence: number) => {
     editingActionId = null
     insertingAtSequence = sequence
     restoredDraft = null
-    formProcessed = false
   }
 
   const closeEditor = () => {
@@ -129,21 +130,27 @@
   }
 
   $effect(() => {
+    // Skip if we already handled this exact form result
+    if (form === lastHandledForm) return
+
     // Handle createAction success
-    if (form?.createActionSuccess && !formProcessed) {
+    if (form?.createActionSuccess) {
       closeEditor()
-      formProcessed = true
+      lastHandledForm = form
       return
     }
 
     // Handle deleteAction success
-    if (form?.deleteActionSuccess && !formProcessed) {
+    if (form?.deleteActionSuccess) {
       closeEditor()
-      formProcessed = true
+      lastHandledForm = form
       return
     }
 
     // Restore draft state from modal roundtrips
+    if (typeof form?.actionTitleDraft === "string") {
+      modalDraft.actionTitleDraft = form.actionTitleDraft
+    }
     if (typeof form?.actionDescriptionDraft === "string") {
       modalDraft.actionDescriptionDraft = form.actionDescriptionDraft
     }
@@ -173,6 +180,7 @@
     if (form?.createRoleSuccess || form?.createSystemSuccess) {
       // Restore inline editor state from echoed form fields
       const restored: ActionDraftSnapshot = {
+        actionTitleDraft: form?.actionTitleDraft ?? "",
         actionDescriptionDraft: form?.actionDescriptionDraft ?? "",
         actionDescriptionRichDraft: form?.actionDescriptionRichDraft ?? "",
         selectedOwnerRoleId: form?.selectedOwnerRoleId ?? "",
@@ -244,6 +252,7 @@
   errorMessage={form?.createRoleError}
   description="Create a role without leaving action authoring."
   helperText="This role is immediately available for action ownership."
+  actionTitleDraft={modalDraft.actionTitleDraft}
   actionDescriptionDraft={modalDraft.actionDescriptionDraft}
   actionDescriptionRichDraft={modalDraft.actionDescriptionRichDraft}
   selectedOwnerRoleId={modalDraft.selectedOwnerRoleId}
@@ -260,6 +269,7 @@
   errorMessage={form?.createSystemError}
   description="Create a system without leaving action authoring."
   helperText="This system is immediately available for action linking."
+  actionTitleDraft={modalDraft.actionTitleDraft}
   actionDescriptionDraft={modalDraft.actionDescriptionDraft}
   actionDescriptionRichDraft={modalDraft.actionDescriptionRichDraft}
   selectedOwnerRoleId={modalDraft.selectedOwnerRoleId}

@@ -84,7 +84,7 @@ export const load = async ({ params, locals, url }) => {
       supabase
         .from("actions")
         .select(
-          "id, process_id, sequence, description_rich, owner_role_id, system_id",
+          "id, process_id, sequence, title, description_rich, owner_role_id, system_id",
         )
         .eq("org_id", context.orgId)
         .eq("process_id", process.id)

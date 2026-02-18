@@ -30,6 +30,7 @@
   }
 
   type ActionDraftSnapshot = {
+    actionTitleDraft: string
     actionDescriptionDraft: string
     actionDescriptionRichDraft: string
     selectedOwnerRoleId: string
@@ -104,16 +105,18 @@
       .replace(/<[^>]*>/g, " ")
       .replace(/\s+/g, " ")
       .trim()
-  const isInteractiveTarget = (target: EventTarget | null): boolean =>
-    target instanceof Element &&
-    Boolean(
-      target.closest(
-        "a, button, input, textarea, select, label, [role='button']",
-      ),
+  const isInteractiveTarget = (
+    target: EventTarget | null,
+    card: EventTarget | null,
+  ): boolean => {
+    if (!(target instanceof Element)) return false
+    const hit = target.closest(
+      "a, button, input, textarea, select, label, [role='button']",
     )
-  const isTextEditTarget = (target: EventTarget | null): boolean =>
-    target instanceof Element && Boolean(target.closest(".sc-action-text-hit"))
-
+    // Ignore if the match is the card itself (it has role="button")
+    if (hit && card instanceof Element && hit === card) return false
+    return hit != null
+  }
   let items = $state<ActionEntry[]>([])
   let dragInProgress = false
   $effect(() => {
@@ -165,11 +168,16 @@
     expandedActionIds = new Set(items.map((action) => action.id))
   }
 
+  const isEditHitTarget = (target: EventTarget | null): boolean =>
+    target instanceof Element &&
+    Boolean(target.closest(".sc-action-text-hit, .sc-action-title-hit"))
+
   const handleCardIntent = (
     target: EventTarget | null,
+    card: EventTarget | null,
     action: ActionEntry,
   ) => {
-    if (isInteractiveTarget(target)) {
+    if (isInteractiveTarget(target, card)) {
       return
     }
     if (isEditing) {
@@ -180,7 +188,7 @@
       expandedActionIds = new Set([...expandedActionIds, action.id])
       return
     }
-    if (isTextEditTarget(target)) {
+    if (isEditHitTarget(target) && canReorder) {
       onOpenEditor(action)
       return
     }
@@ -190,7 +198,7 @@
   }
 
   const onCardClick = (event: MouseEvent, action: ActionEntry) => {
-    handleCardIntent(event.target, action)
+    handleCardIntent(event.target, event.currentTarget, action)
   }
 
   const onCardKeydown = (event: KeyboardEvent, action: ActionEntry) => {
@@ -198,14 +206,14 @@
       return
     }
     event.preventDefault()
-    handleCardIntent(event.target, action)
+    handleCardIntent(event.target, event.currentTarget, action)
   }
 </script>
 
 {#snippet actionCardBody(action: ActionEntry, index: number)}
   <div class="sc-action-card-main">
     <div class="sc-action-title-row">
-      <div class="font-bold text-lg">
+      <div class="font-bold text-lg sc-action-title-hit">
         {action.title || `Action ${action.sequence}`}
       </div>
       <CopyLinkButton
@@ -348,6 +356,7 @@
             >
               <ActionInlineEditor
                 action={action}
+                sequenceDisplay={index + 1}
                 {allRoles}
                 {allSystems}
                 {createdRoleId}
@@ -385,6 +394,7 @@
     <div class="sc-card sc-entity-card sc-action-card sc-action-card-editing sc-stack-top-8">
       <ActionInlineEditor
         insertAtSequence={insertingAtSequence}
+        sequenceDisplay={insertingAtSequence}
         {allRoles}
         {allSystems}
         {createdRoleId}
@@ -427,13 +437,19 @@
     background: color-mix(in srgb, var(--sc-white) 70%, transparent);
   }
 
-  .sc-action-card-clickable .sc-action-text-hit:hover {
+  .sc-action-card-clickable .sc-action-text-hit:hover,
+  .sc-action-card-clickable .sc-action-title-hit:hover {
     outline: 1px solid var(--sc-border-strong);
     cursor: text;
   }
 
+  .sc-action-title-hit {
+    border-radius: 6px;
+    padding: 2px 4px;
+  }
+
   .sc-action-card-editing {
-    border: 2px solid var(--sc-green, #22c55e);
+    border: 1.5px solid #b42318;
     cursor: default;
   }
 

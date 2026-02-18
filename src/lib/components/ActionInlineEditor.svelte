@@ -6,6 +6,7 @@
   type System = { id: string; name: string }
 
   type ActionDraftSnapshot = {
+    actionTitleDraft: string
     actionDescriptionDraft: string
     actionDescriptionRichDraft: string
     selectedOwnerRoleId: string
@@ -17,6 +18,7 @@
   type ActionEntry = {
     id: string
     sequence: number
+    title: string
     descriptionRich: string
     descriptionHtml: string
     ownerRole: { id: string } | null
@@ -26,6 +28,7 @@
   let {
     action,
     insertAtSequence,
+    sequenceDisplay,
     allRoles,
     allSystems,
     createdRoleId,
@@ -39,6 +42,7 @@
   }: {
     action?: ActionEntry | null
     insertAtSequence?: number | null
+    sequenceDisplay: number
     allRoles: Role[]
     allSystems: System[]
     createdRoleId?: string
@@ -53,6 +57,7 @@
 
   const isEditMode = $derived(action != null && action.id != null)
 
+  let titleDraft = $state("")
   let descriptionDraft = $state("")
   let descriptionRichDraft = $state("")
   let selectedOwnerRoleId = $state("")
@@ -62,11 +67,13 @@
   $effect(() => {
     if (initialized) return
     if (restoredDraft) {
+      titleDraft = restoredDraft.actionTitleDraft ?? ""
       descriptionDraft = restoredDraft.actionDescriptionDraft
       descriptionRichDraft = restoredDraft.actionDescriptionRichDraft
       selectedOwnerRoleId = restoredDraft.selectedOwnerRoleId
       selectedSystemId = restoredDraft.selectedSystemId
     } else if (action) {
+      titleDraft = action.title ?? ""
       descriptionRichDraft = action.descriptionRich
       selectedOwnerRoleId = action.ownerRole?.id ?? ""
       selectedSystemId = action.system?.id ?? ""
@@ -86,7 +93,15 @@
     }
   })
 
+  const selectedRoleName = $derived(
+    allRoles.find((r) => r.id === selectedOwnerRoleId)?.name ?? "",
+  )
+  const selectedSystemName = $derived(
+    allSystems.find((s) => s.id === selectedSystemId)?.name ?? "",
+  )
+
   const buildDraft = (): ActionDraftSnapshot => ({
+    actionTitleDraft: titleDraft,
     actionDescriptionDraft: descriptionDraft,
     actionDescriptionRichDraft: descriptionRichDraft,
     selectedOwnerRoleId,
@@ -119,19 +134,14 @@
   }
 </script>
 
-<div class="sc-action-inline-editor">
+<div class="sc-inline-edit-form">
   <form
-    class="sc-form"
+    id="sc-save-action-form"
+    class="sc-inline-edit-form-body"
     method="POST"
     action="?/createAction"
     use:pendingEnhance
   >
-    {#if createActionError}
-      <div class="sc-form-error">{createActionError}</div>
-    {/if}
-    {#if deleteActionError}
-      <div class="sc-form-error">{deleteActionError}</div>
-    {/if}
     {#if isEditMode}
       <input type="hidden" name="action_id" value={action?.id} />
     {/if}
@@ -139,109 +149,249 @@
       <input type="hidden" name="sequence" value={insertAtSequence} />
     {/if}
 
-    <div class="sc-form-row">
-      <RichTextEditor
-        fieldName="description_rich"
-        textFieldName="description"
-        bind:richValue={descriptionRichDraft}
-        bind:textValue={descriptionDraft}
-        required
-      />
+    {#if createActionError}
+      <div class="sc-form-error" style="margin-bottom: 8px;">{createActionError}</div>
+    {/if}
+    {#if deleteActionError}
+      <div class="sc-form-error" style="margin-bottom: 8px;">{deleteActionError}</div>
+    {/if}
+
+    <div class="sc-action-card-main">
+      <div class="sc-action-title-row">
+        <input
+          class="sc-inline-edit-title font-bold text-lg"
+          type="text"
+          name="title"
+          placeholder="Action title..."
+          bind:value={titleDraft}
+        />
+      </div>
+      <div class="sc-inline-edit-description">
+        <RichTextEditor
+          fieldName="description_rich"
+          textFieldName="description"
+          bind:richValue={descriptionRichDraft}
+          bind:textValue={descriptionDraft}
+          required
+        />
+      </div>
     </div>
 
-    <div class="sc-form-row sc-inline-editor-controls">
-      <select
-        class="sc-search sc-field"
-        name="owner_role_id"
-        bind:value={selectedOwnerRoleId}
-        onchange={handleRoleChange}
-        required
-      >
-        <option value="">Role responsible</option>
-        <option value="__new__">+ New Role...</option>
-        {#each allRoles as role}
-          <option value={role.id}>{role.name}</option>
-        {/each}
-      </select>
-
-      <select
-        class="sc-search sc-field"
-        name="system_id"
-        bind:value={selectedSystemId}
-        onchange={handleSystemChange}
-        required
-      >
-        <option value="">System</option>
-        <option value="__new__">+ New System...</option>
-        {#each allSystems as system}
-          <option value={system.id}>{system.name}</option>
-        {/each}
-      </select>
-    </div>
-
-    <div class="sc-form-row sc-inline-editor-actions">
-      <button class="sc-btn" type="submit" data-loading-label="Saving...">
-        {isEditMode ? "Save" : "Create Action"}
-      </button>
-      <button class="sc-btn secondary" type="button" onclick={onCancel}>
-        Cancel
-      </button>
-      {#if isEditMode}
-        <div class="sc-inline-editor-spacer"></div>
-      {/if}
+    <div class="sc-action-card-side">
+      <div class="flex items-center justify-between gap-2">
+        <div class="sc-action-sequence">{sequenceDisplay}</div>
+      </div>
+      <div class="sc-action-side-row">
+        <select
+          class="sc-inline-edit-select"
+          name="owner_role_id"
+          bind:value={selectedOwnerRoleId}
+          onchange={handleRoleChange}
+          required
+        >
+          <option value="">Select role...</option>
+          <option value="__new__">+ New Role...</option>
+          {#each allRoles as role}
+            <option value={role.id}>{role.name}</option>
+          {/each}
+        </select>
+      </div>
+      <div class="sc-action-side-row">
+        <select
+          class="sc-inline-edit-select"
+          name="system_id"
+          bind:value={selectedSystemId}
+          onchange={handleSystemChange}
+          required
+        >
+          <option value="">Select system...</option>
+          <option value="__new__">+ New System...</option>
+          {#each allSystems as system}
+            <option value={system.id}>{system.name}</option>
+          {/each}
+        </select>
+      </div>
     </div>
   </form>
 
-  {#if isEditMode}
-    <form
-      method="POST"
-      action="?/deleteAction"
-      onsubmit={confirmDeleteAction}
-      use:pendingEnhance
-      class="sc-inline-editor-delete-form"
-    >
-      <input type="hidden" name="action_id" value={action?.id} />
-      <button
-        class="sc-btn danger"
-        type="submit"
-        data-loading-label="Deleting..."
+  <div class="sc-inline-edit-bar">
+    {#if isEditMode}
+      <form
+        method="POST"
+        action="?/deleteAction"
+        onsubmit={confirmDeleteAction}
+        use:pendingEnhance
+        class="sc-inline-edit-bar-delete"
       >
-        Delete
-      </button>
-    </form>
-  {/if}
+        <input type="hidden" name="action_id" value={action?.id} />
+        <button class="sc-inline-edit-link danger" type="submit" data-loading-label="Deleting...">
+          Delete
+        </button>
+      </form>
+    {/if}
+    <div class="sc-inline-edit-bar-spacer"></div>
+    <button class="sc-inline-edit-link" type="button" onclick={onCancel}>
+      Cancel
+    </button>
+    <button class="sc-btn sc-btn-sm" type="submit" form="sc-save-action-form" data-loading-label="Saving...">
+      {isEditMode ? "Save" : "Create"}
+    </button>
+  </div>
 </div>
 
 <style>
-  .sc-action-inline-editor {
-    padding: 12px 16px;
+  /* Wrapper takes over the card grid layout */
+  .sc-inline-edit-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 180px;
+    gap: 20px;
+    align-items: start;
   }
 
-  .sc-inline-editor-controls {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+  /* Form uses display:contents so its children participate in the parent grid */
+  .sc-inline-edit-form-body {
+    display: contents;
   }
 
-  .sc-inline-editor-controls select {
-    flex: 1;
-    min-width: 160px;
+  /* Title input: looks like the title text */
+  .sc-inline-edit-title {
+    width: 100%;
+    background: transparent;
+    border: 1.5px solid transparent;
+    border-radius: 6px;
+    padding: 2px 4px;
+    margin: 0;
+    font-family: inherit;
+    color: inherit;
+    outline: none;
+    transition: border-color 150ms ease;
   }
 
-  .sc-inline-editor-actions {
+  .sc-inline-edit-title:focus {
+    border-color: #b42318;
+  }
+
+  .sc-inline-edit-title::placeholder {
+    color: var(--sc-text-muted, #999);
+    font-weight: normal;
+  }
+
+  /* Description editor: blends in with card content */
+  .sc-inline-edit-description {
+    margin-top: 2px;
+    border-radius: 8px;
+    padding: 0;
+  }
+
+  .sc-inline-edit-description :global(.sc-rich-editor) {
+    border: 1.5px solid transparent;
+    border-radius: 8px;
+    transition: border-color 150ms ease;
+  }
+
+  .sc-inline-edit-description :global(.sc-rich-editor:focus-within) {
+    border-color: #b42318;
+  }
+
+  .sc-inline-edit-description :global(.sc-rich-editor-toolbar) {
+    opacity: 0;
+    transition: opacity 150ms ease;
+    border-bottom: 1px solid var(--sc-border, #e5e5e5);
+    padding: 2px 4px;
+  }
+
+  .sc-inline-edit-description :global(.sc-rich-editor:focus-within .sc-rich-editor-toolbar) {
+    opacity: 1;
+  }
+
+  .sc-inline-edit-description :global(.sc-rich-editor-shell) {
+    padding: 0;
+  }
+
+  .sc-inline-edit-description :global(.sc-rich-editor-content) {
+    padding: 4px 6px;
+    min-height: 3em;
+  }
+
+  .sc-inline-edit-description :global(.sc-rich-editor-required) {
+    position: absolute;
+    opacity: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  /* Sidebar selects: compact, matches portal style */
+  .sc-inline-edit-select {
+    width: 100%;
+    font-size: 0.8125rem;
+    padding: 4px 8px;
+    border: 1.5px solid var(--sc-border, #e5e5e5);
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 150ms ease;
+    appearance: auto;
+  }
+
+  .sc-inline-edit-select:focus {
+    border-color: #b42318;
+  }
+
+  /* Bottom action bar */
+  .sc-inline-edit-bar {
+    grid-column: 1 / -1;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--sc-border, #e5e5e5);
+    margin-top: 4px;
   }
 
-  .sc-inline-editor-spacer {
+  .sc-inline-edit-bar-delete {
+    display: contents;
+  }
+
+  .sc-inline-edit-bar-spacer {
     flex: 1;
   }
 
-  .sc-inline-editor-delete-form {
-    display: inline;
-    float: right;
-    margin-top: -38px;
-    margin-right: 0;
+  .sc-inline-edit-link {
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    font-size: 0.8125rem;
+    font-family: inherit;
+    color: var(--sc-text-muted, #666);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: color 150ms ease;
+  }
+
+  .sc-inline-edit-link:hover {
+    color: var(--sc-text, #111);
+  }
+
+  .sc-inline-edit-link.danger {
+    color: #b42318;
+  }
+
+  .sc-inline-edit-link.danger:hover {
+    color: #912018;
+  }
+
+  .sc-btn-sm {
+    padding: 4px 14px;
+    font-size: 0.8125rem;
+  }
+
+  @media (max-width: 768px) {
+    .sc-inline-edit-form {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
   }
 </style>
