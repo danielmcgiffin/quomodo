@@ -341,13 +341,13 @@ A product is saleable when:
 
 #### SR-16: Full screen audit — all ~40 routes
 
-- **What**: Systematically visit every screen listed in `plans/human/todo.md` and verify:
+- **What**: Systematically visit every screen listed in `plans/archive/human-todo.md` and verify:
   - Page loads without console errors
   - Layout isn't broken (no overflows, missing content, blank sections)
   - Interactive elements work (buttons, forms, modals, links)
   - Mobile viewport (375px) doesn't break layout
 - **How**:
-  1. Use the screen checklist from `plans/human/todo.md`
+  1. Use the screen checklist from `plans/archive/human-todo.md`
   2. Visit each route manually (or with Playwright `page.goto()` + screenshot)
   3. Log issues as sub-tasks
   4. Fix blocking issues (broken pages, non-functional buttons)
