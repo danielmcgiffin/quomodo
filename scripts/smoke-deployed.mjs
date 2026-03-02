@@ -164,31 +164,6 @@ const parseHiddenInput = (html, inputName) => {
   return value || null
 }
 
-const parseActionIdsInOrder = (html) => {
-  const dom = new JSDOM(html, { virtualConsole })
-  const forms = Array.from(
-    dom.window.document.querySelectorAll('form[action="?/reorderAction"]'),
-  )
-  const ids = []
-  for (const form of forms) {
-    const direction = form
-      .querySelector('input[name="direction"]')
-      ?.getAttribute("value")
-    if (direction !== "up") {
-      continue
-    }
-    const id = form
-      .querySelector('input[name="action_id"]')
-      ?.getAttribute("value")
-      ?.trim()
-    if (!id || ids.includes(id)) {
-      continue
-    }
-    ids.push(id)
-  }
-  return ids
-}
-
 const hasHref = (html, hrefPrefix) => {
   const dom = new JSDOM(html, { virtualConsole })
   return Boolean(
@@ -293,6 +268,78 @@ const requestApp = async ({
   })
 }
 
+const findEntityIdInSearch = async ({
+  session,
+  query,
+  expectedType,
+  expectedHref,
+  label,
+}) => {
+  const searchResponse = await requestApp({
+    session,
+    path: `/app/search?q=${encodeURIComponent(query)}&limit=50`,
+    expectJson: true,
+  })
+  await expectStatus(searchResponse, [200], `${label} search fallback`)
+  const payload = await searchResponse.json()
+  const results = Array.isArray(payload.results) ? payload.results : []
+
+  const match = results.find((result) => {
+    if (
+      !result ||
+      result.type !== expectedType ||
+      typeof result.id !== "string"
+    ) {
+      return false
+    }
+    if (typeof result.href !== "string") {
+      return false
+    }
+    const hrefPath = new URL(result.href, `${baseUrl}/`).pathname
+    return hrefPath === expectedHref
+  })
+
+  return typeof match?.id === "string" ? match.id : null
+}
+
+const findActionIdsInSearch = async ({
+  session,
+  query,
+  processSlug,
+  label,
+}) => {
+  const searchResponse = await requestApp({
+    session,
+    path: `/app/search?q=${encodeURIComponent(query)}&limit=50`,
+    expectJson: true,
+  })
+  await expectStatus(searchResponse, [200], `${label} action search`)
+  const payload = await searchResponse.json()
+  const results = Array.isArray(payload.results) ? payload.results : []
+
+  const ids = []
+  for (const result of results) {
+    if (!result || result.type !== "action" || typeof result.id !== "string") {
+      continue
+    }
+    if (typeof result.href !== "string") {
+      continue
+    }
+    const href = new URL(result.href, `${baseUrl}/`)
+    if (href.pathname !== `/app/processes/${processSlug}`) {
+      continue
+    }
+    if (!href.searchParams.get("actionId")) {
+      continue
+    }
+    if (!ids.includes(result.id)) {
+      ids.push(result.id)
+    }
+  }
+
+  return ids
+}
+
 const run = async () => {
   const smokeMeta = {
     runDateIso,
@@ -386,7 +433,19 @@ const run = async () => {
     const roleDetailHtml = await roleDetailResponse.text()
     artifacts.roleId = parseHiddenInput(roleDetailHtml, "role_id") ?? ""
     if (!artifacts.roleId) {
-      throw new Error("Role detail did not include role_id form input.")
+      artifacts.roleId =
+        (await findEntityIdInSearch({
+          session: ownerSession,
+          query: roleName,
+          expectedType: "role",
+          expectedHref: artifacts.rolePath,
+          label: "Resolve role id",
+        })) ?? ""
+    }
+    if (!artifacts.roleId) {
+      throw new Error(
+        "Unable to resolve role_id from detail page or search results.",
+      )
     }
 
     const updateRoleResponse = await requestApp({
@@ -441,7 +500,19 @@ const run = async () => {
     const systemDetailHtml = await systemDetailResponse.text()
     artifacts.systemId = parseHiddenInput(systemDetailHtml, "system_id") ?? ""
     if (!artifacts.systemId) {
-      throw new Error("System detail did not include system_id form input.")
+      artifacts.systemId =
+        (await findEntityIdInSearch({
+          session: ownerSession,
+          query: systemName,
+          expectedType: "system",
+          expectedHref: artifacts.systemPath,
+          label: "Resolve system id",
+        })) ?? ""
+    }
+    if (!artifacts.systemId) {
+      throw new Error(
+        "Unable to resolve system_id from detail page or search results.",
+      )
     }
 
     const updateSystemResponse = await requestApp({
@@ -499,7 +570,19 @@ const run = async () => {
     artifacts.processId =
       parseHiddenInput(processDetailHtml, "process_id") ?? ""
     if (!artifacts.processId) {
-      throw new Error("Process detail did not include process_id form input.")
+      artifacts.processId =
+        (await findEntityIdInSearch({
+          session: ownerSession,
+          query: processName,
+          expectedType: "process",
+          expectedHref: artifacts.processPath,
+          label: "Resolve process id",
+        })) ?? ""
+    }
+    if (!artifacts.processId) {
+      throw new Error(
+        "Unable to resolve process_id from detail page or search results.",
+      )
     }
 
     const actionOneDescription = `Smoke Action A ${suffix}`
@@ -539,38 +622,28 @@ const run = async () => {
       [200],
       "Load process after action create",
     )
-    const processAfterCreateHtml = await processAfterCreateResponse.text()
-    artifacts.actionIds = parseActionIdsInOrder(processAfterCreateHtml)
+
+    artifacts.actionIds = await findActionIdsInSearch({
+      session: ownerSession,
+      query: suffix,
+      processSlug: artifacts.processSlug,
+      label: "Resolve action ids after create",
+    })
     if (artifacts.actionIds.length < 2) {
       throw new Error("Expected at least two actions after creation.")
     }
 
-    const movedActionId = artifacts.actionIds[1]
+    const reorderedIds = [...artifacts.actionIds].reverse()
     const reorderResponse = await requestApp({
       session: ownerSession,
-      path: `${artifacts.processPath}?/reorderAction`,
+      path: `${artifacts.processPath}?/updateActionOrder`,
       method: "POST",
       formData: {
-        action_id: movedActionId,
-        direction: "up",
+        action_ids: reorderedIds.join(","),
       },
     })
     await expectStatus(reorderResponse, [200, 303], "Reorder action")
-
-    const processAfterReorderResponse = await requestApp({
-      session: ownerSession,
-      path: artifacts.processPath,
-    })
-    await expectStatus(
-      processAfterReorderResponse,
-      [200],
-      "Load process after reorder",
-    )
-    const processAfterReorderHtml = await processAfterReorderResponse.text()
-    const reorderedIds = parseActionIdsInOrder(processAfterReorderHtml)
-    if (reorderedIds[0] !== movedActionId) {
-      throw new Error("Action reorder did not place selected action first.")
-    }
+    artifacts.actionIds = reorderedIds
 
     const updatedActionDescription = `Smoke Action B Updated ${suffix}`
     const updateActionResponse = await requestApp({
@@ -578,7 +651,7 @@ const run = async () => {
       path: `${artifacts.processPath}?/createAction`,
       method: "POST",
       formData: {
-        action_id: movedActionId,
+        action_id: artifacts.actionIds[0],
         description: updatedActionDescription,
         owner_role_id: artifacts.roleId,
         system_id: artifacts.systemId,
@@ -591,7 +664,7 @@ const run = async () => {
       path: `${artifacts.processPath}?/deleteAction`,
       method: "POST",
       formData: {
-        action_id: artifacts.actionIds[0],
+        action_id: artifacts.actionIds[1],
       },
     })
     await expectStatus(deleteActionResponse, [200, 303], "Delete one action")
@@ -624,9 +697,21 @@ const run = async () => {
     })
     await expectStatus(adminRoleDetailResponse, [200], "Admin role detail load")
     const adminRoleDetailHtml = await adminRoleDetailResponse.text()
-    const adminRoleId = parseHiddenInput(adminRoleDetailHtml, "role_id") ?? ""
+    let adminRoleId = parseHiddenInput(adminRoleDetailHtml, "role_id") ?? ""
     if (!adminRoleId) {
-      throw new Error("Admin role detail did not include role_id form input.")
+      adminRoleId =
+        (await findEntityIdInSearch({
+          session: adminSession,
+          query: adminRoleName,
+          expectedType: "role",
+          expectedHref: adminRolePath,
+          label: "Resolve admin role id",
+        })) ?? ""
+    }
+    if (!adminRoleId) {
+      throw new Error(
+        "Unable to resolve admin role_id from detail page or search results.",
+      )
     }
 
     const adminDeleteRoleResponse = await requestApp({
@@ -923,13 +1008,12 @@ const run = async () => {
       processDeleteResponse.status === 400 ||
       processDeleteResponse.status === 409
     ) {
-      const processHtml = await (
-        await requestApp({
-          session: ownerSession,
-          path: artifacts.processPath,
-        })
-      ).text()
-      const remainingActionIds = parseActionIdsInOrder(processHtml)
+      const remainingActionIds = await findActionIdsInSearch({
+        session: ownerSession,
+        query: suffix,
+        processSlug: artifacts.processSlug,
+        label: "Resolve remaining action ids for cleanup",
+      })
       for (const actionId of remainingActionIds) {
         const deleteRemainingActionResponse = await requestApp({
           session: ownerSession,

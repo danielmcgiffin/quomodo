@@ -93,13 +93,6 @@
     }
   })
 
-  const selectedRoleName = $derived(
-    allRoles.find((r) => r.id === selectedOwnerRoleId)?.name ?? "",
-  )
-  const selectedSystemName = $derived(
-    allSystems.find((s) => s.id === selectedSystemId)?.name ?? "",
-  )
-
   const buildDraft = (): ActionDraftSnapshot => ({
     actionTitleDraft: titleDraft,
     actionDescriptionDraft: descriptionDraft,
