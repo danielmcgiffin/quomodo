@@ -1,16 +1,11 @@
 import { test, expect } from "@playwright/test"
 import { signInViaEmailPassword } from "./helpers/auth"
+import { getRequiredE2ECredentials } from "./helpers/credentials"
 
-const email = process.env.E2E_EMAIL ?? ""
-const password = process.env.E2E_PASSWORD ?? ""
+const { email, password } = getRequiredE2ECredentials()
 
 test.describe("app smoke", () => {
   test("sign in and load core app pages", async ({ page }) => {
-    test.skip(
-      !email || !password,
-      "Set E2E_EMAIL and E2E_PASSWORD to run authenticated E2E tests.",
-    )
-
     await signInViaEmailPassword(page, { email, password })
 
     await expect(page).toHaveURL(/\/app\/processes/, { timeout: 15_000 })

@@ -1,20 +1,15 @@
 import { test, expect } from "@playwright/test"
 import { signInViaEmailPassword } from "./helpers/auth"
 import { e2eConfig } from "./config"
+import { getRequiredE2ECredentials } from "./helpers/credentials"
 
-const email = process.env.E2E_EMAIL ?? ""
-const password = process.env.E2E_PASSWORD ?? ""
+const { email, password } = getRequiredE2ECredentials()
 
 const LapsedMessage =
   "This workspace is in read-only mode because billing has lapsed."
 
 test.describe("billing gate", () => {
   test("lapsed workspace is read-only and blocks invites", async ({ page }) => {
-    test.skip(
-      !email || !password,
-      "Set E2E_EMAIL and E2E_PASSWORD to run authenticated E2E tests.",
-    )
-
     await signInViaEmailPassword(page, { email, password })
 
     // Switch into the lapsed fixture workspace.
