@@ -3,7 +3,6 @@
   import { Check } from "lucide-svelte"
 
   interface Props {
-    // Module context
     highlightedPlanId?: string
     callToAction?: string
     currentPlanId?: string
@@ -22,31 +21,36 @@
 
 <div class="mk-pricing-grid" style={center ? "" : "justify-content: start;"}>
   {#each marketingSite.pricing.plans as plan}
-    <div
+    <article
       class="mk-pricing-card"
       class:featured={plan.featured || plan.id === highlightedPlanId}
     >
       {#if plan.badge}
-        <div class="mk-pricing-badge">{plan.badge}</div>
+        <span class="mk-pricing-badge">{plan.badge}</span>
       {/if}
-      <div class="mk-pricing-header">
-        <div class="mk-plan-name">{plan.name}</div>
-        <div class="mk-plan-price">
+
+      <header class="mk-pricing-header">
+        <p class="mk-plan-name">{plan.name}</p>
+        <p class="mk-plan-price">
           {plan.price}{#if plan.price !== "Custom"}<small>/mo</small>{/if}
-        </div>
-      </div>
+        </p>
+      </header>
+
       <p class="mk-plan-desc">{plan.desc}</p>
 
       <ul class="mk-plan-perks">
         {#each plan.perks as perk}
-          <li><Check size={14} /> {perk}</li>
+          <li>
+            <Check size={14} />
+            <span>{perk}</span>
+          </li>
         {/each}
       </ul>
 
       <div class="mt-auto pt-4">
         {#if plan.id === currentPlanId}
-          <div class="mk-btn mk-btn-quiet w-full cursor-default opacity-60">
-            Current Plan
+          <div class="mk-btn mk-btn-quiet mk-btn-disabled w-full">
+            Current plan
           </div>
         {:else}
           <a
@@ -59,6 +63,6 @@
           </a>
         {/if}
       </div>
-    </div>
+    </article>
   {/each}
 </div>

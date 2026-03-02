@@ -1,7 +1,7 @@
 # SystemsCraft Master Plan
 
 Owner: Claude (PM) + Danny McGiffin (Founder)
-Last updated: 2026-02-17
+Last updated: 2026-03-02
 Status: Active — single source of truth for all project planning
 
 ---
@@ -96,6 +96,14 @@ Everything below is shipped, deployed, and validated.
 - `npm run build`: PASS
 - `npm run test_run`: PASS (42 tests, 10 files)
 
+### Launch Gate Follow-up (2026-03-02 PM)
+
+- Lint blocker in `ActionInlineEditor.svelte` cleared.
+- Deployed smoke + onboarding scripts hardened to avoid hidden-input coupling.
+- `SMOKE_BASE_URL=https://systemscraft.co npm run -s smoke:deployed`: PASS
+- `SMOKE_BASE_URL=https://systemscraft.co npm run -s onboarding:deployed`: PASS
+- Authenticated E2E is now explicitly required in CI via env validation; configure repo secrets to keep Playwright app suites green.
+
 ### Codebase Metrics
 
 | Metric                | Baseline (pre-cleanup) | Current | Delta |
@@ -138,6 +146,10 @@ There are uncommitted changes on `master`:
   - Removed process traverse card from detail page
 - Scope added:
   - `EPI-101` (`SR-46`) created for systems list redesign (usage-first cards, hover peek, stack-nav card/link behavior, logo ingestion workflow)
+- 2026-03-02 marketing scope change (industrial premium redesign):
+  - Rebuilt core marketing routes (`/`, `/method`, `/method/[slug]`, `/partners`, `/pricing`, `/contact`, `/terms`, `/privacy`) around the new White/Onyx/Pine-Teal/Copper brand system
+  - Reworked marketing navigation/footer, pricing module treatment, and auth-shell visual styles for consistent modular components
+  - Preserved existing billing plan IDs/Stripe mapping while upgrading visual language and copy posture toward AI Ops consultancy positioning
 
 ---
 

@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "vite dev",
+    "dev": "node scripts/dev-safe.mjs",
     "secrets:encrypt": "sops --encrypt --output .env.local.sops .env.local",
     "secrets:decrypt": "sops --decrypt --output .env.local .env.local.sops",
     "seed:dev": "node --env-file-if-exists=.env.local scripts/seed-dev.mjs",

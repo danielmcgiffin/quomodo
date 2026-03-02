@@ -29,9 +29,7 @@
   <title>Sign up</title>
 </svelte:head>
 
-<h1 class="text-3xl font-serif font-bold mb-6 text-[var(--mk-gold-text)]">
-  Sign Up
-</h1>
+<h1 class="mk-auth-title">Sign up</h1>
 {#if data.authConfigured && data.supabase}
   <Auth
     supabaseClient={data.supabase}
@@ -43,8 +41,8 @@
     appearance={sharedAppearance}
     additionalData={undefined}
   />
-  <div class="text-l text-[var(--mk-text-secondary)] mt-4 mb-2">
-    Have an account? <a class="underline" href="/login/sign_in">Sign in</a>.
+  <div class="mk-auth-link-row mt-4 mb-2">
+    Have an account? <a href="/login/sign_in">Sign in</a>.
   </div>
 {:else}
   <div role="alert" class="alert alert-error">

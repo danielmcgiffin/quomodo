@@ -1,26 +1,53 @@
 <script lang="ts">
+  import { page } from "$app/stores"
   import { marketingSite } from "$lib/marketing/site"
-  import RotatingWords from "$lib/components/RotatingWords.svelte"
   import PricingModule from "$lib/marketing/PricingModule.svelte"
   import {
-    Rocket,
-    RefreshCw,
-    Palmtree,
-    BellRing,
-    Users,
-    TrendingUp,
     ArrowRight,
+    Factory,
+    ShieldCheck,
+    Workflow,
+    Wrench,
     ChevronRight,
   } from "lucide-svelte"
 
-  const iconMap: Record<string, typeof Rocket> = {
-    rocket: Rocket,
-    "refresh-cw": RefreshCw,
-    palmtree: Palmtree,
-    "bell-ring": BellRing,
-    users: Users,
-    "trending-up": TrendingUp,
-  }
+  const operationalPillars = [
+    {
+      title: "Structured systems first",
+      detail:
+        "We convert tribal workflows into explicit role-action-system chains your team can run without heroics.",
+      icon: Workflow,
+    },
+    {
+      title: "Automation with guardrails",
+      detail:
+        "AI is introduced as an operational utility with ownership boundaries, failure states, and controls.",
+      icon: ShieldCheck,
+    },
+    {
+      title: "Industrial reliability",
+      detail:
+        "Every engagement is designed for consistency under load, not one-off novelty demos.",
+      icon: Factory,
+    },
+  ]
+
+  const commandMetrics = [
+    "Clarity before automation",
+    "Owner assigned to every operational step",
+    "Process drift surfaced through maintenance checks",
+    "Built for SMB constraints and execution speed",
+  ]
+
+  const demoImageSrc = $derived.by(() => {
+    const source = marketingSite.demo.gifSrc
+    if (!source.startsWith("/")) {
+      return source
+    }
+
+    const match = $page.url.pathname.match(/^\/proxy\/\d+/)
+    return match ? `${match[0]}${source}` : source
+  })
 </script>
 
 <svelte:head>
@@ -28,68 +55,62 @@
   <meta name="description" content={marketingSite.hero.subtitle} />
 </svelte:head>
 
-<!-- HERO -->
-<section class="mk-hero">
-  <span class="mk-eyebrow">{marketingSite.hero.eyebrow}</span>
-  <h1>
-    {marketingSite.hero.headline}
-    <RotatingWords
-      words={[
-        "dead docs",
-        '"ask Sarah"',
-        "dropped balls",
-        "wiki sprawl",
-        "tribal ops",
-        '"who does this?"',
-        "SOP graveyards",
-        "documentation theater",
-        "bad handoffs",
-      ]}
-    />
-  </h1>
-  <p>{marketingSite.hero.subtitle}</p>
-  <p class="mk-hero-audience">{marketingSite.hero.audience}</p>
-  <div class="mk-cta-row">
-    <a class="mk-btn mk-btn-primary" href={marketingSite.primaryCta.href}>
-      {marketingSite.primaryCta.label}
-      <ArrowRight size={16} class="ml-2" />
-    </a>
-    <a class="mk-btn mk-btn-quiet" href="/method">Read The Method</a>
+<section class="mk-hero mk-hero-grid">
+  <div>
+    <span class="mk-eyebrow">{marketingSite.hero.eyebrow}</span>
+    <h1>{marketingSite.hero.headline}</h1>
+    <p>{marketingSite.hero.subtitle}</p>
+    <p class="mk-hero-audience">{marketingSite.hero.audience}</p>
+
+    <div class="mk-cta-row">
+      <a class="mk-btn mk-btn-primary" href={marketingSite.primaryCta.href}>
+        {marketingSite.primaryCta.label}
+        <ArrowRight size={15} />
+      </a>
+      <a
+        class="mk-btn mk-btn-quiet"
+        href={marketingSite.secondaryCta.href}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {marketingSite.secondaryCta.label}
+      </a>
+    </div>
+
+    <div class="mk-tag-row">
+      <span class="mk-tag">SMB-FIRST</span>
+      <span class="mk-tag">AI OPS</span>
+      <span class="mk-tag">BOUTIQUE DELIVERY</span>
+    </div>
   </div>
+
+  <aside class="mk-command-card" aria-label="Command posture">
+    <p class="mk-command-kicker">Operations command standard</p>
+    <ul>
+      {#each commandMetrics as metric}
+        <li>{metric}</li>
+      {/each}
+    </ul>
+  </aside>
 </section>
 
-<!-- DEMO -->
-<div class="mk-demo-box">
-  <div class="mk-demo-inner">
-    <div class="mk-demo-header">
-      <div class="mk-demo-dots">
-        <span></span><span></span><span></span>
-      </div>
-      <div class="mk-demo-title">Operational Atlas</div>
-    </div>
-    <img
-      src={marketingSite.demo.gifSrc}
-      alt={marketingSite.demo.alt}
-      class="mk-demo-img"
-    />
-  </div>
-</div>
-
-<!-- PROBLEM: FOR YOU -->
 <section class="mk-section">
   <div class="mk-section-head">
     <span class="mk-eyebrow">{marketingSite.forYou.eyebrow}</span>
     <h2>{marketingSite.forYou.headline}</h2>
+    <p>{marketingSite.forYou.punchline}</p>
   </div>
-  <div class="mk-outcome-list">
+
+  <div class="mk-problem-grid">
     {#each marketingSite.forYou.bullets as bullet}
-      <li>{bullet}</li>
+      <article class="mk-problem-card">
+        <h3>Failure mode</h3>
+        <p>{bullet}</p>
+      </article>
     {/each}
   </div>
-  <p class="mk-punchline">{marketingSite.forYou.punchline}</p>
 </section>
 
-<!-- HOW IT WORKS -->
 <section class="mk-section">
   <div class="mk-section-head">
     <span class="mk-eyebrow">{marketingSite.howItWorks.eyebrow}</span>
@@ -100,63 +121,55 @@
   <div class="mk-workflow-grid">
     <div class="mk-workflow-steps">
       {#each marketingSite.howItWorks.steps as step}
-        <div class="mk-step-card">
-          <div class="mk-step-num">{step.n}</div>
-          <div class="mk-step-content">
+        <article class="mk-step-card">
+          <span class="mk-step-num">{step.n}</span>
+          <div>
             <h3>{step.title}</h3>
             <p>{step.desc}</p>
           </div>
-        </div>
+        </article>
       {/each}
     </div>
 
     <div class="mk-workflow-side">
       {#each marketingSite.howItWorksSide.cards as card}
-        <div class="mk-side-card">
+        <article class="mk-side-card">
           <h3>{card.title}</h3>
-          <div class="mk-side-items">
+          <ul>
             {#each card.items as item}
-              <div class="mk-side-item">
+              <li>
                 <span>{item.k}</span>
-                <span class="mk-side-val">{item.v}</span>
-              </div>
+                <small>{item.v}</small>
+              </li>
             {/each}
-          </div>
-        </div>
+          </ul>
+        </article>
       {/each}
     </div>
   </div>
 </section>
 
-<!-- IMPLEMENTATION CALLOUT -->
-<div class="mk-cta-band">
-  <h2>{marketingSite.implementationCallout.headline}</h2>
-  <p>{marketingSite.implementationCallout.text}</p>
-  <div class="mk-cta-row">
-    <a
-      class="mk-btn mk-btn-quiet"
-      href={marketingSite.implementationCallout.cta.href}
-      target="_blank"
-      rel="noreferrer"
-    >
-      {marketingSite.implementationCallout.cta.label}
-    </a>
-  </div>
-</div>
-
-<!-- FEATURES -->
 <section class="mk-section">
   <div class="mk-section-head">
     <span class="mk-eyebrow">{marketingSite.features.eyebrow}</span>
     <h2>{marketingSite.features.headline}</h2>
     <p>{marketingSite.features.subhead}</p>
   </div>
+
   <div class="mk-feature-grid">
+    {#each operationalPillars as pillar}
+      {@const Icon = pillar.icon}
+      <article class="mk-feature-card mk-feature-card--primary">
+        <div class="mk-feature-icon">
+          <Icon size={18} />
+        </div>
+        <h3>{pillar.title}</h3>
+        <p>{pillar.detail}</p>
+      </article>
+    {/each}
+
     {#each marketingSite.features.items as item}
       <article class="mk-feature-card">
-        <div class="mk-feature-icon">
-          <svelte:component this={iconMap[item.icon]} size={20} />
-        </div>
         <h3>{item.title}</h3>
         <p>{item.desc}</p>
       </article>
@@ -164,7 +177,25 @@
   </div>
 </section>
 
-<!-- PRICING -->
+<section class="mk-section">
+  <div class="mk-section-head">
+    <span class="mk-eyebrow">Operational Blueprint</span>
+    <h2>See the structure before you automate it.</h2>
+    <p>
+      Visualize ownership, process flow, and system dependencies in one command
+      surface.
+    </p>
+  </div>
+
+  <div class="mk-demo-shell">
+    <div class="mk-demo-head">
+      <span>SystemsCraft Atlas</span>
+      <span class="mk-demo-status">RUNNING</span>
+    </div>
+    <img src={demoImageSrc} alt={marketingSite.demo.alt} class="mk-demo-img" />
+  </div>
+</section>
+
 <section class="mk-section" id="pricing">
   <div class="mk-section-head">
     <span class="mk-eyebrow">{marketingSite.pricing.eyebrow}</span>
@@ -175,22 +206,21 @@
   <PricingModule useStripeLinks={false} />
 
   <div class="mk-enterprise-banner">
-    <p>
-      <strong>Need more than 100 seats?</strong>
-      If you require more than 100 seats,
-      <a
-        href="https://cal.com/danny-cursus/15min"
-        target="_blank"
-        rel="noreferrer">reach out and we can talk</a
-      >. This enterprise offering includes custom-configured workspaces,
-      dedicated onboarding, and platinum support.
-    </p>
+    <h3>{marketingSite.implementationCallout.headline}</h3>
+    <p>{marketingSite.implementationCallout.text}</p>
+    <a
+      class="mk-btn mk-btn-quiet"
+      href={marketingSite.implementationCallout.cta.href}
+      target="_blank"
+      rel="noreferrer"
+    >
+      {marketingSite.implementationCallout.cta.label}
+    </a>
   </div>
 </section>
 
-<!-- FAQ -->
 <section class="mk-section" id="faq">
-  <div class="mk-section-head text-center">
+  <div class="mk-section-head">
     <span class="mk-eyebrow">{marketingSite.faq.eyebrow}</span>
     <h2>{marketingSite.faq.headline}</h2>
     <p>{marketingSite.faq.subhead}</p>
@@ -203,181 +233,26 @@
           <span>{item.q}</span>
           <ChevronRight size={18} class="mk-faq-arrow" />
         </summary>
-        <div class="mk-faq-answer">
-          {item.a}
-        </div>
+        <div class="mk-faq-answer">{item.a}</div>
       </details>
     {/each}
   </div>
 </section>
 
-<style>
-  .mk-demo-box {
-    margin-top: 3rem;
-    padding: 1px;
-    background: linear-gradient(
-      to bottom,
-      var(--mk-border),
-      rgba(201, 168, 76, 0.2),
-      transparent
-    );
-    border-radius: 20px;
-  }
-
-  .mk-demo-inner {
-    background: var(--mk-bg-card);
-    border-radius: 19px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  .mk-demo-header {
-    background: rgba(255, 255, 255, 0.03);
-    padding: 0.75rem 1rem;
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid var(--mk-border);
-  }
-
-  .mk-demo-dots {
-    display: flex;
-    gap: 6px;
-  }
-
-  .mk-demo-dots span {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--mk-border);
-  }
-
-  .mk-demo-title {
-    margin-left: 1rem;
-    font-size: 0.75rem;
-    color: var(--mk-text-secondary);
-    font-weight: 600;
-  }
-
-  .mk-demo-img {
-    display: block;
-    width: 100%;
-    opacity: 0.9;
-  }
-
-  .mk-punchline {
-    margin-top: 1.5rem;
-    font-weight: 600;
-    font-size: 1.1rem;
-    text-align: center;
-  }
-
-  .mk-workflow-grid {
-    margin-top: 2rem;
-    display: grid;
-    gap: 2.5rem;
-    grid-template-columns: 1fr;
-  }
-
-  @media (min-width: 960px) {
-    .mk-workflow-grid {
-      grid-template-columns: 1.4fr 1fr;
-    }
-  }
-
-  .mk-workflow-steps {
-    display: grid;
-    gap: 1rem;
-  }
-
-  .mk-step-card {
-    display: flex;
-    gap: 1.25rem;
-    padding: 1.25rem;
-    border: 1px solid var(--mk-border);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.02);
-  }
-
-  .mk-step-num {
-    flex-shrink: 0;
-    width: 2.5rem;
-    height: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 99px;
-    border: 1px solid var(--mk-border);
-    background: rgba(0, 0, 0, 0.3);
-    font-family: monospace;
-    font-size: 0.75rem;
-    color: var(--mk-gold-text);
-  }
-
-  .mk-step-content h3 {
-    font-size: 1rem;
-    font-weight: 700;
-  }
-
-  .mk-step-content p {
-    margin-top: 0.25rem;
-    font-size: 0.9rem;
-    color: var(--mk-text-secondary);
-  }
-
-  .mk-workflow-side {
-    display: grid;
-    gap: 1.25rem;
-    align-content: start;
-  }
-
-  .mk-side-card {
-    padding: 1.5rem;
-    border: 1px solid var(--mk-border);
-    border-radius: 16px;
-    background: var(--mk-bg-card);
-  }
-
-  .mk-side-card h3 {
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 1rem;
-    color: var(--mk-text-secondary);
-  }
-
-  .mk-side-items {
-    display: grid;
-    gap: 0.75rem;
-  }
-
-  .mk-side-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid var(--mk-border);
-    border-radius: 10px;
-    font-size: 0.85rem;
-  }
-
-  .mk-side-val {
-    font-family: monospace;
-    font-size: 0.75rem;
-    color: var(--mk-text-secondary);
-  }
-
-  .mk-feature-icon {
-    width: 2.5rem;
-    height: 2.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    border: 1px solid var(--mk-border);
-    background: rgba(255, 255, 255, 0.03);
-    color: var(--mk-gold-text);
-    margin-bottom: 1rem;
-  }
-</style>
+<section class="mk-cta-band">
+  <h2>Bring your messiest process. We&apos;ll engineer the operating system.</h2>
+  <p>
+    SystemsCraft is intentionally boutique: deep operator collaboration,
+    production-minded structure, and a practical path to AI leverage.
+  </p>
+  <div class="mk-cta-row">
+    <a class="mk-btn mk-btn-primary" href={marketingSite.primaryCta.href}>
+      Start the build
+      <Wrench size={15} />
+    </a>
+    <a class="mk-btn mk-btn-quiet" href="/method">
+      Review the method
+      <ChevronRight size={15} />
+    </a>
+  </div>
+</section>

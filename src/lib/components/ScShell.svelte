@@ -35,6 +35,12 @@
   let isSearchOpen = $state(false)
   let isMobileMenuOpen = $state(false)
   const isStackMode = $derived($page.url.searchParams.get("stack") === "1")
+  const proxyPrefix = $derived.by(() => {
+    const match = $page.url.pathname.match(/^\/proxy\/\d+/)
+    return match ? match[0] : ""
+  })
+  const logoSrc = $derived(`${proxyPrefix}/images/quaestor-full.png`)
+
   let appContentRoot: HTMLElement | null = null
   let stackTarget = $state<{
     href: string
@@ -272,7 +278,7 @@
 
       <a class="sc-mobile-logo" href={resolve("/app/processes")}>
         <img
-          src="/images/quaestor-full.png"
+          src={logoSrc}
           alt="Quaestor"
           style="max-width: 120px; height: auto; display: block;"
         />
@@ -335,7 +341,7 @@
         <a class="sc-sidebar-brand" href={resolve("/app/processes")}>
           <span class="sc-sidebar-brand-pill justify-center">
             <img
-              src="/images/quaestor-full.png"
+              src={logoSrc}
               alt="Quaestor"
               style="max-width: 180px; height: auto; display: block;"
             />

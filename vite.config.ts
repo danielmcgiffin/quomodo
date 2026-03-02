@@ -3,6 +3,13 @@ import { defineConfig } from "vitest/config"
 import { buildAndCacheSearchIndex } from "./src/lib/build_index"
 
 export default defineConfig({
+  server: {
+    host: true,
+    strictPort: true,
+    // Open Code may proxy through generated hostnames/subdomains.
+    // Accept all hosts in dev to avoid Vite host-header 403s behind the proxy.
+    allowedHosts: true,
+  },
   plugins: [
     sveltekit(),
     {

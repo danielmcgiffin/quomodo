@@ -1,27 +1,25 @@
 <script lang="ts">
-  // TODO(LP-008): Legacy login presentation retained for auth continuity. Replace with SystemsCraft-auth-branded flow in later pass.
   interface Props {
     children?: import("svelte").Snippet
   }
 
   let { children }: Props = $props()
   let isEurope = $state(false)
+
   try {
-    isEurope = Intl.DateTimeFormat()
-      .resolvedOptions()
-      .timeZone.startsWith("Europe/")
-  } catch (e) {
-    /* continue */
+    isEurope = Intl.DateTimeFormat().resolvedOptions().timeZone.startsWith(
+      "Europe/",
+    )
+  } catch {
+    isEurope = false
   }
 </script>
 
-<div
-  class="text-center content-center max-w-lg mx-auto min-h-[70vh] pb-12 flex items-center place-content-center"
->
-  <div class="flex flex-col w-64 lg:w-80">
+<section class="mk-auth-shell">
+  <div class="mk-auth-panel">
     {@render children?.()}
-    <div class="mt-8 {isEurope ? 'block' : 'hidden'}">
-      🍪 Logging in uses Cookies 🍪
-    </div>
+    {#if isEurope}
+      <p class="mk-auth-cookie-note">Cookie-based sessions are required for sign-in.</p>
+    {/if}
   </div>
-</div>
+</section>
