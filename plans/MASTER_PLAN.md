@@ -37,6 +37,7 @@ Active supporting runbook (kept active):
 - `f936988` — legacy Cursus booking-link cleanup in marketing
 - `58ed3f7` — catch-all working-tree snapshot for fresh branch state
 - App-shell visual tokens aligned with SystemsCraft marketing palette (White/Onyx/Pine/Copper)
+- E2E Supabase setup script hardened for GitHub runner IPv6/COMING_UP failures (pooler-first link + adaptive retries)
 
 ### Verified technical baseline
 
