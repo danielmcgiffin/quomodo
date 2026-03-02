@@ -1,3 +1,5 @@
+import { env } from "$env/dynamic/public"
+
 export type NavItem = { label: string; href: string }
 export type CTA = { label: string; href: string }
 
@@ -18,14 +20,17 @@ export type PricingPlan = {
   stripe_product_id?: string | null
 }
 
+const bookingCallHref = env.PUBLIC_BOOKING_URL?.trim() || "/contact_us"
+
 export const marketingSite = {
   brand: "SystemsCraft",
-  tagline: "Your Operational Atlas",
+  tagline: "AI Ops for SMB Operators",
   defaultPlanId: "free",
 
   nav: [
     { label: "Home", href: "/" },
     { label: "Method", href: "/method" },
+    { label: "Pricing", href: "/pricing" },
     { label: "Partners", href: "/partners" },
     { label: "Contact", href: "/contact" },
   ] satisfies NavItem[],
@@ -37,28 +42,28 @@ export const marketingSite = {
 
   secondaryCta: {
     label: "Book Intro Call",
-    href: "https://cal.com/danny-cursus/15min",
+    href: bookingCallHref,
   } satisfies CTA,
 
   // ───────────────────────────────────────────
   // HERO
   // ───────────────────────────────────────────
   hero: {
-    eyebrow: "No more documentation theater",
-    kicker: "Your Operational Atlas",
-    headline: "No more",
-    title: "Map once. Use everywhere.",
+    eyebrow: "Industrial-grade AI Operations",
+    kicker: "Structured execution over AI theater",
+    headline: "AI Ops that runs like infrastructure.",
+    title: "Map once. Operate at machine speed.",
     subtitle:
-      "SystemsCraft maps who does what, in which system, as a connected graph — so your team finds answers instead of asking you.",
+      "SystemsCraft helps small and midsize teams turn messy operations into an AI-ready system of record with clear ownership, linked workflows, and repeatable execution.",
     audience:
-      "Built for founders and operators who are tired of being the human router for process questions.",
+      "Built for founders and operators who need stability, accountability, and automation readiness without enterprise bloat.",
   },
 
   // ───────────────────────────────────────────
   // DEMO
   // ───────────────────────────────────────────
   demo: {
-    gifSrc: "/images/example-home.png", // Using existing image
+    gifSrc: "/images/example-home.png", // Absolute source; proxy prefix is applied at render-time when needed
     alt: "SystemsCraft showing connected processes, roles, and systems.",
   },
 
@@ -150,20 +155,19 @@ export const marketingSite = {
   // IMPLEMENTATION CALLOUT
   // ───────────────────────────────────────────
   implementationCallout: {
-    headline:
-      "Is the idea of setting up a new system giving you a headache already?",
-    text: "Most teams get their first bottleneck mapped in a single sitting. If you'd rather have us do it with you, we offer implementation sessions to get your atlas built and your team trained.",
-    cta: { label: "Book a call", href: "https://cal.com/danny-cursus/15min" },
+    headline: "Need a hands-on AI Ops partner, not another dashboard?",
+    text: "Most teams map their first high-friction workflow in one focused working session. We can lead implementation with your operators and leave behind a system your team can actually run.",
+    cta: { label: "Book a call", href: bookingCallHref },
   },
 
   // ───────────────────────────────────────────
   // FEATURES / PILLARS
   // ───────────────────────────────────────────
   features: {
-    eyebrow: "Why SystemsCraft",
-    headline: "A map beats a folder. Ownership beats guessing.",
+    eyebrow: "Why Operators Pick SystemsCraft",
+    headline: "Precision structure for real-world AI operations.",
     subhead:
-      "Everything connects. Everything has an owner. Everything stays current.",
+      "Every workflow has explicit ownership, system context, and a maintainable execution path.",
     items: [
       {
         title: "Onboarding in days, not weeks",
@@ -322,7 +326,7 @@ export const marketingSite = {
   ] satisfies NavItem[],
 
   footer: {
-    tagline: "Your Operational Atlas",
+    tagline: "Industrial clarity for AI-enabled operations",
     copyrightName: "SystemsCraft",
   } as const,
 }

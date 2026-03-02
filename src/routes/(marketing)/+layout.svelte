@@ -9,12 +9,20 @@
 
   let { children }: Props = $props()
   let mobileOpen = $state(false)
+
+  const isActive = (href: string, pathname: string): boolean => {
+    if (href === "/") {
+      return pathname === "/"
+    }
+
+    return pathname === href || pathname.startsWith(`${href}/`)
+  }
 </script>
 
 <div class="mk-shell">
   <header class="mk-header">
     <div class="mk-container mk-nav-row">
-      <a class="mk-brand" href="/">
+      <a class="mk-brand" href="/" aria-label="SystemsCraft home">
         <span class="mk-brand-mark">SC</span>
         <span>
           <strong>{marketingSite.brand}</strong>
@@ -25,7 +33,7 @@
       <nav class="mk-nav-desktop" aria-label="Primary">
         {#each marketingSite.nav as item}
           <a
-            class={`mk-nav-link ${$page.url.pathname === item.href ? "is-active" : ""}`}
+            class={`mk-nav-link ${isActive(item.href, $page.url.pathname) ? "is-active" : ""}`}
             href={item.href}
           >
             {item.label}
@@ -34,12 +42,7 @@
       </nav>
 
       <div class="mk-nav-actions">
-        <a
-          class="mk-btn mk-btn-quiet"
-          href={marketingSite.secondaryCta.href}
-          target="_blank"
-          rel="noreferrer"
-        >
+        <a class="mk-btn mk-btn-quiet" href={marketingSite.secondaryCta.href}>
           {marketingSite.secondaryCta.label}
         </a>
         <a class="mk-btn mk-btn-primary" href={marketingSite.primaryCta.href}>
@@ -77,19 +80,19 @@
     {/if}
   </header>
 
-  <main class="mk-main mk-container">
-    {@render children?.()}
+  <main class="mk-main">
+    <div class="mk-container">
+      {@render children?.()}
+    </div>
   </main>
 
   <footer class="mk-footer">
     <div class="mk-container mk-footer-grid">
       <div>
-        <div class="mk-footer-brand">SystemsCraft</div>
-        <p class="mk-footer-copy">
-          A living operational atlas built for retrieval, ownership, and
-          execution.
-        </p>
+        <div class="mk-footer-brand">{marketingSite.brand}</div>
+        <p class="mk-footer-copy">{marketingSite.footer.tagline}</p>
       </div>
+
       <nav class="mk-footer-links" aria-label="Footer">
         {#each marketingSite.footerLinks as item}
           <a href={item.href}>{item.label}</a>
