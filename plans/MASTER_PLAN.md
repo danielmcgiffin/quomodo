@@ -36,6 +36,7 @@ Active supporting runbook (kept active):
 - `d74bcf0` — authenticated E2E prerequisites enforced in local/CI
 - `f936988` — legacy Cursus booking-link cleanup in marketing
 - `58ed3f7` — catch-all working-tree snapshot for fresh branch state
+- App-shell visual tokens aligned with SystemsCraft marketing palette (White/Onyx/Pine/Copper)
 
 ### Verified technical baseline
 

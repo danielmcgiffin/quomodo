@@ -261,7 +261,7 @@
   }
 
   .sc-inline-edit-title:focus {
-    border-color: #b42318;
+    border-color: var(--sc-green);
   }
 
   .sc-inline-edit-title::placeholder {
@@ -283,7 +283,7 @@
   }
 
   .sc-inline-edit-description :global(.sc-rich-editor:focus-within) {
-    border-color: #b42318;
+    border-color: var(--sc-green);
   }
 
   .sc-inline-edit-description :global(.sc-rich-editor-toolbar) {
@@ -330,7 +330,7 @@
   }
 
   .sc-inline-edit-select:focus {
-    border-color: #b42318;
+    border-color: var(--sc-green);
   }
 
   /* Bottom action bar */
@@ -369,11 +369,11 @@
   }
 
   .sc-inline-edit-link.danger {
-    color: #b42318;
+    color: var(--sc-danger);
   }
 
   .sc-inline-edit-link.danger:hover {
-    color: #912018;
+    color: #8f1b12;
   }
 
   .sc-btn-sm {

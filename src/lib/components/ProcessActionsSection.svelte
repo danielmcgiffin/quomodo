@@ -449,7 +449,7 @@
   }
 
   .sc-action-card-editing {
-    border: 1.5px solid #b42318;
+    border: 1.5px solid var(--sc-green);
     cursor: default;
   }
 

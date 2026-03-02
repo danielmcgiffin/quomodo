@@ -152,8 +152,8 @@
 
   .sc-process-meta-card:not(.is-open):hover,
   .sc-process-meta-card:not(.is-open):focus-visible {
-    border-color: #b42318;
-    box-shadow: 0 0 0 1px rgba(180, 35, 24, 0.2);
+    border-color: var(--sc-green);
+    box-shadow: 0 0 0 1px var(--sc-green-shadow);
   }
 
   .sc-process-meta-card.is-open {
@@ -195,7 +195,7 @@
   }
 
   .sc-process-meta-card:hover .sc-process-meta-icon {
-    color: #b42318;
+    color: var(--sc-green);
   }
 
   .sc-process-meta-card.is-open .sc-process-meta-icon {
@@ -207,7 +207,7 @@
   }
 
   .sc-process-meta-card.is-open .sc-process-meta-icon:hover {
-    color: #b42318;
+    color: var(--sc-green);
   }
 
   .sc-process-meta-body {

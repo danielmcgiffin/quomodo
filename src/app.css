@@ -17,26 +17,26 @@
   color-scheme: light;
   /* color of browser-provided UI */
 
-  --color-primary: #180042;
-  --color-primary-content: #fefbf6;
-  --color-secondary: #c7b9f8;
-  --color-secondary-content: oklch(95% 0 0);
-  --color-accent: #db2777;
-  --color-accent-content: #180042;
-  --color-neutral: #180042;
-  --color-neutral-content: #fefbf6;
-  --color-base-100: #fefbf6;
-  --color-base-200: #faedd6;
-  --color-base-300: oklch(92% 0.04 240);
-  --color-base-content: #180042;
-  --color-info: oklch(70% 0.2 220);
-  --color-info-content: oklch(98% 0.01 220);
-  --color-success: #37d399;
-  --color-success-content: oklch(98% 0.01 140);
-  --color-warning: oklch(80% 0.25 80);
-  --color-warning-content: oklch(20% 0.05 80);
-  --color-error: #f77272;
-  --color-error-content: oklch(98% 0.01 30);
+  --color-primary: #064e3a;
+  --color-primary-content: #fefeff;
+  --color-secondary: #9f8455;
+  --color-secondary-content: #fefeff;
+  --color-accent: #043428;
+  --color-accent-content: #fefeff;
+  --color-neutral: #12110e;
+  --color-neutral-content: #fefeff;
+  --color-base-100: #fefeff;
+  --color-base-200: #f3f2ef;
+  --color-base-300: #e7e5de;
+  --color-base-content: #12110e;
+  --color-info: #0ea5e9;
+  --color-info-content: #f0f9ff;
+  --color-success: #065f46;
+  --color-success-content: #ecfdf5;
+  --color-warning: #b45309;
+  --color-warning-content: #fffbeb;
+  --color-error: #b42318;
+  --color-error-content: #fef2f2;
 
   /* border radius */
   --radius-selector: 1rem;
@@ -128,30 +128,32 @@ button[disabled].authBtn::before {
 }
 
 :root {
-  --sc-green: #991b1b;
-  --sc-green-dark: #7f1d1d;
-  --sc-green-light: #fef2f2;
-  --sc-green-border: #fca5a5;
-  --sc-green-shadow: rgba(153, 27, 27, 0.2);
+  --sc-green: #064e3a;
+  --sc-green-dark: #043428;
+  --sc-brand: #064e3a;
+  --sc-green-light: #e8f3ef;
+  --sc-green-border: #86ab9f;
+  --sc-green-shadow: rgba(6, 78, 58, 0.18);
 
-  --sc-flag: #fff8e1;
-  --sc-flag-border: #ffe082;
-  --sc-flag-text: #8d6e0a;
-  --sc-flag-banner: rgba(255, 224, 130, 0.5);
+  --sc-flag: #fffaf0;
+  --sc-flag-border: #ddcfae;
+  --sc-flag-text: #7a6640;
+  --sc-flag-banner: rgba(159, 132, 85, 0.22);
 
-  --sc-success: #1a7f37;
-  --sc-danger: #d63b30;
+  --sc-success: #065f46;
+  --sc-danger: #b42318;
 
-  --sc-bg: #ebe7e0;
-  --sc-white: #ffffff;
-  --sc-bg-inset: #e5e2dd;
+  --sc-bg: #f3f2ef;
+  --sc-white: #fefeff;
+  --sc-bg-inset: #e7e5de;
 
-  --sc-border: #e0ddd7;
-  --sc-border-light: #eae8e3;
+  --sc-border: #d2d0c8;
+  --sc-border-light: #dfddd4;
+  --sc-border-strong: #7f7b70;
 
-  --sc-text: #222222;
-  --sc-text-muted: #666666;
-  --sc-text-light: #999999;
+  --sc-text: #12110e;
+  --sc-text-muted: #3d3b35;
+  --sc-text-light: #7f7b70;
 
   --sc-radius-sm: 6px;
   --sc-radius-md: 8px;
@@ -547,9 +549,9 @@ button[disabled].authBtn::before {
 }
 
 .sc-banner--warning {
-  background: #fff7ed;
-  border-color: #fdba74;
-  color: #7c2d12;
+  background: #f8f4ea;
+  border-color: #ccb78e;
+  color: #654f2f;
 }
 
 .sc-nav-body {
@@ -827,8 +829,8 @@ button[disabled].authBtn::before {
 
 .sc-flag-hover-btn:hover,
 .sc-flag-hover-btn:focus-visible {
-  color: #b42318;
-  background: rgba(180, 35, 24, 0.08);
+  color: var(--sc-green-dark);
+  background: color-mix(in srgb, var(--sc-green) 12%, transparent);
 }
 
 @media (hover: none) {
@@ -1120,8 +1122,8 @@ button[disabled].authBtn::before {
 
 .sc-inline-link-icon:hover,
 .sc-inline-link-icon:focus-visible {
-  color: #b42318;
-  background: rgba(180, 35, 24, 0.08);
+  color: var(--sc-green-dark);
+  background: color-mix(in srgb, var(--sc-green) 12%, transparent);
 }
 
 .sc-flag-link {
