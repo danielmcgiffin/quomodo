@@ -72,9 +72,9 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
   - `npm run test:e2e`
 - [ ] **M-04** Confirm CI runs authenticated E2E suites (not just marketing smoke).
 - [ ] **M-05** Cut RC branch from known-good SHA and deploy.
-- [ ] **M-06** Post-deploy verification on production:
+- [x] **M-06** Post-deploy verification on production:
   - smoke + onboarding scripts pass.
-- [ ] **M-07** Confirm production DB schema-cleanup migration status (if uncertain, run verification queries before launch demos/sales calls).
+- [x] **M-07** Confirm production DB schema-cleanup migration status (if uncertain, run verification queries before launch demos/sales calls).
 
 ## P1 — Demo / Conversion Critical
 
