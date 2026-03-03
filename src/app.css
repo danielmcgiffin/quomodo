@@ -213,23 +213,31 @@ button[disabled].authBtn::before {
 .sc-sidebar-brand-pill {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 10px;
   padding: 10px 12px;
   border-radius: var(--sc-radius-full);
   background: #ffffff;
   color: var(--sc-green-dark);
-  font-weight: 800;
-  letter-spacing: 0.01em;
   border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow: 0 10px 30px var(--sc-green-shadow);
 }
 
-.sc-sidebar-brand-pill img {
-  border-radius: 9999px;
+.sc-sidebar-brand-logo {
+  border-radius: 6px;
   display: block;
-  width: 360px;
-  height: 360px;
-  object-fit: cover;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.sc-sidebar-brand-wordmark {
+  font-family: "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
+  font-size: 0.96rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1;
 }
 
 .sc-sidebar-nav {

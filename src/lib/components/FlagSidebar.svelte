@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ShieldCheck } from "lucide-svelte"
+  import { ThumbsUp } from "lucide-svelte"
   import type { Snippet } from "svelte"
 
   type FlagSidebarItem = {
@@ -38,7 +38,7 @@
   {#if flags.length === 0}
     <div class="sc-flags-sidebar-empty sc-flags-sidebar-placeholder">
       <div class="flex flex-col items-center justify-center gap-2 py-10">
-        <ShieldCheck class="h-7 w-7" stroke-width={1.5} aria-hidden="true" />
+        <ThumbsUp class="h-7 w-7" stroke-width={1.5} aria-hidden="true" />
         <div class="text-sm font-semibold">All clear</div>
       </div>
     </div>

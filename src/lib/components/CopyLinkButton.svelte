@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { Link } from "lucide-svelte"
+
   type Props = {
     href: string
     label?: string
@@ -74,18 +76,7 @@
     aria-label={copied ? "Link copied" : label}
   >
     {#if variant === "icon"}
-      <svg
-        viewBox="0 0 20 20"
-        width="16"
-        height="16"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.75"
-        aria-hidden="true"
-      >
-        <path d="M12.5 7.5L15 5a2.5 2.5 0 113.5 3.5l-4 4a2.5 2.5 0 01-3.5 0" />
-        <path d="M7.5 12.5L5 15a2.5 2.5 0 11-3.5-3.5l4-4a2.5 2.5 0 013.5 0" />
-      </svg>
+      <Link size={16} strokeWidth={1.75} aria-hidden="true" />
     {:else}
       {copied ? "Link copied" : label}
     {/if}

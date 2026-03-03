@@ -40,6 +40,9 @@
     return match ? match[0] : ""
   })
   const logoSrc = $derived(`${proxyPrefix}/images/quaestor-full.png`)
+  const systemsCraftLogoSrc = $derived(
+    `${proxyPrefix}/images/systemscraft-logo.jpeg`,
+  )
 
   let appContentRoot: HTMLElement | null = null
   let stackTarget = $state<{
@@ -339,12 +342,15 @@
     <aside class="sc-sidebar">
       <div class="sc-sidebar-inner">
         <a class="sc-sidebar-brand" href={resolve("/app/processes")}>
-          <span class="sc-sidebar-brand-pill justify-center">
+          <span class="sc-sidebar-brand-pill">
             <img
-              src={logoSrc}
-              alt="Quaestor"
-              style="max-width: 180px; height: auto; display: block;"
+              class="sc-sidebar-brand-logo"
+              src={systemsCraftLogoSrc}
+              alt=""
+              width="100"
+              height="100"
             />
+            <span class="sc-sidebar-brand-wordmark">SystemsCraft</span>
           </span>
         </a>
 
