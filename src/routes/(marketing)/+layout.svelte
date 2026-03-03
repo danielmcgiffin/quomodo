@@ -23,9 +23,15 @@
   <header class="mk-header">
     <div class="mk-container mk-nav-row">
       <a class="mk-brand" href="/" aria-label="SystemsCraft home">
-        <span class="mk-brand-mark">SC</span>
-        <span>
-          <strong>{marketingSite.brand}</strong>
+        <img
+          class="mk-brand-logo"
+          src="/images/systemscraft-logo.jpeg"
+          alt=""
+          width="100"
+          height="100"
+        />
+        <span class="mk-brand-lockup">
+          <strong class="mk-brand-wordmark">{marketingSite.brand}</strong>
           <small>{marketingSite.tagline}</small>
         </span>
       </a>
