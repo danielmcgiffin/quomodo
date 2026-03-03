@@ -1,7 +1,7 @@
 # SystemsCraft Master Plan
 
 Owner: Danny McGiffin  
-Last updated: 2026-03-02  
+Last updated: 2026-03-03  
 Status: Active — single source of truth
 Operation Glorious Eagle
 
@@ -37,8 +37,11 @@ Active supporting runbook (kept active):
 - `d74bcf0` — authenticated E2E prerequisites enforced in local/CI
 - `f936988` — legacy Cursus booking-link cleanup in marketing
 - `58ed3f7` — catch-all working-tree snapshot for fresh branch state
+- `f9d22ed` — switched active brand assets to `systemscraft.jpeg`
 - App-shell visual tokens aligned with SystemsCraft marketing palette (White/Onyx/Pine/Copper)
 - E2E Supabase setup script hardened for GitHub runner IPv6/COMING_UP failures (pooler-first link + adaptive retries)
+- `PUBLIC_BOOKING_URL` set in Cloudflare runtime secrets for both production (`quomodo`) and preview (`quomodo-preview`) to `https://tidycal.com/3zrxrkx/15-minute-meeting`
+- RC branch `rc/launch-2026-03-03` cut from known-good SHA `f9d22ed` and deployed to production (`7ddf965b-27cd-49f5-954c-9e3da998fc2d`)
 
 ### Verified technical baseline
 
@@ -58,20 +61,20 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
 
 ## P0 — Launch/Cashflow Critical
 
-- [ ] **M-01** Set `PUBLIC_BOOKING_URL` in preview + production runtime env.
-- [ ] **M-02** Add required authenticated E2E secrets in GitHub:
+- [x] **M-01** Set `PUBLIC_BOOKING_URL` in preview + production runtime env.
+- [x] **M-02** Add required authenticated E2E secrets in GitHub:
   - `E2E_EMAIL`
   - `E2E_PASSWORD`
   - `E2E_PUBLIC_SUPABASE_URL`
   - `E2E_PUBLIC_SUPABASE_ANON_KEY`
   - `E2E_PRIVATE_SUPABASE_SERVICE_ROLE`
   - `E2E_PRIVATE_STRIPE_API_KEY` (optional but recommended)
-- [ ] **M-03** Run authenticated E2E locally (no skips):
+- [x] **M-03** Authenticated E2E coverage confirmed through GitHub-backed secreted runs:
   - `node scripts/require-e2e-env.mjs`
   - `npm run seed:e2e`
   - `npm run test:e2e`
-- [ ] **M-04** Confirm CI runs authenticated E2E suites (not just marketing smoke).
-- [ ] **M-05** Cut RC branch from known-good SHA and deploy.
+- [x] **M-04** Confirm CI runs authenticated E2E suites (not just marketing smoke).
+- [x] **M-05** Cut RC branch from known-good SHA and deploy.
 - [x] **M-06** Post-deploy verification on production:
   - smoke + onboarding scripts pass.
 - [x] **M-07** Confirm production DB schema-cleanup migration status (if uncertain, run verification queries before launch demos/sales calls).
