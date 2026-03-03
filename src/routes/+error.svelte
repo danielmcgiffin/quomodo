@@ -15,7 +15,7 @@
       <a class="mk-brand" href="/" aria-label="SystemsCraft home">
         <img
           class="mk-brand-logo"
-          src="/images/systemscraft-logo.jpeg"
+          src="/images/systemscraft.jpeg"
           alt=""
           width="100"
           height="100"

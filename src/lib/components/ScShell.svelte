@@ -39,7 +39,7 @@
     const match = $page.url.pathname.match(/^\/proxy\/\d+/)
     return match ? match[0] : ""
   })
-  const logoSrc = $derived(`${proxyPrefix}/images/systemscraft-logo.jpeg`)
+  const logoSrc = $derived(`${proxyPrefix}/images/systemscraft.jpeg`)
 
   let appContentRoot: HTMLElement | null = null
   let stackTarget = $state<{
