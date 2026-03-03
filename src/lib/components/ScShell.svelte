@@ -39,10 +39,7 @@
     const match = $page.url.pathname.match(/^\/proxy\/\d+/)
     return match ? match[0] : ""
   })
-  const logoSrc = $derived(`${proxyPrefix}/images/quaestor-full.png`)
-  const systemsCraftLogoSrc = $derived(
-    `${proxyPrefix}/images/systemscraft-logo.jpeg`,
-  )
+  const logoSrc = $derived(`${proxyPrefix}/images/systemscraft-logo.jpeg`)
 
   let appContentRoot: HTMLElement | null = null
   let stackTarget = $state<{
@@ -282,7 +279,7 @@
       <a class="sc-mobile-logo" href={resolve("/app/processes")}>
         <img
           src={logoSrc}
-          alt="Quaestor"
+          alt="SystemsCraft"
           style="max-width: 120px; height: auto; display: block;"
         />
       </a>
@@ -343,14 +340,16 @@
       <div class="sc-sidebar-inner">
         <a class="sc-sidebar-brand" href={resolve("/app/processes")}>
           <span class="sc-sidebar-brand-pill">
-            <img
-              class="sc-sidebar-brand-logo"
-              src={systemsCraftLogoSrc}
-              alt=""
-              width="100"
-              height="100"
-            />
-            <span class="sc-sidebar-brand-wordmark">SystemsCraft</span>
+            <span class="sc-sidebar-brand-lockup">
+              <img
+                class="sc-sidebar-brand-logo"
+                src={logoSrc}
+                alt=""
+                width="150"
+                height="150"
+              />
+              <span class="sc-sidebar-brand-wordmark">SystemsCraft</span>
+            </span>
           </span>
         </a>
 

@@ -215,13 +215,21 @@ button[disabled].authBtn::before {
   width: 100%;
   align-items: center;
   justify-content: center;
-  gap: 10px;
   padding: 10px 12px;
   border-radius: var(--sc-radius-full);
   background: #ffffff;
   color: var(--sc-green-dark);
   border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow: 0 10px 30px var(--sc-green-shadow);
+}
+
+.sc-sidebar-brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: fit-content;
+  margin-inline: auto;
 }
 
 .sc-sidebar-brand-logo {
