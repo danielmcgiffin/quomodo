@@ -27,6 +27,10 @@ Active supporting runbook (kept active):
 
 - `plans/human/independent-launch-readiness-self-guide.md`
 
+Active findings intake:
+
+- `plans/PRODUCT_FINDINGS.md` (ingested into P1 backlog tasks M-18 and M-19)
+
 ---
 
 ## 3) Current State Snapshot
@@ -94,6 +98,12 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
 - [ ] **M-11** Complete full route screen audit (desktop + mobile + interactive checks).
 - [ ] **M-12** Implement production error reporting decision (Sentry vs admin-email strategy) and validate alert delivery.
 - [ ] **M-13** Prepare and lock a high-quality demo workspace + secure demo credentials.
+- [ ] **M-18** Flag UX follow-up pass from `plans/PRODUCT_FINDINGS.md`.
+  - [ ] **M-18a** In flag modal, link to the flag origin (where it was created), not dashboard.
+  - [ ] **M-18b** Add resolved-flag history log with resolved-at timestamp and actor.
+  - [ ] **M-18c** On "Resolve", show a short comment textbox and persist the note.
+  - [ ] **M-18d** Place flag indicator icon next to item title after the link icon.
+- [ ] **M-19** Standardize all list pages so cards render in grid layouts.
 
 ## P2 — Hygiene / Post-Launch Risk Reduction
 
@@ -107,7 +117,7 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
 
 1. M-01 → M-04 (environment + E2E enforcement fully active)
 2. M-05 → M-07 + M-17 (release candidate + deploy + production verification + deploy automation)
-3. M-08 → M-13 (demo/sales reliability improvements)
+3. M-08 → M-13 + M-18 + M-19 (demo/sales reliability + UX follow-up)
 4. M-14 → M-16 (cleanup backlog)
 
 ---
@@ -138,7 +148,7 @@ SMOKE_BASE_URL=https://systemscraft.co npm run -s onboarding:deployed
 ### Junior with review
 
 - demo workspace preparation
-- flags dashboard UX/state refresh
+- flags dashboard UX/state refresh + PRODUCT_FINDINGS follow-up (M-18/M-19)
 - data-layer test gap fill
 
 ### Advanced ownership
