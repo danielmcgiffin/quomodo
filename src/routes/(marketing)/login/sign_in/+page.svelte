@@ -9,10 +9,11 @@
 
   const resolveNextPath = (): string => {
     const rawNext = $page.url.searchParams.get("next") ?? ""
+    const proxiedNext = `${data.basePath}${rawNext}`
     if (!rawNext.startsWith("/") || rawNext.startsWith("//")) {
-      return "/app/processes"
+      return `${data.basePath}/app/processes`
     }
-    return rawNext
+    return proxiedNext
   }
 
   onMount(() => {
@@ -68,7 +69,7 @@
   <Auth
     supabaseClient={data.supabase}
     view="sign_in"
-    redirectTo={`${data.url}/auth/callback?next=${encodeURIComponent(resolveNextPath())}`}
+    redirectTo={`${data.authBaseUrl}/auth/callback?next=${encodeURIComponent(resolveNextPath())}`}
     providers={oauthProviders}
     socialLayout="horizontal"
     showLinks={false}
@@ -76,10 +77,11 @@
     additionalData={undefined}
   />
   <div class="mk-auth-link-row mt-4">
-    <a href="/login/forgot_password">Forgot password?</a>
+    <a href={`${data.basePath}/login/forgot_password`}>Forgot password?</a>
   </div>
   <div class="mk-auth-link-row mt-3">
-    Don't have an account? <a href="/login/sign_up">Sign up</a>.
+    Don't have an account?
+    <a href={`${data.basePath}/login/sign_up`}>Sign up</a>.
   </div>
 {:else}
   <div role="alert" class="alert alert-error">

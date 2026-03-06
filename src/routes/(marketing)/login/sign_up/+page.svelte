@@ -34,7 +34,7 @@
   <Auth
     supabaseClient={data.supabase}
     view="sign_up"
-    redirectTo={`${data.url}/auth/callback?next=${encodeURIComponent(resolveNextPath())}`}
+    redirectTo={`${data.authBaseUrl}/auth/callback?next=${encodeURIComponent(resolveNextPath())}`}
     showLinks={false}
     providers={oauthProviders}
     socialLayout="horizontal"
@@ -42,7 +42,7 @@
     additionalData={undefined}
   />
   <div class="mk-auth-link-row mt-4 mb-2">
-    Have an account? <a href="/login/sign_in">Sign in</a>.
+    Have an account? <a href={`${data.basePath}/login/sign_in`}>Sign in</a>.
   </div>
 {:else}
   <div role="alert" class="alert alert-error">

@@ -1,5 +1,6 @@
 <script lang="ts">
   import "../../app.css"
+  import { goto } from "$app/navigation"
   import { page } from "$app/stores"
   import { marketingSite } from "$lib/marketing/site"
 
@@ -9,6 +10,25 @@
 
   let { children }: Props = $props()
   let mobileOpen = $state(false)
+  const proxyPrefix = $derived.by(() => {
+    const match = $page.url.pathname.match(/^\/proxy\/\d+/)
+    return match ? match[0] : ""
+  })
+
+  const withProxyPrefix = (href: string): string => {
+    if (!href.startsWith("/") || href.startsWith("//")) {
+      return href
+    }
+    return `${proxyPrefix}${href}`
+  }
+
+  const navigateInternal = (event: MouseEvent, href: string): void => {
+    if (!href.startsWith("/") || href.startsWith("//")) {
+      return
+    }
+    event.preventDefault()
+    goto(withProxyPrefix(href))
+  }
 
   const isActive = (href: string, pathname: string): boolean => {
     if (href === "/") {
@@ -22,10 +42,14 @@
 <div class="mk-shell">
   <header class="mk-header">
     <div class="mk-container mk-nav-row">
-      <a class="mk-brand" href="/" aria-label="SystemsCraft home">
+      <a
+        class="mk-brand"
+        href={withProxyPrefix("/")}
+        aria-label="SystemsCraft home"
+      >
         <img
           class="mk-brand-logo"
-          src="/images/systemscraft.jpeg"
+          src={withProxyPrefix("/images/systemscraft.jpeg")}
           alt=""
           width="100"
           height="100"
@@ -40,7 +64,8 @@
         {#each marketingSite.nav as item}
           <a
             class={`mk-nav-link ${isActive(item.href, $page.url.pathname) ? "is-active" : ""}`}
-            href={item.href}
+            href={withProxyPrefix(item.href)}
+            onclick={(event) => navigateInternal(event, item.href)}
           >
             {item.label}
           </a>
@@ -48,10 +73,20 @@
       </nav>
 
       <div class="mk-nav-actions">
-        <a class="mk-btn mk-btn-quiet" href={marketingSite.secondaryCta.href}>
+        <a
+          class="mk-btn mk-btn-quiet"
+          href={withProxyPrefix(marketingSite.secondaryCta.href)}
+          onclick={(event) =>
+            navigateInternal(event, marketingSite.secondaryCta.href)}
+        >
           {marketingSite.secondaryCta.label}
         </a>
-        <a class="mk-btn mk-btn-primary" href={marketingSite.primaryCta.href}>
+        <a
+          class="mk-btn mk-btn-primary"
+          href={withProxyPrefix(marketingSite.primaryCta.href)}
+          onclick={(event) =>
+            navigateInternal(event, marketingSite.primaryCta.href)}
+        >
           {marketingSite.primaryCta.label}
         </a>
         <button
@@ -71,14 +106,20 @@
         {#each marketingSite.nav as item}
           <a
             class="mk-mobile-link"
-            href={item.href}
-            onclick={() => (mobileOpen = false)}>{item.label}</a
+            href={withProxyPrefix(item.href)}
+            onclick={(event) => {
+              navigateInternal(event, item.href)
+              mobileOpen = false
+            }}>{item.label}</a
           >
         {/each}
         <a
           class="mk-mobile-link"
-          href={marketingSite.primaryCta.href}
-          onclick={() => (mobileOpen = false)}
+          href={withProxyPrefix(marketingSite.primaryCta.href)}
+          onclick={(event) => {
+            navigateInternal(event, marketingSite.primaryCta.href)
+            mobileOpen = false
+          }}
         >
           {marketingSite.primaryCta.label}
         </a>
@@ -101,7 +142,11 @@
 
       <nav class="mk-footer-links" aria-label="Footer">
         {#each marketingSite.footerLinks as item}
-          <a href={item.href}>{item.label}</a>
+          <a
+            href={withProxyPrefix(item.href)}
+            onclick={(event) => navigateInternal(event, item.href)}
+            >{item.label}</a
+          >
         {/each}
       </nav>
     </div>

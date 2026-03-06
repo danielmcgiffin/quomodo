@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from "$app/stores"
   import { marketingSite } from "$lib/marketing/site"
   import { Check } from "lucide-svelte"
 
@@ -17,6 +18,14 @@
     center = true,
     useStripeLinks = true,
   }: Props = $props()
+
+  const withProxyPrefix = (href: string): string => {
+    if (!href.startsWith("/") || href.startsWith("//")) {
+      return href
+    }
+    const match = $page.url.pathname.match(/^\/proxy\/\d+/)
+    return match ? `${match[0]}${href}` : href
+  }
 </script>
 
 <div class="mk-pricing-grid" style={center ? "" : "justify-content: start;"}>
@@ -54,9 +63,11 @@
           </div>
         {:else}
           <a
-            href={useStripeLinks && plan.stripe_price_id
-              ? "/account/subscribe/" + plan.stripe_price_id
-              : plan.cta.href}
+            href={withProxyPrefix(
+              useStripeLinks && plan.stripe_price_id
+                ? "/account/subscribe/" + plan.stripe_price_id
+                : plan.cta.href,
+            )}
             class="mk-btn mk-btn-primary w-full"
           >
             {callToAction || plan.cta.label}

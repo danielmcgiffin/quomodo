@@ -21,10 +21,8 @@ export const load = async ({ fetch, data, depends }) => {
 
   // Server session from hooks is enough for redirect on login routes.
   if (data.session) {
-    redirect(303, "/app/processes")
+    redirect(303, `${data.basePath}/app/processes`)
   }
 
-  const url = data.url
-
-  return { supabase, url, authConfigured }
+  return { supabase, ...data, authConfigured }
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from "$app/navigation"
   import { page } from "$app/stores"
   import { marketingSite } from "$lib/marketing/site"
   import PricingModule from "$lib/marketing/PricingModule.svelte"
@@ -48,6 +49,22 @@
     const match = $page.url.pathname.match(/^\/proxy\/\d+/)
     return match ? `${match[0]}${source}` : source
   })
+
+  const withProxyPrefix = (href: string): string => {
+    if (!href.startsWith("/") || href.startsWith("//")) {
+      return href
+    }
+    const match = $page.url.pathname.match(/^\/proxy\/\d+/)
+    return match ? `${match[0]}${href}` : href
+  }
+
+  const navigateInternal = (event: MouseEvent, href: string): void => {
+    if (!href.startsWith("/") || href.startsWith("//")) {
+      return
+    }
+    event.preventDefault()
+    goto(withProxyPrefix(href))
+  }
 </script>
 
 <svelte:head>
@@ -63,7 +80,11 @@
     <p class="mk-hero-audience">{marketingSite.hero.audience}</p>
 
     <div class="mk-cta-row">
-      <a class="mk-btn mk-btn-primary" href={marketingSite.primaryCta.href}>
+      <a
+        class="mk-btn mk-btn-primary"
+        href={withProxyPrefix(marketingSite.primaryCta.href)}
+        onclick={(event) => navigateInternal(event, marketingSite.primaryCta.href)}
+      >
         {marketingSite.primaryCta.label}
         <ArrowRight size={15} />
       </a>
@@ -246,11 +267,19 @@
     production-minded structure, and a practical path to AI leverage.
   </p>
   <div class="mk-cta-row">
-    <a class="mk-btn mk-btn-primary" href={marketingSite.primaryCta.href}>
+    <a
+      class="mk-btn mk-btn-primary"
+      href={withProxyPrefix(marketingSite.primaryCta.href)}
+      onclick={(event) => navigateInternal(event, marketingSite.primaryCta.href)}
+    >
       Start the build
       <Wrench size={15} />
     </a>
-    <a class="mk-btn mk-btn-quiet" href="/method">
+    <a
+      class="mk-btn mk-btn-quiet"
+      href={withProxyPrefix("/method")}
+      onclick={(event) => navigateInternal(event, "/method")}
+    >
       Review the method
       <ChevronRight size={15} />
     </a>

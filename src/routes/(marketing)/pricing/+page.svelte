@@ -1,7 +1,16 @@
 <script lang="ts">
+  import { page } from "$app/stores"
   import PricingModule from "$lib/marketing/PricingModule.svelte"
   import { marketingSite } from "$lib/marketing/site"
   import { ChevronRight } from "lucide-svelte"
+
+  const withProxyPrefix = (href: string): string => {
+    if (!href.startsWith("/") || href.startsWith("//")) {
+      return href
+    }
+    const match = $page.url.pathname.match(/^\/proxy\/\d+/)
+    return match ? `${match[0]}${href}` : href
+  }
 </script>
 
 <svelte:head>
@@ -24,7 +33,10 @@
       For larger teams or multi-workspace rollouts, we provide scoped delivery,
       onboarding support, and custom implementation plans.
     </p>
-    <a class="mk-btn mk-btn-quiet" href={marketingSite.secondaryCta.href}>
+    <a
+      class="mk-btn mk-btn-quiet"
+      href={withProxyPrefix(marketingSite.secondaryCta.href)}
+    >
       Book scope call
     </a>
   </div>

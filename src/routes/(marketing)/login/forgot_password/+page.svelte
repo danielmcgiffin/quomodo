@@ -25,7 +25,7 @@
   <Auth
     supabaseClient={data.supabase}
     view="forgotten_password"
-    redirectTo={`${data.url}/auth/callback?next=%2Faccount%2Fsettings%2Freset_password`}
+    redirectTo={`${data.authBaseUrl}/auth/callback?next=%2Faccount%2Fsettings%2Freset_password`}
     providers={oauthProviders}
     socialLayout="horizontal"
     showLinks={false}
@@ -34,5 +34,5 @@
   />
 {/if}
 <div class="mk-auth-link-row mt-4">
-  Remember your password? <a href="/login/sign_in">Sign in</a>.
+  Remember your password? <a href={`${data.basePath}/login/sign_in`}>Sign in</a>.
 </div>

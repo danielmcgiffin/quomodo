@@ -1,3 +1,7 @@
+<script lang="ts">
+  let { data } = $props()
+</script>
+
 <svelte:head>
   <title>Current Password Incorrect</title>
 </svelte:head>
@@ -9,11 +13,12 @@
   were logged out for security.
 </p>
 <p class="mk-auth-link-row mt-4">
-  If you know your password, please <a href="/login/sign_in">sign in</a> and
-  try again.
+  If you know your password, please
+  <a href={`${data.basePath}/login/sign_in`}>sign in</a> and try again.
 </p>
 <p class="mk-auth-link-row mt-4">
-  If you have forgotten your password, you can <a href="/login/forgot_password"
+  If you have forgotten your password, you can
+  <a href={`${data.basePath}/login/forgot_password`}
     >reset it here</a
   >.
 </p>
