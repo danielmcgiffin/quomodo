@@ -42,7 +42,7 @@ Active supporting runbook (kept active):
 - E2E Supabase setup script hardened for GitHub runner IPv6/COMING_UP failures (pooler-first link + adaptive retries)
 - `PUBLIC_BOOKING_URL` set in Cloudflare runtime secrets for both production (`quomodo`) and preview (`quomodo-preview`) to `https://tidycal.com/3zrxrkx/15-minute-meeting`
 - RC branch `rc/launch-2026-03-03` cut from known-good SHA `f9d22ed` and deployed to production (`7ddf965b-27cd-49f5-954c-9e3da998fc2d`)
-- GitHub Actions now auto-deploys `quomodo` to Cloudflare Workers on push to `master` (`.github/workflows/deploy-cloudflare.yml`).
+- GitHub Actions deploy workflow added for `quomodo` on push to `master` (`.github/workflows/deploy-cloudflare.yml`); currently blocked until `CLOUDFLARE_API_TOKEN` is added in GitHub repo secrets.
 
 ### Verified technical baseline
 
@@ -79,7 +79,8 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
 - [x] **M-06** Post-deploy verification on production:
   - smoke + onboarding scripts pass.
 - [x] **M-07** Confirm production DB schema-cleanup migration status (if uncertain, run verification queries before launch demos/sales calls).
-- [x] **M-17** Restore push-triggered Cloudflare production deploy from `master` (GitHub Actions + `wrangler deploy`).
+- [ ] **M-17** Restore push-triggered Cloudflare production deploy from `master` (GitHub Actions + `wrangler deploy`).
+  - Workflow is in place; add GitHub secret `CLOUDFLARE_API_TOKEN` to unblock deploy step.
 
 ## P1 — Demo / Conversion Critical
 
