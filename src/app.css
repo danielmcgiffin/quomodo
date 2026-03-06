@@ -157,11 +157,11 @@ button[disabled].authBtn::before {
 
   --sc-radius-sm: 6px;
   --sc-radius-md: 8px;
-  --sc-radius-lg: 12px;
-  --sc-radius-xl: 14px;
+  --sc-radius-lg: 10px;
+  --sc-radius-xl: 12px;
   --sc-radius-full: 9999px;
 
-  --sc-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --sc-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
 
   --sc-font-base: 0.875rem;
   --sc-font-sm: 0.8125rem;
@@ -183,7 +183,7 @@ button[disabled].authBtn::before {
 
 .sc-shell {
   display: grid;
-  grid-template-columns: 264px minmax(0, 1fr);
+  grid-template-columns: 236px minmax(0, 1fr);
   min-height: 100vh;
 }
 
@@ -198,10 +198,10 @@ button[disabled].authBtn::before {
 
 .sc-sidebar-inner {
   height: 100%;
-  padding: 16px 14px;
+  padding: 14px 12px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .sc-sidebar-brand {
@@ -215,19 +215,19 @@ button[disabled].authBtn::before {
   width: 100%;
   align-items: center;
   justify-content: center;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: var(--sc-radius-full);
   background: #ffffff;
   color: var(--sc-green-dark);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  box-shadow: 0 10px 30px var(--sc-green-shadow);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
 }
 
 .sc-sidebar-brand-lockup {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   width: fit-content;
   margin-inline: auto;
 }
@@ -235,16 +235,16 @@ button[disabled].authBtn::before {
 .sc-sidebar-brand-logo {
   border-radius: 6px;
   display: block;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
   flex-shrink: 0;
 }
 
 .sc-sidebar-brand-wordmark {
   font-family: "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
-  font-size: 0.96rem;
-  font-weight: 800;
+  font-size: 0.9rem;
+  font-weight: 700;
   letter-spacing: 0.01em;
   line-height: 1;
 }
@@ -252,21 +252,21 @@ button[disabled].authBtn::before {
 .sc-sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .sc-sidebar-nav .sc-side-link {
-  min-height: 78px;
-  padding: 18px 16px;
+  min-height: 42px;
+  padding: 10px 12px;
 }
 
 .sc-sidebar-footer {
   margin-top: auto;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .sc-side-link {
@@ -274,30 +274,28 @@ button[disabled].authBtn::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  min-height: 52px;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  min-height: 38px;
   text-decoration: none;
   border: 1px solid transparent;
-  color: rgba(255, 255, 255, 0.92);
-  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
   transition:
     background 140ms ease,
-    border-color 140ms ease,
-    transform 140ms ease;
+    border-color 140ms ease;
 }
 
 .sc-side-link:hover,
 .sc-side-link:focus-visible {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.22);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .sc-side-link.is-active {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.24);
   color: #ffffff;
 }
 
@@ -310,12 +308,12 @@ button[disabled].authBtn::before {
 
 .sc-side-count {
   flex: 0 0 auto;
-  font-size: 12px;
-  font-weight: 800;
-  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
   border-radius: var(--sc-radius-full);
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #ffffff;
 }
 
@@ -327,13 +325,13 @@ button[disabled].authBtn::before {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: var(--sc-bg);
+  background: var(--sc-white);
   border-bottom: 1px solid var(--sc-border-light);
 }
 
 .sc-topbar-inner {
-  height: 64px;
-  padding: 10px 20px;
+  height: 56px;
+  padding: 8px 16px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0;
@@ -343,7 +341,7 @@ button[disabled].authBtn::before {
 .sc-topbar-search {
   min-width: 0;
   justify-self: center;
-  width: min(760px, 100%);
+  width: min(680px, 100%);
 }
 
 .sc-searchbar {
@@ -351,15 +349,15 @@ button[disabled].authBtn::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 10px 14px;
-  min-height: 44px;
+  gap: 10px;
+  padding: 7px 12px;
+  min-height: 36px;
   border-radius: var(--sc-radius-full);
   border: 1px solid var(--sc-border);
   background: var(--sc-white);
   color: var(--sc-text-muted);
-  font-weight: 700;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+  font-weight: 600;
+  box-shadow: none;
 }
 
 .sc-searchbar:hover {
@@ -367,7 +365,7 @@ button[disabled].authBtn::before {
 }
 
 .sc-searchbar:focus-visible {
-  outline: 3px solid var(--sc-green-shadow);
+  outline: 2px solid var(--sc-green-shadow);
   outline-offset: 2px;
 }
 
@@ -381,8 +379,8 @@ button[disabled].authBtn::before {
 .sc-searchbar-hint {
   flex: 0 0 auto;
   font-size: 12px;
-  font-weight: 800;
-  padding: 2px 8px;
+  font-weight: 600;
+  padding: 1px 7px;
   border-radius: var(--sc-radius-full);
   background: var(--sc-bg-inset);
   border: 1px solid var(--sc-border);
@@ -393,7 +391,7 @@ button[disabled].authBtn::before {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
 }
 
 .sc-topbar-workspace {
@@ -406,7 +404,7 @@ button[disabled].authBtn::before {
 }
 
 .sc-banner-shell {
-  padding: 12px 20px 0;
+  padding: 10px 16px 0;
 }
 
 .sc-banner-shell .sc-banner {
@@ -485,7 +483,7 @@ button[disabled].authBtn::before {
     top: 0;
     left: 0;
     bottom: 0;
-    width: 280px;
+    width: 260px;
     z-index: 100;
     transform: translateX(-100%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -607,11 +605,11 @@ button[disabled].authBtn::before {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: var(--sc-radius-full);
   color: var(--sc-text);
   border: 1px solid transparent;
-  min-height: 44px;
+  min-height: 36px;
   font-weight: 600;
 }
 
@@ -627,42 +625,42 @@ button[disabled].authBtn::before {
   gap: 8px;
   background: var(--sc-bg-inset);
   border: 1px solid var(--sc-border);
-  padding: 8px 12px;
+  padding: 7px 11px;
   border-radius: var(--sc-radius-md);
   color: var(--sc-text-muted);
-  min-height: 44px;
+  min-height: 36px;
   font-weight: 600;
 }
 
 .sc-page {
   max-width: 740px;
   margin: 0 auto;
-  padding: 24px 16px 80px;
+  padding: 20px 16px 64px;
 }
 
 .sc-page-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .sc-process-page {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 24px 16px 80px;
+  padding: 20px 16px 64px;
 }
 
 .sc-page-title {
-  font-size: var(--sc-font-2xl);
-  font-weight: 700;
-  margin-bottom: 6px;
+  font-size: 1.625rem;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
 .sc-page-subtitle {
   color: var(--sc-text-muted);
-  font-size: var(--sc-font-md);
+  font-size: var(--sc-font-sm);
 }
 
 .sc-process-layout {
@@ -670,6 +668,10 @@ button[disabled].authBtn::before {
   grid-template-columns: minmax(0, 1fr) 280px;
   gap: 36px;
   align-items: start;
+}
+
+.sc-process-layout--single {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .sc-process-main,
@@ -758,7 +760,7 @@ button[disabled].authBtn::before {
   border: 1px solid var(--sc-border);
   border-radius: var(--sc-radius-lg);
   box-shadow: var(--sc-shadow-card);
-  padding: 16px;
+  padding: 14px;
 }
 
 .sc-entity-card {
@@ -859,7 +861,7 @@ button[disabled].authBtn::before {
 }
 
 .sc-card+.sc-card {
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .sc-process-card {
@@ -982,9 +984,7 @@ button[disabled].authBtn::before {
 .sc-process-badge {
   display: inline-flex;
   position: relative;
-  transition:
-    transform 0.1s ease,
-    z-index 0.1s ease;
+  transition: z-index 0.1s ease;
 }
 
 /* Overlap subsequent badges */
@@ -994,7 +994,6 @@ button[disabled].authBtn::before {
 
 .sc-process-badge:hover {
   z-index: 10;
-  transform: translateY(-2px);
 }
 
 .sc-process-badge .sc-portal {
@@ -1035,12 +1034,14 @@ button[disabled].authBtn::before {
   flex-direction: column;
   padding: 12px;
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.05);
-  transition: transform 150ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
   min-height: 240px;
 }
 
 .sc-postit-card:hover {
-  transform: translateY(-2px);
+  border-color: var(--sc-green-border);
 }
 
 .sc-postit-header {
@@ -1168,17 +1169,17 @@ button[disabled].authBtn::before {
 .sc-card-interactive:hover,
 .sc-card-interactive.is-highlighted {
   border-color: var(--sc-green);
-  box-shadow: 0 0 0 1px rgba(41, 73, 57, 0.25);
+  box-shadow: none;
 }
 
 .sc-section {
-  margin-top: 24px;
+  margin-top: 20px;
 }
 
 .sc-section-title {
   font-size: var(--sc-font-xl);
-  font-weight: 700;
-  margin-bottom: 10px;
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
 .sc-meta {
@@ -1287,9 +1288,9 @@ button[disabled].authBtn::before {
   border: 1px solid var(--sc-green-border);
   background: var(--sc-green);
   color: #fff;
-  padding: 10px 14px;
-  font-weight: 700;
-  min-height: 44px;
+  padding: 8px 12px;
+  font-weight: 600;
+  min-height: 36px;
 }
 
 .sc-btn.secondary {

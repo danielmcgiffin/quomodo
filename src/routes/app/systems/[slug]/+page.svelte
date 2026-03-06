@@ -5,7 +5,7 @@
   import RichText from "$lib/components/RichText.svelte"
   import SystemDetailHeader from "$lib/components/SystemDetailHeader.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
-  import FlagSidebar from "$lib/components/FlagSidebar.svelte"
+  import type { DirectFlagBadgeData, RelatedFlagBadgeData } from "$lib/flags"
 
   type Props = {
     data: {
@@ -31,19 +31,16 @@
         processId: string
         sequence: number
         descriptionHtml: string
-        ownerRole: { slug: string; name: string; initials: string } | null
+        ownerRole: {
+          id: string
+          slug: string
+          name: string
+          initials: string
+        } | null
       }[]
-      rolesUsing: { slug: string; name: string; initials: string }[]
-      systemFlags: { id: string; flagType: string; message: string }[]
-      openFlags: {
-        id: string
-        flagType: string
-        createdAt: string
-        message: string
-        targetPath: string | null
-        system: { slug: string; name: string }
-      }[]
-      highlightedFlagId: string | null
+      rolesUsing: { id: string; slug: string; name: string; initials: string }[]
+      systemDirectFlagData: DirectFlagBadgeData
+      systemRelatedFlagData: RelatedFlagBadgeData
     }
     form?: {
       updateSystemError?: string
@@ -119,6 +116,8 @@
         allRoles={data.allRoles}
         canEdit={canManageSystem()}
         viewerRole={data.org.membershipRole}
+        directFlagData={data.systemDirectFlagData}
+        relatedFlagData={data.systemRelatedFlagData}
         createFlagError={form?.createFlagError}
         createFlagTargetType={form?.createFlagTargetType}
         createFlagTargetId={form?.createFlagTargetId}
@@ -223,37 +222,13 @@
           </div>
         </div>
       </div>
-
-      {#if data.systemFlags.length}
-        <div class="sc-section">
-          <div class="sc-section-title">What's Broken?</div>
-          {#each data.systemFlags as flag}
-            <div class="sc-card sc-card-flag">
-              <div class="sc-flag-banner">
-                <span aria-hidden="true">⚑</span>
-                {flag.flagType.replace("_", " ")}
-              </div>
-              <div class="sc-stack-top-10">{flag.message}</div>
-            </div>
-          {/each}
-        </div>
-      {/if}
     </div>
 
-    <aside class="sc-process-sidebar">
-      <FlagSidebar
-        title="Flags"
-        flags={data.openFlags.map((flag) => ({
-          id: flag.id,
-          href: `/app/systems/${flag.system.slug}?flagId=${flag.id}`,
-          flagType: flag.flagType ?? "flag",
-          createdAt: flag.createdAt,
-          message: flag.message,
-          context: flag.system.name,
-          targetPath: flag.targetPath ?? undefined,
-        }))}
-        highlightedFlagId={data.highlightedFlagId}
-      />
-    </aside>
   </div>
 </div>
+
+<style>
+  .sc-process-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+</style>

@@ -2,8 +2,10 @@
   import RichTextEditor from "$lib/components/RichTextEditor.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
   import CopyLinkButton from "$lib/components/CopyLinkButton.svelte"
+  import FlagBadgeModal from "$lib/components/FlagBadgeModal.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
   import { pendingEnhance } from "$lib/components/pending-enhance"
+  import type { DirectFlagBadgeData, RelatedFlagBadgeData } from "$lib/flags"
 
   type SidebarRole = {
     id: string
@@ -39,6 +41,8 @@
     allRoles: SidebarRole[]
     canEdit: boolean
     viewerRole: "owner" | "admin" | "editor" | "member"
+    directFlagData?: DirectFlagBadgeData
+    relatedFlagData?: RelatedFlagBadgeData
     createFlagError?: string
     createFlagTargetType?: string
     createFlagTargetId?: string
@@ -51,6 +55,8 @@
     allRoles,
     canEdit,
     viewerRole,
+    directFlagData = { count: 0, flags: [] },
+    relatedFlagData = { count: 0, groups: [] },
     createFlagError,
     createFlagTargetType,
     createFlagTargetId,
@@ -136,6 +142,22 @@
   <div class="flex flex-col">
     <div class="sc-process-title-row">
       <div class="sc-page-title">{process.name}</div>
+      <FlagBadgeModal
+        kind="direct"
+        label={`${process.name} direct flags`}
+        data={directFlagData}
+        {viewerRole}
+        modalTitle={`${process.name} flags`}
+        modalDescription="Open flags attached directly to this process."
+      />
+      <FlagBadgeModal
+        kind="related"
+        label={`${process.name} related flags`}
+        data={relatedFlagData}
+        {viewerRole}
+        modalTitle={`${process.name} related flags`}
+        modalDescription="Open flags on linked roles and systems visible on this page."
+      />
       <CopyLinkButton
         variant="icon"
         href={`/app/processes/${process.slug}`}

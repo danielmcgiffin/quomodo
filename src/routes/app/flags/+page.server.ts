@@ -6,6 +6,7 @@ import {
   mapActionTargets,
   mapFlagsDashboard,
   mapFlagTargetOptions,
+  parseFlagsFilterParams,
   type FlagsActionRow,
   type FlagsProcessRow,
   type FlagsRoleRow,
@@ -13,9 +14,10 @@ import {
   type FlagsSystemRow,
 } from "$lib/server/app/mappers/flags"
 
-export const load = async ({ locals }) => {
+export const load = async ({ locals, url }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
+  const filters = parseFlagsFilterParams(url.searchParams)
   const failLoad = (contextName: string, error: unknown) =>
     throwRuntime500({
       context: contextName,
@@ -24,13 +26,24 @@ export const load = async ({ locals }) => {
       route: "/app/flags",
     })
 
-  const [
-    processesResult,
-    rolesResult,
-    systemsResult,
-    actionsResult,
-    flagsResult,
-  ] = await Promise.all([
+  const flagsQuery = supabase
+    .from("flags")
+    .select(
+      "id, target_type, target_id, target_path, flag_type, message, created_at, status",
+    )
+    .eq("org_id", context.orgId)
+    .eq("status", filters.status)
+    .order("created_at", { ascending: false })
+
+  if (filters.targetType) {
+    flagsQuery.eq("target_type", filters.targetType)
+  }
+  if (filters.targetId) {
+    flagsQuery.eq("target_id", filters.targetId)
+  }
+
+  const [processesResult, rolesResult, systemsResult, actionsResult, flagsResult] =
+    await Promise.all([
     supabase
       .from("processes")
       .select("id, slug, name")
@@ -51,13 +64,7 @@ export const load = async ({ locals }) => {
       .select("id, process_id, sequence")
       .eq("org_id", context.orgId)
       .order("sequence", { ascending: true }),
-    supabase
-      .from("flags")
-      .select(
-        "id, target_type, target_id, target_path, flag_type, message, created_at, status",
-      )
-      .eq("org_id", context.orgId)
-      .order("created_at", { ascending: false }),
+    flagsQuery,
   ])
 
   if (processesResult.error) {
@@ -106,6 +113,7 @@ export const load = async ({ locals }) => {
     viewerRole: context.membershipRole,
     flags,
     targetOptions,
+    filters,
   }
 }
 

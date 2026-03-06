@@ -4,9 +4,10 @@
   import RichText from "$lib/components/RichText.svelte"
   import RoleDetailHeader from "$lib/components/RoleDetailHeader.svelte"
   import CopyLinkButton from "$lib/components/CopyLinkButton.svelte"
+  import FlagBadgeModal from "$lib/components/FlagBadgeModal.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
-  import FlagSidebar from "$lib/components/FlagSidebar.svelte"
   import { getAvatarColor } from "$lib/colors"
+  import type { DirectFlagBadgeData, RelatedFlagBadgeData } from "$lib/flags"
 
   type Props = {
     data: {
@@ -20,25 +21,17 @@
       }
       org: { membershipRole: "owner" | "admin" | "editor" | "member" }
       actionsByProcess: {
-        process: { slug: string; name: string }
+        process: { id: string; slug: string; name: string }
         actions: {
           id: string
           sequence: number
           descriptionHtml: string
-          system: { slug: string; name: string } | null
+          system: { id: string; slug: string; name: string } | null
         }[]
       }[]
-      systemsAccessed: { slug: string; name: string }[]
-      roleFlags: { id: string; flagType: string; message: string }[]
-      openFlags: {
-        id: string
-        flagType: string
-        createdAt: string
-        message: string
-        targetPath: string | null
-        role: { slug: string; name: string }
-      }[]
-      highlightedFlagId: string | null
+      systemsAccessed: { id: string; slug: string; name: string }[]
+      roleDirectFlagData: DirectFlagBadgeData
+      actionsRelatedFlagData: RelatedFlagBadgeData
     }
     form?: {
       updateRoleError?: string
@@ -86,6 +79,14 @@
             <div class="min-w-0">
               <div class="sc-role-title-row">
                 <div class="sc-page-title">{data.role.name}</div>
+                <FlagBadgeModal
+                  kind="direct"
+                  label={`${data.role.name} direct flags`}
+                  data={data.roleDirectFlagData}
+                  viewerRole={data.org.membershipRole}
+                  modalTitle={`${data.role.name} flags`}
+                  modalDescription="Open flags attached directly to this role."
+                />
                 <div class="sc-role-title-icons">
                   <CopyLinkButton
                     variant="icon"
@@ -120,28 +121,40 @@
         role="tablist"
         aria-label="Role views"
       >
-        <button
-          class={`sc-tab ${activeTab === "actions" ? "is-active" : ""}`}
-          type="button"
-          role="tab"
-          aria-selected={activeTab === "actions"}
-          onclick={() => {
-            activeTab = "actions"
-          }}
-        >
-          Actions
-        </button>
-        <button
-          class={`sc-tab ${activeTab === "details" ? "is-active" : ""}`}
-          type="button"
-          role="tab"
-          aria-selected={activeTab === "details"}
-          onclick={() => {
-            activeTab = "details"
-          }}
-        >
-          Role Details
-        </button>
+        <div class="sc-tab-wrap">
+          <button
+            class={`sc-tab ${activeTab === "actions" ? "is-active" : ""}`}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "actions"}
+            onclick={() => {
+              activeTab = "actions"
+            }}
+          >
+            Actions
+          </button>
+          <FlagBadgeModal
+            kind="related"
+            label={`${data.role.name} related action flags`}
+            data={data.actionsRelatedFlagData}
+            viewerRole={data.org.membershipRole}
+            modalTitle={`${data.role.name} related flags`}
+            modalDescription="Open flags on the linked processes and systems visible in this tab."
+          />
+        </div>
+        <div class="sc-tab-wrap">
+          <button
+            class={`sc-tab ${activeTab === "details" ? "is-active" : ""}`}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "details"}
+            onclick={() => {
+              activeTab = "details"
+            }}
+          >
+            Role Details
+          </button>
+        </div>
       </div>
 
       {#if activeTab === "actions"}
@@ -222,21 +235,6 @@
               </div>
             </div>
           </div>
-
-          {#if data.roleFlags.length}
-            <div class="sc-section">
-              <div class="sc-section-title">What&apos;s Broken?</div>
-              {#each data.roleFlags as flag}
-                <div class="sc-card sc-card-flag">
-                  <div class="sc-flag-banner">
-                    <span aria-hidden="true">⚑</span>
-                    {flag.flagType.replace("_", " ")}
-                  </div>
-                  <div class="sc-stack-top-10">{flag.message}</div>
-                </div>
-              {/each}
-            </div>
-          {/if}
         </div>
       {/if}
     </div>
@@ -259,19 +257,6 @@
         {/if}
       </div>
 
-      <FlagSidebar
-        title="Flags"
-        flags={data.openFlags.map((flag) => ({
-          id: flag.id,
-          href: `/app/roles/${flag.role.slug}?flagId=${flag.id}`,
-          flagType: flag.flagType ?? "flag",
-          createdAt: flag.createdAt,
-          message: flag.message,
-          context: flag.role.name,
-          targetPath: flag.targetPath ?? undefined,
-        }))}
-        highlightedFlagId={data.highlightedFlagId}
-      />
     </aside>
   </div>
 </div>
@@ -279,6 +264,12 @@
 <style>
   .sc-role-detail-head {
     margin-bottom: 0;
+  }
+
+  .sc-tab-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .sc-role-title-wrap {

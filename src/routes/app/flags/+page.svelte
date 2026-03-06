@@ -8,6 +8,11 @@
       viewerRole: "owner" | "admin" | "editor" | "member"
       targetOptions: { value: string; label: string }[]
       flags: FlagsDashboardEntry[]
+      filters: {
+        status: "open" | "resolved" | "dismissed"
+        targetType: "process" | "role" | "system" | "action" | null
+        targetId: string | null
+      }
     }
     form?: { createFlagError?: string }
   }
@@ -27,6 +32,14 @@
       </div>
       <div class="sc-page-subtitle">
         Maintenance dashboard for rot across the atlas.
+      </div>
+      <div class="sc-page-subtitle">
+        Showing {data.filters.status}
+        {#if data.filters.targetType && data.filters.targetId}
+          flags for {data.filters.targetType}.
+        {:else}
+          flags across the atlas.
+        {/if}
       </div>
     </div>
 

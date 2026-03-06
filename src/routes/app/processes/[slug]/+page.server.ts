@@ -28,10 +28,15 @@ import {
   mapSystemPortals,
 } from "$lib/server/app/mappers/portals"
 import {
+  buildOpenFlagIndex,
+  getDirectFlagData,
+  getVisibleRelatedFlags,
+  type OpenFlagIndexRow,
+  type VisibleFlagTarget,
+} from "$lib/server/app/mappers/flag-index"
+import {
   mapProcessDetailActions,
-  mapProcessDetailFlags,
   type ProcessDetailActionRow,
-  type ProcessDetailFlagRow,
 } from "$lib/server/app/mappers/processes"
 
 type ProcessRow = {
@@ -79,35 +84,26 @@ export const load = async ({ params, locals, url }) => {
   }
   const processRow = process as ProcessRow
 
-  const [actionsResult, rolesResult, systemsResult, flagsResult] =
-    await Promise.all([
-      supabase
-        .from("actions")
-        .select(
-          "id, process_id, sequence, title, description_rich, owner_role_id, system_id",
-        )
-        .eq("org_id", context.orgId)
-        .eq("process_id", process.id)
-        .order("sequence"),
-      supabase
-        .from("roles")
-        .select("id, slug, name")
-        .eq("org_id", context.orgId)
-        .order("name"),
-      supabase
-        .from("systems")
-        .select("id, slug, name, logo_url")
-        .eq("org_id", context.orgId)
-        .order("name"),
-      supabase
-        .from("flags")
-        .select("id, flag_type, message, created_at")
-        .eq("org_id", context.orgId)
-        .eq("target_type", "process")
-        .eq("target_id", processRow.id)
-        .eq("status", "open")
-        .order("created_at", { ascending: false }),
-    ])
+  const [actionsResult, rolesResult, systemsResult] = await Promise.all([
+    supabase
+      .from("actions")
+      .select(
+        "id, process_id, sequence, title, description_rich, owner_role_id, system_id",
+      )
+      .eq("org_id", context.orgId)
+      .eq("process_id", process.id)
+      .order("sequence"),
+    supabase
+      .from("roles")
+      .select("id, slug, name")
+      .eq("org_id", context.orgId)
+      .order("name"),
+    supabase
+      .from("systems")
+      .select("id, slug, name, logo_url")
+      .eq("org_id", context.orgId)
+      .order("name"),
+  ])
 
   if (actionsResult.error) {
     failLoad("app.processes.detail.load.actions", actionsResult.error)
@@ -118,10 +114,6 @@ export const load = async ({ params, locals, url }) => {
   if (systemsResult.error) {
     failLoad("app.processes.detail.load.systems", systemsResult.error)
   }
-  if (flagsResult.error) {
-    failLoad("app.processes.detail.load.flags", flagsResult.error)
-  }
-
   const roles = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
   const systems = mapSystemPortals(
     (systemsResult.data ?? []) as unknown as SystemRow[],
@@ -143,7 +135,7 @@ export const load = async ({ params, locals, url }) => {
   const actionDescriptionRichById = new Map(
     actionRows.map((row) => [row.id, richToJsonString(row.description_rich)]),
   )
-  const actions = mapProcessDetailActions({
+  const mappedActions = mapProcessDetailActions({
     rows: actionRows,
     roleById,
     systemById,
@@ -155,6 +147,57 @@ export const load = async ({ params, locals, url }) => {
         actionDescriptionRichById.get(action.id) ?? richToJsonString(null),
     }
   })
+
+  const flagsResult = await supabase
+    .from("flags")
+    .select(
+      "id, target_type, target_id, target_path, flag_type, message, created_at",
+    )
+    .eq("org_id", context.orgId)
+    .in("target_type", ["process", "action", "role", "system"])
+    .eq("status", "open")
+    .order("created_at", { ascending: false })
+
+  if (flagsResult.error) {
+    failLoad("app.processes.detail.load.flags", flagsResult.error)
+  }
+
+  const visibleRoleTargets: VisibleFlagTarget[] = []
+  const visibleSystemTargets: VisibleFlagTarget[] = []
+
+  for (const action of mappedActions) {
+    if (action.ownerRole) {
+      visibleRoleTargets.push({
+        targetType: "role",
+        targetId: action.ownerRole.id,
+        label: action.ownerRole.name,
+      })
+    }
+    if (action.system) {
+      visibleSystemTargets.push({
+        targetType: "system",
+        targetId: action.system.id,
+        label: action.system.name,
+      })
+    }
+  }
+
+  const visibleFlagIds = new Set([
+    processRow.id,
+    ...actionRows.map((action) => action.id),
+    ...visibleRoleTargets.map((target) => target.targetId),
+    ...visibleSystemTargets.map((target) => target.targetId),
+  ])
+  const openFlagIndex = buildOpenFlagIndex(
+    ((flagsResult.data ?? []) as OpenFlagIndexRow[]).filter((flag) =>
+      visibleFlagIds.has(flag.target_id),
+    ),
+  )
+
+  const actions = mappedActions.map((action) => ({
+    ...action,
+    directFlagData: getDirectFlagData(openFlagIndex, "action", action.id),
+  }))
 
   return {
     process: {
@@ -172,12 +215,17 @@ export const load = async ({ params, locals, url }) => {
     actions,
     allRoles: roles,
     allSystems: systems,
-    processFlags: mapProcessDetailFlags(
-      (flagsResult.data ?? []) as ProcessDetailFlagRow[],
+    processDirectFlagData: getDirectFlagData(
+      openFlagIndex,
+      "process",
+      processRow.id,
     ),
+    processRelatedFlagData: getVisibleRelatedFlags(openFlagIndex, [
+      ...visibleRoleTargets,
+      ...visibleSystemTargets,
+    ]),
     viewerRole: context.membershipRole,
     highlightedActionId: url.searchParams.get("actionId") ?? null,
-    highlightedFlagId: url.searchParams.get("flagId") ?? null,
   }
 }
 
@@ -351,7 +399,19 @@ export const actions = {
         return failUpdate(400, "Action ids are required.")
       }
 
-      const actionIds = actionIdsRaw.split(",")
+      const actionIds = actionIdsRaw
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean)
+
+      if (actionIds.length === 0) {
+        return failUpdate(400, "Action ids are required.")
+      }
+
+      if (new Set(actionIds).size !== actionIds.length) {
+        return failUpdate(400, "Action ids must be unique.")
+      }
+
       const { data: process, error: processError } = await supabase
         .from("processes")
         .select("id")
@@ -361,6 +421,26 @@ export const actions = {
 
       if (processError || !process) {
         return failUpdate(404, "Process not found.")
+      }
+
+      const { data: processActions, error: processActionsError } = await supabase
+        .from("actions")
+        .select("id")
+        .eq("org_id", context.orgId)
+        .eq("process_id", process.id)
+
+      if (processActionsError) {
+        return failUpdate(400, processActionsError.message)
+      }
+
+      const expectedActionIds = (processActions ?? []).map((action) => action.id)
+      if (expectedActionIds.length !== actionIds.length) {
+        return failUpdate(400, "Action order payload is incomplete.")
+      }
+
+      const expectedActionIdSet = new Set(expectedActionIds)
+      if (actionIds.some((id) => !expectedActionIdSet.has(id))) {
+        return failUpdate(400, "Action order payload contains invalid actions.")
       }
 
       const orderedActions = actionIds.map((id, index) => ({

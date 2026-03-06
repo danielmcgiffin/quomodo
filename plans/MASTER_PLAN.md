@@ -1,7 +1,7 @@
 # SystemsCraft Master Plan
 
 Owner: Danny McGiffin  
-Last updated: 2026-03-03  
+Last updated: 2026-03-06  
 Status: Active — single source of truth
 Operation Glorious Eagle
 
@@ -81,7 +81,10 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
 
 ## P1 — Demo / Conversion Critical
 
-- [ ] **M-08** Flags dashboard refresh: centered main body + filterable grid.
+- [x] **M-08** Flags visibility + dashboard UX refresh.
+  - [x] **M-08a** Removed per-page flag sidebars and added inline primary-entity counts.
+  - [x] **M-08b** Add modal-first direct/related flag indicators + `/app/flags` filtering/deep-link support.
+  - Plan: `plans/FLAG_VISIBILITY_PASS_B_PLAN.md`
 - [ ] **M-09** Add logout button where missing in app UX flow.
 - [ ] **M-10** Build script to fetch/store system logos into local DB workflow.
 - [ ] **M-11** Complete full route screen audit (desktop + mobile + interactive checks).

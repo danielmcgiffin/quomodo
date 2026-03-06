@@ -3,6 +3,7 @@ import {
   mapActionTargets,
   mapFlagsDashboard,
   mapFlagTargetOptions,
+  parseFlagsFilterParams,
   type FlagsActionRow,
   type FlagsProcessRow,
   type FlagsRoleRow,
@@ -77,6 +78,42 @@ describe("flags mappers", () => {
       slug: "ops",
       name: "Operations",
       initials: "OP",
+    })
+  })
+
+  it("defaults flags filters to open and drops invalid target params", () => {
+    expect(parseFlagsFilterParams(new URLSearchParams())).toEqual({
+      status: "open",
+      targetType: null,
+      targetId: null,
+    })
+
+    expect(
+      parseFlagsFilterParams(
+        new URLSearchParams({
+          status: "dismissed",
+          targetType: "role",
+          targetId: "r1",
+        }),
+      ),
+    ).toEqual({
+      status: "dismissed",
+      targetType: "role",
+      targetId: "r1",
+    })
+
+    expect(
+      parseFlagsFilterParams(
+        new URLSearchParams({
+          status: "nope",
+          targetType: "bad",
+          targetId: "x",
+        }),
+      ),
+    ).toEqual({
+      status: "open",
+      targetType: null,
+      targetId: null,
     })
   })
 })

@@ -7,6 +7,8 @@
   import RolePortal from "$lib/components/RolePortal.svelte"
   import SystemPortal from "$lib/components/SystemPortal.svelte"
   import CopyLinkButton from "$lib/components/CopyLinkButton.svelte"
+  import FlagBadgeModal from "$lib/components/FlagBadgeModal.svelte"
+  import type { DirectFlagBadgeData } from "$lib/flags"
 
   type Role = {
     id: string
@@ -27,6 +29,7 @@
     descriptionHtml: string
     ownerRole: Role | null
     system: System | null
+    directFlagData: DirectFlagBadgeData
   }
 
   type ActionDraftSnapshot = {
@@ -216,6 +219,14 @@
       <div class="font-bold text-lg sc-action-title-hit">
         {action.title || `Action ${action.sequence}`}
       </div>
+      <FlagBadgeModal
+        kind="direct"
+        label={`${action.title || `Action ${action.sequence}`} flags`}
+        data={action.directFlagData}
+        {viewerRole}
+        modalTitle={`${action.title || `Action ${action.sequence}`} flags`}
+        modalDescription="Open flags attached directly to this action."
+      />
       <CopyLinkButton
         variant="icon"
         href={`/app/processes/${processSlug}#step-${action.sequence}`}

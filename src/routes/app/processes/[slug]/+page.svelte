@@ -1,10 +1,10 @@
 <script lang="ts">
-  import FlagSidebar from "$lib/components/FlagSidebar.svelte"
   import ProcessActionsPanel from "$lib/components/ProcessActionsPanel.svelte"
   import ProcessDetailHeader from "$lib/components/ProcessDetailHeader.svelte"
   import ProcessOverviewCard from "$lib/components/ProcessOverviewCard.svelte"
   import RolePortal from "$lib/components/RolePortal.svelte"
   import SystemPortal from "$lib/components/SystemPortal.svelte"
+  import type { DirectFlagBadgeData, RelatedFlagBadgeData } from "$lib/flags"
 
   type SidebarRole = {
     id: string
@@ -26,6 +26,7 @@
     descriptionHtml: string
     ownerRole: SidebarRole | null
     system: SidebarSystem | null
+    directFlagData: DirectFlagBadgeData
   }
   type ProcessForm = {
     updateProcessError?: string
@@ -69,15 +70,10 @@
     actions: ActionEntry[]
     allRoles: SidebarRole[]
     allSystems: SidebarSystem[]
-    processFlags: {
-      id: string
-      flagType: string
-      createdAt: string
-      message: string
-    }[]
+    processDirectFlagData: DirectFlagBadgeData
+    processRelatedFlagData: RelatedFlagBadgeData
     viewerRole: "owner" | "admin" | "editor" | "member"
     highlightedActionId: string | null
-    highlightedFlagId: string | null
   }
 
   let { data, form }: { data: ProcessData; form?: ProcessForm } = $props()
@@ -96,6 +92,7 @@
       .filter((system): system is SidebarSystem => Boolean(system))
     return Array.from(new Map(systems.map((s) => [s.id, s])).values())
   })
+
 </script>
 
 <div class="sc-process-page">
@@ -106,6 +103,8 @@
         allRoles={data.allRoles}
         canEdit={canEditProcess}
         viewerRole={data.viewerRole}
+        directFlagData={data.processDirectFlagData}
+        relatedFlagData={data.processRelatedFlagData}
         createFlagError={form?.createFlagError}
         createFlagTargetType={form?.createFlagTargetType}
         createFlagTargetId={form?.createFlagTargetId}
@@ -164,18 +163,6 @@
         </div>
       </div>
 
-      <FlagSidebar
-        title="Flags"
-        flags={data.processFlags.map((flag) => ({
-          id: flag.id,
-          href: `/app/processes/${data.process.slug}?flagId=${flag.id}`,
-          flagType: flag.flagType ?? "flag",
-          createdAt: flag.createdAt,
-          message: flag.message,
-          context: data.process.name,
-        }))}
-        highlightedFlagId={data.highlightedFlagId}
-      />
     </aside>
   </div>
 </div>

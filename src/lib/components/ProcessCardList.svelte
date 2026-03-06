@@ -3,6 +3,8 @@
   import RichText from "$lib/components/RichText.svelte"
   import RolePortal from "$lib/components/RolePortal.svelte"
   import SystemPortal from "$lib/components/SystemPortal.svelte"
+  import FlagBadgeModal from "$lib/components/FlagBadgeModal.svelte"
+  import type { DirectFlagBadgeData, RelatedFlagBadgeData } from "$lib/flags"
 
   type RoleBadge = { id: string; slug: string; name: string; initials: string }
   type SystemBadge = { id: string; slug: string; name: string }
@@ -13,6 +15,8 @@
     descriptionHtml: string
     roleBadges: RoleBadge[]
     systemBadges: SystemBadge[]
+    directFlagData: DirectFlagBadgeData
+    relatedFlagData: RelatedFlagBadgeData
   }
 
   let {
@@ -59,6 +63,22 @@
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="sc-process-card-actions" onclick={handleActionClick}>
+          <FlagBadgeModal
+            kind="direct"
+            label={`${process.name} direct flags`}
+            data={process.directFlagData}
+            {viewerRole}
+            modalTitle={`${process.name} flags`}
+            modalDescription="Open flags attached directly to this process."
+          />
+          <FlagBadgeModal
+            kind="related"
+            label={`${process.name} related flags`}
+            data={process.relatedFlagData}
+            {viewerRole}
+            modalTitle={`${process.name} related flags`}
+            modalDescription="Open flags on the visible role and system portals on this card."
+          />
           <InlineEntityFlagControl
             inline={true}
             action="?/createFlag"
@@ -80,7 +100,7 @@
         >
           <div class="sc-process-card-content">
             <div class="sc-process-card-info">
-              <div class="sc-section-title">
+              <div class="sc-section-title sc-process-card-title-row">
                 <span class="sc-portal sc-portal-process">{process.name}</span>
               </div>
               <div class="sc-page-subtitle">
@@ -143,6 +163,11 @@
     top: 10px;
     right: 10px;
     z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .sc-process-card-clickable-area {
@@ -160,5 +185,11 @@
   .sc-process-card-content {
     /* Layout handled in app.css but ensuring it works inside the link */
     width: 100%;
+  }
+
+  .sc-process-card-title-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
   }
 </style>

@@ -2,9 +2,10 @@
   import RichTextEditor from "$lib/components/RichTextEditor.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
   import { pendingEnhance } from "$lib/components/pending-enhance"
+  import FlagBadgeModal from "$lib/components/FlagBadgeModal.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
-  import FlagSidebar from "$lib/components/FlagSidebar.svelte"
   import { getAvatarColor } from "$lib/colors"
+  import type { DirectFlagBadgeData } from "$lib/flags"
 
   type RoleEntry = {
     id: string
@@ -14,18 +15,11 @@
     descriptionHtml: string
     processCount: number
     systemCount: number
+    directFlagData: DirectFlagBadgeData
   }
   type Props = {
     data: {
       roles: RoleEntry[]
-      openFlags: {
-        id: string
-        flagType: string
-        createdAt: string
-        message: string
-        targetPath: string | null
-        role: { slug: string; name: string }
-      }[]
       org: { membershipRole: "owner" | "admin" | "editor" | "member" }
     }
     form?: {
@@ -75,7 +69,7 @@
 </script>
 
 <div class="sc-process-page">
-  <div class="sc-process-layout">
+  <div class="sc-process-layout sc-process-layout--single">
     <div class="sc-process-main sc-rail-main">
       <div class="flex justify-between items-center gap-4 flex-wrap">
         <div class="flex flex-col">
@@ -141,19 +135,30 @@
 
       <div class="sc-section">
         {#each data.roles as role}
-          <div class="sc-card sc-entity-card sc-card-interactive">
-            <InlineEntityFlagControl
-              action="?/createFlag"
-              targetType="role"
-              targetId={role.id}
-              entityLabel={role.name}
-              viewerRole={data.org.membershipRole}
-              fieldTargets={roleFieldTargets}
-              errorMessage={form?.createFlagError}
-              errorTargetType={form?.createFlagTargetType}
-              errorTargetId={form?.createFlagTargetId}
-              errorTargetPath={form?.createFlagTargetPath}
-            />
+          <div class="sc-card sc-entity-card sc-card-interactive sc-role-card">
+            <div class="sc-role-card-actions">
+              <FlagBadgeModal
+                kind="direct"
+                label={`${role.name} direct flags`}
+                data={role.directFlagData}
+                viewerRole={data.org.membershipRole}
+                modalTitle={`${role.name} flags`}
+                modalDescription="Open flags attached directly to this role."
+              />
+              <InlineEntityFlagControl
+                inline={true}
+                action="?/createFlag"
+                targetType="role"
+                targetId={role.id}
+                entityLabel={role.name}
+                viewerRole={data.org.membershipRole}
+                fieldTargets={roleFieldTargets}
+                errorMessage={form?.createFlagError}
+                errorTargetType={form?.createFlagTargetType}
+                errorTargetId={form?.createFlagTargetId}
+                errorTargetPath={form?.createFlagTargetPath}
+              />
+            </div>
             <a
               href={`/app/roles/${role.slug}`}
               class="block"
@@ -180,20 +185,21 @@
       </div>
     </div>
 
-    <aside class="sc-process-sidebar">
-      <FlagSidebar
-        title="Flags"
-        flags={data.openFlags.map((flag) => ({
-          id: flag.id,
-          href: `/app/roles/${flag.role.slug}?flagId=${flag.id}`,
-          flagType: flag.flagType ?? "flag",
-          createdAt: flag.createdAt,
-          message: flag.message,
-          context: flag.role.name,
-          targetPath: flag.targetPath ?? undefined,
-        }))}
-        highlightedFlagId={null}
-      />
-    </aside>
   </div>
 </div>
+
+<style>
+  .sc-role-card {
+    position: relative;
+  }
+
+  .sc-role-card-actions {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+</style>

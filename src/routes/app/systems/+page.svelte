@@ -4,9 +4,10 @@
   import RichTextEditor from "$lib/components/RichTextEditor.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
   import InlineCreateRoleModal from "$lib/components/InlineCreateRoleModal.svelte"
+  import FlagBadgeModal from "$lib/components/FlagBadgeModal.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
-  import FlagSidebar from "$lib/components/FlagSidebar.svelte"
   import { pendingEnhance } from "$lib/components/pending-enhance"
+  import type { DirectFlagBadgeData, RelatedFlagBadgeData } from "$lib/flags"
 
   type Props = {
     data: {
@@ -26,14 +27,8 @@
         } | null
         processCount: number
         roleCount: number
-      }[]
-      openFlags: {
-        id: string
-        flagType: string
-        createdAt: string
-        message: string
-        targetPath: string | null
-        system: { slug: string; name: string }
+        directFlagData: DirectFlagBadgeData
+        relatedFlagData: RelatedFlagBadgeData
       }[]
     }
     form?: {
@@ -281,8 +276,24 @@
 
             <div class="block">
               <div class="sc-byline relative pointer-events-none">
-                <div class="relative z-10 pointer-events-auto">
+                <div class="relative z-10 pointer-events-auto sc-system-card-heading">
                   <SystemPortal {system} size="lg" />
+                  <FlagBadgeModal
+                    kind="direct"
+                    label={`${system.name} direct flags`}
+                    data={system.directFlagData}
+                    viewerRole={data.org.membershipRole}
+                    modalTitle={`${system.name} flags`}
+                    modalDescription="Open flags attached directly to this system."
+                  />
+                  <FlagBadgeModal
+                    kind="related"
+                    label={`${system.name} related flags`}
+                    data={system.relatedFlagData}
+                    viewerRole={data.org.membershipRole}
+                    modalTitle={`${system.name} related flags`}
+                    modalDescription="Open flags on visible linked entities on this card."
+                  />
                 </div>
                 {#if system.ownerRole}
                   <span>Owner</span>
@@ -303,20 +314,17 @@
       </div>
     </div>
 
-    <aside class="sc-process-sidebar">
-      <FlagSidebar
-        title="Flags"
-        flags={data.openFlags.map((flag) => ({
-          id: flag.id,
-          href: `/app/systems/${flag.system.slug}?flagId=${flag.id}`,
-          flagType: flag.flagType ?? "flag",
-          createdAt: flag.createdAt,
-          message: flag.message,
-          context: flag.system.name,
-          targetPath: flag.targetPath ?? undefined,
-        }))}
-        highlightedFlagId={null}
-      />
-    </aside>
   </div>
 </div>
+
+<style>
+  .sc-process-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sc-system-card-heading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+</style>

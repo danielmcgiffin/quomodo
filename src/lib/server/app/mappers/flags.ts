@@ -77,7 +77,39 @@ export type FlagsDashboardEntry =
       target: FlagActionTarget
     }
 
+export type FlagsFilterStatus = "open" | "resolved" | "dismissed"
+export type FlagsFilterParams = {
+  status: FlagsFilterStatus
+  targetType: FlagTargetType | null
+  targetId: string | null
+}
+
 const toTargetLabel = (type: string, name: string) => `${type}: ${name}`
+
+export const parseFlagsFilterParams = (
+  searchParams: URLSearchParams,
+): FlagsFilterParams => {
+  const rawStatus = searchParams.get("status")
+  const rawTargetType = searchParams.get("targetType")
+  const rawTargetId = searchParams.get("targetId")
+
+  const status: FlagsFilterStatus =
+    rawStatus === "resolved" || rawStatus === "dismissed" ? rawStatus : "open"
+  const targetType: FlagTargetType | null =
+    rawTargetType === "process" ||
+    rawTargetType === "role" ||
+    rawTargetType === "system" ||
+    rawTargetType === "action"
+      ? rawTargetType
+      : null
+  const targetId = rawTargetId?.trim() ? rawTargetId.trim() : null
+
+  return {
+    status,
+    targetType,
+    targetId: targetType ? targetId : null,
+  }
+}
 
 export const mapActionTargets = ({
   actionRows,

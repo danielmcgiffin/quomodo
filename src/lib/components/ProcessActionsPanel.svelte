@@ -2,6 +2,7 @@
   import InlineCreateRoleModal from "$lib/components/InlineCreateRoleModal.svelte"
   import InlineCreateSystemModal from "$lib/components/InlineCreateSystemModal.svelte"
   import ProcessActionsSection from "$lib/components/ProcessActionsSection.svelte"
+  import type { DirectFlagBadgeData } from "$lib/flags"
 
   type SidebarRole = {
     id: string
@@ -22,6 +23,7 @@
     descriptionHtml: string
     ownerRole: SidebarRole | null
     system: SidebarSystem | null
+    directFlagData: DirectFlagBadgeData
   }
 
   type ActionDraftSnapshot = {
