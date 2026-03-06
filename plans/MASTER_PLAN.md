@@ -42,6 +42,7 @@ Active supporting runbook (kept active):
 - E2E Supabase setup script hardened for GitHub runner IPv6/COMING_UP failures (pooler-first link + adaptive retries)
 - `PUBLIC_BOOKING_URL` set in Cloudflare runtime secrets for both production (`quomodo`) and preview (`quomodo-preview`) to `https://tidycal.com/3zrxrkx/15-minute-meeting`
 - RC branch `rc/launch-2026-03-03` cut from known-good SHA `f9d22ed` and deployed to production (`7ddf965b-27cd-49f5-954c-9e3da998fc2d`)
+- GitHub Actions now auto-deploys `quomodo` to Cloudflare Workers on push to `master` (`.github/workflows/deploy-cloudflare.yml`).
 
 ### Verified technical baseline
 
@@ -78,6 +79,7 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
 - [x] **M-06** Post-deploy verification on production:
   - smoke + onboarding scripts pass.
 - [x] **M-07** Confirm production DB schema-cleanup migration status (if uncertain, run verification queries before launch demos/sales calls).
+- [x] **M-17** Restore push-triggered Cloudflare production deploy from `master` (GitHub Actions + `wrangler deploy`).
 
 ## P1 — Demo / Conversion Critical
 
@@ -102,7 +104,7 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
 ## 5) Execution Order
 
 1. M-01 → M-04 (environment + E2E enforcement fully active)
-2. M-05 → M-07 (release candidate + deploy + production verification)
+2. M-05 → M-07 + M-17 (release candidate + deploy + production verification + deploy automation)
 3. M-08 → M-13 (demo/sales reliability improvements)
 4. M-14 → M-16 (cleanup backlog)
 
