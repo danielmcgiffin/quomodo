@@ -83,7 +83,8 @@
       <a
         class="mk-btn mk-btn-primary"
         href={withProxyPrefix(marketingSite.primaryCta.href)}
-        onclick={(event) => navigateInternal(event, marketingSite.primaryCta.href)}
+        onclick={(event) =>
+          navigateInternal(event, marketingSite.primaryCta.href)}
       >
         {marketingSite.primaryCta.label}
         <ArrowRight size={15} />
@@ -261,7 +262,9 @@
 </section>
 
 <section class="mk-cta-band">
-  <h2>Bring your messiest process. We&apos;ll engineer the operating system.</h2>
+  <h2>
+    Bring your messiest process. We&apos;ll engineer the operating system.
+  </h2>
   <p>
     SystemsCraft is intentionally boutique: deep operator collaboration,
     production-minded structure, and a practical path to AI leverage.
@@ -270,7 +273,8 @@
     <a
       class="mk-btn mk-btn-primary"
       href={withProxyPrefix(marketingSite.primaryCta.href)}
-      onclick={(event) => navigateInternal(event, marketingSite.primaryCta.href)}
+      onclick={(event) =>
+        navigateInternal(event, marketingSite.primaryCta.href)}
     >
       Start the build
       <Wrench size={15} />

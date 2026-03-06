@@ -57,16 +57,8 @@
       name="selected_owner_role_id"
       value={selectedOwnerRoleId}
     />
-    <input
-      type="hidden"
-      name="selected_system_id"
-      value={selectedSystemId}
-    />
-    <input
-      type="hidden"
-      name="editing_action_id"
-      value={editingActionId}
-    />
+    <input type="hidden" name="selected_system_id" value={selectedSystemId} />
+    <input type="hidden" name="editing_action_id" value={editingActionId} />
     <input
       type="hidden"
       name="action_sequence_draft"

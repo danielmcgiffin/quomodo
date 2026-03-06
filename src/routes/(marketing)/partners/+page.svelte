@@ -73,7 +73,9 @@
         <span class="mk-method-index">01</span>
         <span>
           <strong>Anchor on the highest-friction workflow</strong>
-          <small>Map one process end-to-end with explicit owners and systems.</small>
+          <small
+            >Map one process end-to-end with explicit owners and systems.</small
+          >
         </span>
       </div>
     </li>
@@ -82,7 +84,9 @@
         <span class="mk-method-index">02</span>
         <span>
           <strong>Expand through connected portals</strong>
-          <small>Traverse linked roles, systems, and dependencies to grow the atlas.</small>
+          <small
+            >Traverse linked roles, systems, and dependencies to grow the atlas.</small
+          >
         </span>
       </div>
     </li>
@@ -91,7 +95,10 @@
         <span class="mk-method-index">03</span>
         <span>
           <strong>Transfer maintainable operating control</strong>
-          <small>Leave a live system that teams can govern without consultant dependency.</small>
+          <small
+            >Leave a live system that teams can govern without consultant
+            dependency.</small
+          >
         </span>
       </div>
     </li>

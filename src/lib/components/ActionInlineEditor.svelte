@@ -100,7 +100,8 @@
     selectedOwnerRoleId,
     selectedSystemId,
     editingActionId: action?.id ?? "",
-    actionSequenceDraft: insertAtSequence != null ? String(insertAtSequence) : "",
+    actionSequenceDraft:
+      insertAtSequence != null ? String(insertAtSequence) : "",
   })
 
   const handleRoleChange = (event: Event) => {
@@ -143,10 +144,14 @@
     {/if}
 
     {#if createActionError}
-      <div class="sc-form-error" style="margin-bottom: 8px;">{createActionError}</div>
+      <div class="sc-form-error" style="margin-bottom: 8px;">
+        {createActionError}
+      </div>
     {/if}
     {#if deleteActionError}
-      <div class="sc-form-error" style="margin-bottom: 8px;">{deleteActionError}</div>
+      <div class="sc-form-error" style="margin-bottom: 8px;">
+        {deleteActionError}
+      </div>
     {/if}
 
     <div class="sc-action-card-main">
@@ -217,7 +222,11 @@
         class="sc-inline-edit-bar-delete"
       >
         <input type="hidden" name="action_id" value={action?.id} />
-        <button class="sc-inline-edit-link danger" type="submit" data-loading-label="Deleting...">
+        <button
+          class="sc-inline-edit-link danger"
+          type="submit"
+          data-loading-label="Deleting..."
+        >
           Delete
         </button>
       </form>
@@ -226,7 +235,12 @@
     <button class="sc-inline-edit-link" type="button" onclick={onCancel}>
       Cancel
     </button>
-    <button class="sc-btn sc-btn-sm" type="submit" form="sc-save-action-form" data-loading-label="Saving...">
+    <button
+      class="sc-btn sc-btn-sm"
+      type="submit"
+      form="sc-save-action-form"
+      data-loading-label="Saving..."
+    >
       {isEditMode ? "Save" : "Create"}
     </button>
   </div>
@@ -293,7 +307,8 @@
     padding: 2px 4px;
   }
 
-  .sc-inline-edit-description :global(.sc-rich-editor:focus-within .sc-rich-editor-toolbar) {
+  .sc-inline-edit-description
+    :global(.sc-rich-editor:focus-within .sc-rich-editor-toolbar) {
     opacity: 1;
   }
 

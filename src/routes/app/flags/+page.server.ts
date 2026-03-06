@@ -42,8 +42,13 @@ export const load = async ({ locals, url }) => {
     flagsQuery.eq("target_id", filters.targetId)
   }
 
-  const [processesResult, rolesResult, systemsResult, actionsResult, flagsResult] =
-    await Promise.all([
+  const [
+    processesResult,
+    rolesResult,
+    systemsResult,
+    actionsResult,
+    flagsResult,
+  ] = await Promise.all([
     supabase
       .from("processes")
       .select("id, slug, name")

@@ -71,7 +71,11 @@ export const load: LayoutServerLoad = async ({ locals, cookies }) => {
     countTable(supabase, "systems", context.orgId, locals.requestId),
     countTable(supabase, "flags", context.orgId, locals.requestId),
     getOrgBillingSnapshot(locals, context.orgId),
-    supabase.from("profiles").select("*").eq("id", context.userId).maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", context.userId)
+      .maybeSingle(),
     supabase
       .from("org_members")
       .select("org_id, role, accepted_at")

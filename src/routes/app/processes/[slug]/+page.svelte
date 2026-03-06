@@ -92,7 +92,6 @@
       .filter((system): system is SidebarSystem => Boolean(system))
     return Array.from(new Map(systems.map((s) => [s.id, s])).values())
   })
-
 </script>
 
 <div class="sc-process-page">
@@ -162,7 +161,6 @@
           </div>
         </div>
       </div>
-
     </aside>
   </div>
 </div>

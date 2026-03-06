@@ -25,7 +25,9 @@
     {#each methodSections as section, index}
       <li>
         <a class="mk-method-link" href={methodPath(section.slug)}>
-          <span class="mk-method-index">{String(index + 1).padStart(2, "0")}</span>
+          <span class="mk-method-index"
+            >{String(index + 1).padStart(2, "0")}</span
+          >
           <span>
             <strong>{section.title}</strong>
             <small>{section.summary}</small>

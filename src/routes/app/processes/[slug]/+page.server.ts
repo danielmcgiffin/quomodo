@@ -423,17 +423,20 @@ export const actions = {
         return failUpdate(404, "Process not found.")
       }
 
-      const { data: processActions, error: processActionsError } = await supabase
-        .from("actions")
-        .select("id")
-        .eq("org_id", context.orgId)
-        .eq("process_id", process.id)
+      const { data: processActions, error: processActionsError } =
+        await supabase
+          .from("actions")
+          .select("id")
+          .eq("org_id", context.orgId)
+          .eq("process_id", process.id)
 
       if (processActionsError) {
         return failUpdate(400, processActionsError.message)
       }
 
-      const expectedActionIds = (processActions ?? []).map((action) => action.id)
+      const expectedActionIds = (processActions ?? []).map(
+        (action) => action.id,
+      )
       if (expectedActionIds.length !== actionIds.length) {
         return failUpdate(400, "Action order payload is incomplete.")
       }
@@ -480,12 +483,8 @@ export const actions = {
       const selectedOwnerRoleId = String(
         formData.get("selected_owner_role_id") ?? "",
       )
-      const selectedSystemId = String(
-        formData.get("selected_system_id") ?? "",
-      )
-      const editingActionId = String(
-        formData.get("editing_action_id") ?? "",
-      )
+      const selectedSystemId = String(formData.get("selected_system_id") ?? "")
+      const editingActionId = String(formData.get("editing_action_id") ?? "")
       const actionSequenceDraft = String(
         formData.get("action_sequence_draft") ?? "",
       )
@@ -539,12 +538,8 @@ export const actions = {
       const selectedOwnerRoleId = String(
         formData.get("selected_owner_role_id") ?? "",
       )
-      const selectedSystemId = String(
-        formData.get("selected_system_id") ?? "",
-      )
-      const editingActionId = String(
-        formData.get("editing_action_id") ?? "",
-      )
+      const selectedSystemId = String(formData.get("selected_system_id") ?? "")
+      const editingActionId = String(formData.get("editing_action_id") ?? "")
       const actionSequenceDraft = String(
         formData.get("action_sequence_draft") ?? "",
       )

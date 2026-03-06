@@ -439,7 +439,10 @@ export const actions = {
       .is("revoked_at", null)
       .lte("expires_at", nowIso)
 
-    if (cleanupExpiredResult.error && cleanupExpiredResult.error.code !== "42501") {
+    if (
+      cleanupExpiredResult.error &&
+      cleanupExpiredResult.error.code !== "42501"
+    ) {
       throwRuntime500({
         context: "app.team.createInvite.cleanupExpired",
         error: cleanupExpiredResult.error,

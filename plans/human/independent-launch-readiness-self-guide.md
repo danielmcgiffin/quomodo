@@ -4,6 +4,7 @@ Owner: Danny
 Updated: 2026-03-02
 
 This guide covers the final three launch-prep items:
+
 1. Remove Cursus-branded external touchpoints.
 2. Enforce authenticated E2E in local + CI.
 3. Cut and deploy from a clean release candidate SHA.
@@ -24,6 +25,7 @@ Expected: no matches.
 ### Booking link source of truth
 
 `src/lib/marketing/site.ts` now uses:
+
 - `PUBLIC_BOOKING_URL` (if provided)
 - fallback: `/contact_us`
 
@@ -62,6 +64,7 @@ npm run test:e2e
 ```
 
 Notes:
+
 - Authenticated specs (`app-smoke`, `crud-happy-path`, `billing-gate`) now require creds and will fail fast if missing.
 - `marketing.spec.ts` remains your public-page smoke.
 

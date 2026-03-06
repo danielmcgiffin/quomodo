@@ -62,9 +62,9 @@
     pendingFlagId = null
 
     if (!response.ok) {
-      const payload = (await response.json().catch(() => null)) as
-        | { error?: string }
-        | null
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string
+      } | null
       submitError = payload?.error ?? "Unable to update flag."
       return
     }
@@ -148,7 +148,10 @@
             <section class="sc-flag-modal-group">
               <div class="sc-flag-modal-group-head">
                 {#if canModerate}
-                  <a class="sc-section-title sc-flag-modal-group-link" href={group.href}>
+                  <a
+                    class="sc-section-title sc-flag-modal-group-link"
+                    href={group.href}
+                  >
                     {group.label}
                   </a>
                 {:else}

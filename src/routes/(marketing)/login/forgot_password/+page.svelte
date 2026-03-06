@@ -34,5 +34,6 @@
   />
 {/if}
 <div class="mk-auth-link-row mt-4">
-  Remember your password? <a href={`${data.basePath}/login/sign_in`}>Sign in</a>.
+  Remember your password? <a href={`${data.basePath}/login/sign_in`}>Sign in</a
+  >.
 </div>

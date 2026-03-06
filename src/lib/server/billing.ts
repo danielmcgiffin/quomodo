@@ -245,7 +245,8 @@ export const getOrgBillingSnapshot = async (
       orgId,
       stripeCustomerId,
       planId: row?.plan_id ?? defaultPlanId,
-      billingState: (row?.billing_state as BillingState | undefined) ?? "active",
+      billingState:
+        (row?.billing_state as BillingState | undefined) ?? "active",
       isLapsed: row?.billing_state === "lapsed",
       hasEverPaid: row?.has_ever_paid ?? false,
       lastCheckedAt,

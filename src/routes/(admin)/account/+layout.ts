@@ -62,7 +62,8 @@ export const load = async ({ fetch, data, depends, url }) => {
 
   let amr = (data.amr ?? null) as AMREntry[] | null
   if (browser) {
-    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+    const { data: aal } =
+      await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
     amr = (aal?.currentAuthenticationMethods as AMREntry[] | null) ?? amr
   }
 

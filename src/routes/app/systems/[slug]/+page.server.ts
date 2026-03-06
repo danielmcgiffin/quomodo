@@ -185,8 +185,15 @@ export const load = async ({ params, locals }) => {
     actionsUsing,
     processesUsing,
     rolesUsing,
-    systemDirectFlagData: getDirectFlagData(openFlagIndex, "system", systemRow.id),
-    systemRelatedFlagData: getVisibleRelatedFlags(openFlagIndex, visibleTargets),
+    systemDirectFlagData: getDirectFlagData(
+      openFlagIndex,
+      "system",
+      systemRow.id,
+    ),
+    systemRelatedFlagData: getVisibleRelatedFlags(
+      openFlagIndex,
+      visibleTargets,
+    ),
   }
 }
 

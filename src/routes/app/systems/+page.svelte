@@ -276,7 +276,9 @@
 
             <div class="block">
               <div class="sc-byline relative pointer-events-none">
-                <div class="relative z-10 pointer-events-auto sc-system-card-heading">
+                <div
+                  class="relative z-10 pointer-events-auto sc-system-card-heading"
+                >
                   <SystemPortal {system} size="lg" />
                   <FlagBadgeModal
                     kind="direct"
@@ -313,7 +315,6 @@
         {/each}
       </div>
     </div>
-
   </div>
 </div>
 

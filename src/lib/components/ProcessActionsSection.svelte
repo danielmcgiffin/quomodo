@@ -102,7 +102,9 @@
   ]
 
   const visibleActionCount = $derived(actions.length)
-  const isEditing = $derived(editingActionId != null || insertingAtSequence != null)
+  const isEditing = $derived(
+    editingActionId != null || insertingAtSequence != null,
+  )
   const previewText = (html: string) =>
     html
       .replace(/<[^>]*>/g, " ")
@@ -355,7 +357,7 @@
       onfinalize={handleDndFinalize as any}
       class="sc-stack-top-8"
     >
-    <!-- eslint-enable @typescript-eslint/no-explicit-any -->
+      <!-- eslint-enable @typescript-eslint/no-explicit-any -->
       {#each items as action, index (action.id)}
         <div animate:flip={{ duration: flipDurationMs }}>
           {@render insertButton(index + 1)}
@@ -366,7 +368,7 @@
               style="scroll-margin-top: 96px;"
             >
               <ActionInlineEditor
-                action={action}
+                {action}
                 sequenceDisplay={index + 1}
                 {allRoles}
                 {allSystems}
@@ -402,7 +404,9 @@
   {/if}
 
   {#if insertingAtSequence != null}
-    <div class="sc-card sc-entity-card sc-action-card sc-action-card-editing sc-stack-top-8">
+    <div
+      class="sc-card sc-entity-card sc-action-card sc-action-card-editing sc-stack-top-8"
+    >
       <ActionInlineEditor
         insertAtSequence={insertingAtSequence}
         sequenceDisplay={insertingAtSequence}
@@ -495,7 +499,9 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
+    transition:
+      background 0.15s ease,
+      color 0.15s ease;
     padding: 0;
   }
 

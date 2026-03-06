@@ -5,10 +5,7 @@ const resolveProxyPrefix = (pathname: string) => {
   return match ? match[0] : ""
 }
 
-export const load: LayoutServerLoad = async ({
-  locals: { session },
-  url,
-}) => {
+export const load: LayoutServerLoad = async ({ locals: { session }, url }) => {
   const proxyPrefix = resolveProxyPrefix(url.pathname)
 
   return {

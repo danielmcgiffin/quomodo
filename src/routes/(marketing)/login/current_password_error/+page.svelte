@@ -18,7 +18,5 @@
 </p>
 <p class="mk-auth-link-row mt-4">
   If you have forgotten your password, you can
-  <a href={`${data.basePath}/login/forgot_password`}
-    >reset it here</a
-  >.
+  <a href={`${data.basePath}/login/forgot_password`}>reset it here</a>.
 </p>

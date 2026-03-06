@@ -7,9 +7,9 @@
   let isEurope = $state(false)
 
   try {
-    isEurope = Intl.DateTimeFormat().resolvedOptions().timeZone.startsWith(
-      "Europe/",
-    )
+    isEurope = Intl.DateTimeFormat()
+      .resolvedOptions()
+      .timeZone.startsWith("Europe/")
   } catch {
     isEurope = false
   }
@@ -19,7 +19,9 @@
   <div class="mk-auth-panel">
     {@render children?.()}
     {#if isEurope}
-      <p class="mk-auth-cookie-note">Cookie-based sessions are required for sign-in.</p>
+      <p class="mk-auth-cookie-note">
+        Cookie-based sessions are required for sign-in.
+      </p>
     {/if}
   </div>
 </section>

@@ -8,9 +8,10 @@ export const POST = async ({ locals, request }) => {
     return json({ error: "Insufficient permissions." }, { status: 403 })
   }
 
-  const payload = (await request.json().catch(() => null)) as
-    | { id?: string; action?: "resolve" | "dismiss" }
-    | null
+  const payload = (await request.json().catch(() => null)) as {
+    id?: string
+    action?: "resolve" | "dismiss"
+  } | null
 
   const id = String(payload?.id ?? "").trim()
   const action = payload?.action

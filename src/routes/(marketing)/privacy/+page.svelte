@@ -16,27 +16,27 @@
 <section class="mk-section mk-legal">
   <article>
     <p>
-      This Privacy Policy explains what information {WebsiteName} collects, how
-      we use it, and the choices you have regarding your data.
+      This Privacy Policy explains what information {WebsiteName} collects, how we
+      use it, and the choices you have regarding your data.
     </p>
 
     <h2>1. Information We Collect</h2>
     <ul>
       <li>
-        <strong>Account data:</strong> name, email address, company, and
-        profile settings.
+        <strong>Account data:</strong> name, email address, company, and profile
+        settings.
       </li>
       <li>
-        <strong>Operational content:</strong> data you submit, including roles,
-        processes, systems, and workflow notes.
+        <strong>Operational content:</strong> data you submit, including roles, processes,
+        systems, and workflow notes.
       </li>
       <li>
-        <strong>Usage and diagnostics:</strong> device/browser details, request
-        metadata, and product usage events.
+        <strong>Usage and diagnostics:</strong> device/browser details, request metadata,
+        and product usage events.
       </li>
       <li>
-        <strong>Billing data:</strong> subscription and payment status metadata
-        from payment providers.
+        <strong>Billing data:</strong> subscription and payment status metadata from
+        payment providers.
       </li>
     </ul>
 

@@ -81,18 +81,22 @@ This is the second pass after Pass A (sidebar removal + primary inline counts).
 Create a small server-side utility to avoid repeating target-count logic across loaders and to support modal payload construction.
 
 **Proposed file:**
+
 - `src/lib/server/app/mappers/flag-index.ts`
 
 **Core API:**
+
 - `buildOpenFlagIndex(rows)`
 - `getEntityFlagCount(index, targetType, targetId)`
 - `getEntityFlags(index, targetType, targetId)`
 - `getVisibleRelatedFlags(index, visibleTargets)`
 
 **Input row shape:**
+
 - `id`, `target_type`, `target_id`, `target_path`, `flag_type`, `message`, `created_at` (open flags only)
 
 **Notes:**
+
 - Count by entity key (`type:id`); preserve row collections for modal rendering.
 - Keep implementation pure (no DB calls inside utility).
 - Related collections must dedupe by flag ID.
@@ -105,15 +109,18 @@ Create a small server-side utility to avoid repeating target-count logic across 
 Add URL-driven filtering in flags dashboard.
 
 **Files:**
+
 - `src/routes/app/flags/+page.server.ts`
 - `src/routes/app/flags/+page.svelte`
 
 **Query params (proposed):**
+
 - `status=open|resolved|dismissed` (default: `open`)
 - `targetType=process|role|system|action`
 - `targetId=<uuid>`
 
 **Behavior:**
+
 - Server filters `flags` query from params.
 - UI reflects active filter state (header subtitle/chips).
 - Existing create/resolve/dismiss actions remain unchanged.
@@ -126,10 +133,12 @@ Add URL-driven filtering in flags dashboard.
 Add reusable direct/related badge components and modal components so existing inline indicators can be upgraded without duplicating interaction logic.
 
 **Files:**
+
 - `src/lib/components/*` as needed
 - `src/app.css`
 
 **Behavior:**
+
 - Direct badges open a direct-flags modal.
 - Related outlined badges open a separate related-flags modal.
 - Member modal is read-only.
@@ -143,6 +152,7 @@ Add reusable direct/related badge components and modal components so existing in
 Upgrade current inline indicators so they no longer act as passive counts.
 
 **Files (representative):**
+
 - `src/lib/components/ProcessDetailHeader.svelte`
 - `src/lib/components/ProcessActionsSection.svelte`
 - `src/lib/components/SystemDetailHeader.svelte`
@@ -152,6 +162,7 @@ Upgrade current inline indicators so they no longer act as passive counts.
 - `src/routes/app/systems/+page.svelte`
 
 **Notes:**
+
 - Process detail header direct badge becomes process-only.
 - Existing action direct badges remain action-only.
 
@@ -160,16 +171,19 @@ Upgrade current inline indicators so they no longer act as passive counts.
 ## Workstream E — Process detail related indicators
 
 **Files:**
+
 - `src/routes/app/processes/[slug]/+page.server.ts`
 - `src/routes/app/processes/[slug]/+page.svelte`
 
 **Targets on page:**
+
 - direct `process` flags in top solid badge,
 - direct `action` flags on action cards,
 - related visible `role` flags,
 - related visible `system` flags.
 
 **UI behavior:**
+
 - Top outlined related badge summarizes visible linked role + system flags.
 - Related modal excludes action flags because actions already have their own direct badges on this surface.
 
@@ -178,16 +192,19 @@ Upgrade current inline indicators so they no longer act as passive counts.
 ## Workstream F — Role detail related indicators
 
 **Files:**
+
 - `src/routes/app/roles/[slug]/+page.server.ts`
 - `src/routes/app/roles/[slug]/+page.svelte`
 - `src/lib/server/app/mappers/detail-relations.ts`
 
 **Targets on page:**
+
 - direct `role` flags in the title area,
 - related visible `process` flags in the `Actions` tab,
 - related visible `system` flags in the `Actions` tab.
 
 **UI behavior:**
+
 - Outlined related badge lives next to the `Actions` tab label, not in the page header.
 - No related badge on `Role Details` in this pass.
 
@@ -196,16 +213,19 @@ Upgrade current inline indicators so they no longer act as passive counts.
 ## Workstream G — System detail related indicators
 
 **Files:**
+
 - `src/routes/app/systems/[slug]/+page.server.ts`
 - `src/routes/app/systems/[slug]/+page.svelte`
 - `src/lib/server/app/mappers/detail-relations.ts`
 
 **Targets on page:**
+
 - direct `system` flags in top solid badge,
 - related visible `process` flags,
 - related visible `role` flags.
 
 **UI behavior:**
+
 - Top outlined related badge summarizes visible linked process + role flags.
 
 ---
@@ -213,10 +233,12 @@ Upgrade current inline indicators so they no longer act as passive counts.
 ## Workstream H — List-surface related indicators
 
 **Files:**
+
 - `src/lib/components/ProcessCardList.svelte`
 - list loaders/mappers as needed
 
 **Behavior:**
+
 - Process list cards may show a related outlined badge because they visibly render linked role/system portals.
 - Role/system list pages follow the current strict surface rule: only count visible linked entities rendered on the card/page today.
 - This intentionally allows process cards to have richer related orientation than role/system list cards for now.
@@ -226,10 +248,12 @@ Upgrade current inline indicators so they no longer act as passive counts.
 ## Workstream I — Visual consistency + interaction polish
 
 **Files:**
+
 - `src/app.css`
 - badge/modal components as needed
 
 **Rules:**
+
 - Reuse compact `sc-flag-indicator` token where possible.
 - Add a distinct outlined treatment for related badges.
 - Avoid adding dense/chunky secondary UI.

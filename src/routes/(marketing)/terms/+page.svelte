@@ -17,15 +17,15 @@
   <article>
     <p>
       These Terms of Service ("Terms") govern your access to and use of
-      {WebsiteName} products, websites, and related consulting services. By
-      using the service, you agree to these Terms.
+      {WebsiteName} products, websites, and related consulting services. By using
+      the service, you agree to these Terms.
     </p>
 
     <h2>1. Service Overview</h2>
     <p>
-      {WebsiteName} provides software and advisory services for operational
-      mapping, ownership alignment, and AI-readiness workflows. We may update
-      service features over time.
+      {WebsiteName} provides software and advisory services for operational mapping,
+      ownership alignment, and AI-readiness workflows. We may update service features
+      over time.
     </p>
 
     <h2>2. Accounts and Access</h2>
@@ -81,9 +81,9 @@
 
     <h2>9. Limitation of Liability</h2>
     <p>
-      To the fullest extent permitted by law, {WebsiteName} is not liable for
-      indirect, incidental, special, consequential, or punitive damages, or for
-      loss of profits, data, or goodwill.
+      To the fullest extent permitted by law, {WebsiteName} is not liable for indirect,
+      incidental, special, consequential, or punitive damages, or for loss of profits,
+      data, or goodwill.
     </p>
 
     <h2>10. Governing Law</h2>

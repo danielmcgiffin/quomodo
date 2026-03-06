@@ -53,7 +53,9 @@ const parsePid = (line) => {
 const commandForPid = (pid) => {
   const path = `/proc/${pid}/cmdline`
   if (!existsSync(path)) return ""
-  return readFileSync(path, "utf8").replace(/\u0000/g, " ").trim()
+  return readFileSync(path, "utf8")
+    .replace(/\u0000/g, " ")
+    .trim()
 }
 
 const waitForExit = async (pid, timeoutMs = 2000) => {
@@ -89,7 +91,9 @@ const tryClearStaleVite = async () => {
     process.exit(1)
   }
 
-  console.log(`Found stale Vite process on port ${port} (PID ${pid}), stopping it...`)
+  console.log(
+    `Found stale Vite process on port ${port} (PID ${pid}), stopping it...`,
+  )
   try {
     process.kill(pid, "SIGTERM")
   } catch {

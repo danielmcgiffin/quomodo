@@ -179,7 +179,10 @@ export const load = async ({ params, locals }) => {
     systemsAccessed,
     actionsByProcess,
     roleDirectFlagData: getDirectFlagData(openFlagIndex, "role", roleRow.id),
-    actionsRelatedFlagData: getVisibleRelatedFlags(openFlagIndex, visibleTargets),
+    actionsRelatedFlagData: getVisibleRelatedFlags(
+      openFlagIndex,
+      visibleTargets,
+    ),
     org: context,
   }
 }
