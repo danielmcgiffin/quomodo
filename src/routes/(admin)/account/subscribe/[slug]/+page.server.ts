@@ -2,6 +2,7 @@ import { env as privateEnv } from "$env/dynamic/private"
 import { error, redirect } from "@sveltejs/kit"
 import Stripe from "stripe"
 import { WebsiteBaseUrl } from "../../../../../config"
+import { marketingSite } from "$lib/marketing/site"
 import { ensureOrgContext } from "$lib/server/atlas"
 import {
   getOrCreateOrgCustomerId,
@@ -21,6 +22,18 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   if (params.slug === "free_plan") {
     // plan with no stripe_price_id. Redirect to account home
     redirect(303, "/account")
+  }
+
+  const allowedStripePriceIds = new Set(
+    marketingSite.pricing.plans
+      .map((plan) => plan.stripe_price_id)
+      .filter((priceId): priceId is string => Boolean(priceId)),
+  )
+
+  if (!allowedStripePriceIds.has(params.slug)) {
+    error(404, {
+      message: "Unknown billing plan.",
+    })
   }
 
   const context = await ensureOrgContext(locals)

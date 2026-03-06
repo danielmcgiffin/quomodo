@@ -18,6 +18,27 @@ type InviteLookupRow = {
   revoked_at: string | null
 }
 
+type MembershipRole = "owner" | "admin" | "editor" | "member"
+
+const rolePriority: Record<MembershipRole, number> = {
+  member: 0,
+  editor: 1,
+  admin: 2,
+  owner: 3,
+}
+
+const mergeMembershipRole = (
+  currentRole: MembershipRole | null,
+  invitedRole: InviteLookupRow["role"],
+): MembershipRole => {
+  if (!currentRole) {
+    return invitedRole
+  }
+  return rolePriority[currentRole] >= rolePriority[invitedRole]
+    ? currentRole
+    : invitedRole
+}
+
 const loadInviteByToken = async (
   locals: App.Locals,
   token: string,
@@ -174,14 +195,35 @@ export const actions = {
       })
     }
 
+    const existingMembershipResult = await locals.supabaseServiceRole
+      .from("org_members")
+      .select("role")
+      .eq("org_id", invite.org_id)
+      .eq("user_id", locals.user.id)
+      .maybeSingle()
+
+    if (existingMembershipResult.error) {
+      throwRuntime500({
+        context: "invite.accept.membershipLookup",
+        error: existingMembershipResult.error,
+        requestId: locals.requestId,
+        route: "/invite/[token]",
+        details: { inviteId: invite.id, orgId: invite.org_id },
+      })
+    }
+
     const acceptedAt = new Date().toISOString()
+    const mergedRole = mergeMembershipRole(
+      (existingMembershipResult.data?.role as MembershipRole | null) ?? null,
+      invite.role,
+    )
     const membershipResult = await locals.supabaseServiceRole
       .from("org_members")
       .upsert(
         {
           org_id: invite.org_id,
           user_id: locals.user.id,
-          role: invite.role,
+          role: mergedRole,
           accepted_at: acceptedAt,
         },
         { onConflict: "org_id,user_id" },

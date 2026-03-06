@@ -131,6 +131,8 @@ export type ProcessDetailActionRow = {
 
 export type ProcessDetailFlagRow = {
   id: string
+  target_type: "process" | "action"
+  target_id: string
   flag_type: string
   message: string
   created_at: string
@@ -160,6 +162,8 @@ export const mapProcessDetailActions = ({
 export const mapProcessDetailFlags = (rows: ProcessDetailFlagRow[]) =>
   rows.map((flag) => ({
     id: flag.id,
+    targetType: flag.target_type,
+    targetId: flag.target_id,
     flagType: flag.flag_type,
     message: flag.message,
     createdAt: new Date(flag.created_at).toLocaleString(),

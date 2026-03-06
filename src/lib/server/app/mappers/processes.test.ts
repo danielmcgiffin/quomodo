@@ -136,11 +136,15 @@ describe("process mappers", () => {
     const flags = mapProcessDetailFlags([
       {
         id: "f1",
+        target_type: "action",
+        target_id: "a1",
         flag_type: "question",
         message: "M",
         created_at: new Date("2026-02-14T00:00:00Z").toISOString(),
       },
     ])
+    expect(flags[0]!.targetType).toBe("action")
+    expect(flags[0]!.targetId).toBe("a1")
     expect(flags[0]!.flagType).toBe("question")
     expect(flags[0]!.message).toBe("M")
   })

@@ -104,12 +104,62 @@ const loadTeamMember = async (
   return (result.data ?? null) as TeamActionMemberRow | null
 }
 
+const loadAuthEmailsById = async ({
+  locals,
+  userIds,
+  orgId,
+}: {
+  locals: App.Locals
+  userIds: string[]
+  orgId: string
+}): Promise<Map<string, string>> => {
+  const emailById = new Map<string, string>()
+  if (userIds.length === 0) {
+    return emailById
+  }
+
+  const targetIds = new Set(userIds)
+  const perPage = 200
+  const maxPages = 20
+
+  for (let page = 1; page <= maxPages; page += 1) {
+    const usersResult = await locals.supabaseServiceRole.auth.admin.listUsers({
+      page,
+      perPage,
+    })
+
+    if (usersResult.error) {
+      throwRuntime500({
+        context: "app.team.load.authUsers",
+        error: usersResult.error,
+        requestId: locals.requestId,
+        route: TEAM_PAGE_PATH,
+        details: { orgId },
+      })
+    }
+
+    const users = usersResult.data?.users ?? []
+    for (const user of users) {
+      if (targetIds.has(user.id)) {
+        emailById.set(user.id, user.email ?? "")
+      }
+    }
+
+    if (emailById.size >= targetIds.size || users.length < perPage) {
+      break
+    }
+  }
+
+  return emailById
+}
+
 export const load = async ({ locals, url }) => {
   const context = await ensureOrgContext(locals)
   if (!canManageDirectory(context.membershipRole)) {
     throw kitError(403, "Insufficient permissions.")
   }
 
+  const nowIso = new Date().toISOString()
   const transferPromise =
     context.membershipRole === "owner"
       ? locals.supabase
@@ -119,6 +169,7 @@ export const load = async ({ locals, url }) => {
           )
           .eq("org_id", context.orgId)
           .eq("status", "pending")
+          .gt("expires_at", nowIso)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle()
@@ -185,14 +236,16 @@ export const load = async ({ locals, url }) => {
   const emailById = new Map<string, string>()
 
   if (userIds.length > 0) {
-    const [profilesResult, ...authUsersResults] = await Promise.all([
+    const [profilesResult, authEmailsById] = await Promise.all([
       locals.supabaseServiceRole
         .from("profiles")
         .select("id, full_name")
         .in("id", userIds),
-      ...userIds.map((id) =>
-        locals.supabaseServiceRole.auth.admin.getUserById(id),
-      ),
+      loadAuthEmailsById({
+        locals,
+        userIds,
+        orgId: context.orgId,
+      }),
     ])
 
     if (profilesResult.error) {
@@ -209,10 +262,8 @@ export const load = async ({ locals, url }) => {
       profileById.set(profile.id, profile)
     }
 
-    for (const res of authUsersResults) {
-      if (res.data.user) {
-        emailById.set(res.data.user.id, res.data.user.email ?? "")
-      }
+    for (const [id, email] of authEmailsById.entries()) {
+      emailById.set(id, email)
     }
   }
 
@@ -306,7 +357,7 @@ export const load = async ({ locals, url }) => {
           invitedByEmail ||
           `User ${invite.invited_by_user_id.slice(0, 8)}`,
         canRevoke:
-          status === "pending" &&
+          (status === "pending" || status === "expired") &&
           canManageMemberRole(context.membershipRole, invite.role),
       }
     }),
@@ -372,6 +423,29 @@ export const actions = {
       return fail(403, {
         createInviteError: "Insufficient permissions.",
         inviteEmailDraft: email,
+      })
+    }
+
+    const nowIso = new Date().toISOString()
+    const cleanupExpiredResult = await locals.supabase
+      .from("org_invites")
+      .update({
+        revoked_at: nowIso,
+        revoked_by_user_id: context.userId,
+      })
+      .eq("org_id", context.orgId)
+      .eq("email", email)
+      .is("accepted_at", null)
+      .is("revoked_at", null)
+      .lte("expires_at", nowIso)
+
+    if (cleanupExpiredResult.error && cleanupExpiredResult.error.code !== "42501") {
+      throwRuntime500({
+        context: "app.team.createInvite.cleanupExpired",
+        error: cleanupExpiredResult.error,
+        requestId: locals.requestId,
+        route: TEAM_PAGE_PATH,
+        details: { orgId: context.orgId, email },
       })
     }
 
@@ -497,6 +571,13 @@ export const actions = {
 
   removeMember: async ({ request, locals }) => {
     const context = await ensureOrgContext(locals)
+    const billing = await getOrgBillingSnapshot(locals, context.orgId)
+    if (billing.isLapsed) {
+      return fail(403, {
+        removeMemberError:
+          "Team changes are disabled while this workspace is in read-only mode (billing lapsed).",
+      })
+    }
     if (!canManageDirectory(context.membershipRole)) {
       return fail(403, { removeMemberError: "Insufficient permissions." })
     }
@@ -596,9 +677,9 @@ export const actions = {
       acceptedAt: invite.accepted_at,
       expiresAt: invite.expires_at,
     })
-    if (status !== "pending") {
+    if (status !== "pending" && status !== "expired") {
       return fail(400, {
-        revokeInviteError: "Only pending invites can be revoked.",
+        revokeInviteError: "Only pending or expired invites can be revoked.",
       })
     }
 

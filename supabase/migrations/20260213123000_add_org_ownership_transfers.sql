@@ -198,8 +198,7 @@ begin
     cancelled_at = v_now,
     cancelled_by_user_id = auth.uid()
   where org_id = p_org_id
-    and status = 'pending'
-    and expires_at > v_now;
+    and status = 'pending';
 end;
 $$;
 

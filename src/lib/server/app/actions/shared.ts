@@ -774,38 +774,19 @@ export const resequenceProcessActions = async ({
     return null
   }
 
-  const maxCurrentSequence = orderedActions.reduce(
-    (max, action) => Math.max(max, action.sequence),
-    0,
-  )
-  const stageBase = maxCurrentSequence + orderedActions.length + 50
-
-  for (const [index, action] of orderedActions.entries()) {
-    const stagedSequence = stageBase + index
-    const { error: stageError } = await supabase
-      .from("actions")
-      .update({ sequence: stagedSequence })
-      .eq("org_id", orgId)
-      .eq("process_id", processId)
-      .eq("id", action.id)
-
-    if (stageError) {
-      return stageError.message
-    }
+  const orderedActionIds = orderedActions.map((action) => action.id)
+  if (new Set(orderedActionIds).size !== orderedActionIds.length) {
+    return "Action ids must be unique."
   }
 
-  for (const [index, action] of orderedActions.entries()) {
-    const finalSequence = index + 1
-    const { error: finalError } = await supabase
-      .from("actions")
-      .update({ sequence: finalSequence })
-      .eq("org_id", orgId)
-      .eq("process_id", processId)
-      .eq("id", action.id)
+  const { error } = await supabase.rpc("sc_resequence_actions", {
+    p_org_id: orgId,
+    p_process_id: processId,
+    p_action_ids: orderedActionIds,
+  })
 
-    if (finalError) {
-      return finalError.message
-    }
+  if (error) {
+    return error.message
   }
 
   return null

@@ -68,5 +68,9 @@ insert into storage.buckets (id, name)
 create policy "Avatar images are publicly accessible." on storage.objects
   for select using (bucket_id = 'avatars');
 
-create policy "Anyone can upload an avatar." on storage.objects
-  for insert with check (bucket_id = 'avatars');
+create policy "Authenticated users can upload their own avatar." on storage.objects
+  for insert with check (
+    bucket_id = 'avatars'
+    and auth.uid() is not null
+    and owner = auth.uid()
+  );

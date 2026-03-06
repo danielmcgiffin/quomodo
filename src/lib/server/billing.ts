@@ -4,7 +4,7 @@ import Stripe from "stripe"
 import type { SupabaseClient, User } from "@supabase/supabase-js"
 import type { Database } from "../../DatabaseDefinitions"
 import { marketingSite } from "$lib/marketing/site"
-import { throwRuntime500 } from "$lib/server/runtime-errors"
+import { logRuntimeError, throwRuntime500 } from "$lib/server/runtime-errors"
 
 const pricingPlans = marketingSite.pricing.plans
 const defaultPlanId = marketingSite.defaultPlanId
@@ -230,49 +230,49 @@ export const getOrgBillingSnapshot = async (
     }
   }
 
-  const stripeSubscriptions = await stripe.subscriptions
-    .list({
+  const fallbackToCachedSnapshot = (
+    context: string,
+    error: unknown,
+  ): OrgBillingSnapshot => {
+    logRuntimeError({
+      context,
+      error,
+      requestId: locals.requestId,
+      details: { orgId, stripeCustomerId },
+    })
+
+    return {
+      orgId,
+      stripeCustomerId,
+      planId: row?.plan_id ?? defaultPlanId,
+      billingState: (row?.billing_state as BillingState | undefined) ?? "active",
+      isLapsed: row?.billing_state === "lapsed",
+      hasEverPaid: row?.has_ever_paid ?? false,
+      lastCheckedAt,
+    }
+  }
+
+  let stripeSubscriptions: Stripe.Response<Stripe.ApiList<Stripe.Subscription>>
+  try {
+    stripeSubscriptions = await stripe.subscriptions.list({
       customer: stripeCustomerId,
       limit: 100,
       status: "all",
     })
-    .catch((e) => {
-      return throwRuntime500({
-        context: "billing.stripe.subscriptionList",
-        error: e,
-        requestId: locals.requestId,
-        details: { orgId, stripeCustomerId },
-      })
-    })
+  } catch (e) {
+    return fallbackToCachedSnapshot("billing.stripe.subscriptionList", e)
+  }
 
-  let computed: ReturnType<typeof computeBillingSnapshotFromStripe> | undefined
+  let computedSnapshot: ReturnType<typeof computeBillingSnapshotFromStripe>
   try {
-    computed = computeBillingSnapshotFromStripe({
+    computedSnapshot = computeBillingSnapshotFromStripe({
       orgId,
       stripeCustomerId,
       stripeSubscriptions,
     })
   } catch (e) {
-    throwRuntime500({
-      context: "billing.stripe.subscriptionMap",
-      error: e,
-      requestId: locals.requestId,
-      details: { orgId, stripeCustomerId },
-    })
+    return fallbackToCachedSnapshot("billing.stripe.subscriptionMap", e)
   }
-
-  if (!computed) {
-    throwRuntime500({
-      context: "billing.stripe.subscriptionMap.unreachable",
-      error: new Error(
-        "Billing snapshot computation unexpectedly returned null.",
-      ),
-      requestId: locals.requestId,
-      details: { orgId, stripeCustomerId },
-    })
-  }
-
-  const computedSnapshot = computed!
 
   const nowIso = new Date().toISOString()
   const upsertResult = await supabaseServiceRole.from("org_billing").upsert(

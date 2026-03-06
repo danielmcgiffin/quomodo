@@ -64,22 +64,20 @@ export const load: LayoutServerLoad = async ({ locals, cookies }) => {
     billing,
     profileResult,
     membershipsResult,
+    authState,
   ] = await Promise.all([
     countTable(supabase, "processes", context.orgId, locals.requestId),
     countTable(supabase, "roles", context.orgId, locals.requestId),
     countTable(supabase, "systems", context.orgId, locals.requestId),
     countTable(supabase, "flags", context.orgId, locals.requestId),
     getOrgBillingSnapshot(locals, context.orgId),
-    supabase
-      .from("profiles")
-      .select("full_name")
-      .eq("id", context.userId)
-      .maybeSingle(),
+    supabase.from("profiles").select("*").eq("id", context.userId).maybeSingle(),
     supabase
       .from("org_members")
       .select("org_id, role, accepted_at")
       .eq("user_id", context.userId)
       .order("accepted_at", { ascending: false, nullsFirst: false }),
+    locals.safeGetSession(),
   ])
 
   if (profileResult.error) {
@@ -134,7 +132,9 @@ export const load: LayoutServerLoad = async ({ locals, cookies }) => {
 
   return {
     session: locals.session,
-    cookies: cookies.getAll(),
+    user: authState.user ?? locals.user,
+    amr: authState.amr,
+    profile: profileResult.data ?? null,
     org: {
       id: context.orgId,
       name: context.orgName,
