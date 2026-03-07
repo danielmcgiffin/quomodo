@@ -5,6 +5,15 @@
 - For marketing workstreams, reference `.reference/qstr-master/qstr-mrktng/*` before creating new pages/components.
 - If you complete or change scope or launch tasks, update `plans/MASTER_PLAN.md` in the same change.
 
+## Git Worktrees
+
+- All work happens in worktrees. Never commit directly to `main`.
+- Create: `git worktree add ../workbench/<type>/<slug> -b <type>/<slug>`
+- One worktree per task. No multiplexing.
+- Atomic commits, imperative mood messages.
+- After merge: `git worktree remove <path> && git branch -d <branch>`
+- Run `git worktree list` before starting; prune orphans.
+
 ## Behavioral Guidelines (Karpathy)
 
 Tradeoff: bias toward caution over speed. For trivial tasks, use judgment.
