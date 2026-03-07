@@ -29,7 +29,8 @@ Active supporting runbook (kept active):
 
 Active findings intake:
 
-- `plans/PRODUCT_FINDINGS.md` (ingested into P1 backlog tasks M-18 and M-19)
+- `plans/PRODUCT_FINDINGS.md` (ingested into backlog tasks M-18, M-19, and H-01..H-06)
+- Performance + correctness audit TODOs (2026-03-06) ingested as `TODO-01`..`TODO-10` in Section 4.
 
 ---
 
@@ -93,7 +94,9 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
   - [x] **M-08a** Removed per-page flag sidebars and added inline primary-entity counts.
   - [x] **M-08b** Add modal-first direct/related flag indicators + `/app/flags` filtering/deep-link support.
   - Plan: `plans/FLAG_VISIBILITY_PASS_B_PLAN.md`
-- [ ] **M-09** Add logout button where missing in app UX flow.
+- [ ] **M-09** Ensure logout UX and correctness in app flow.
+  - [ ] **M-09a** Add/logout button where missing in app UX flow.
+  - [ ] **M-09b** Fix sign-out correctness bug on `/account/sign_out` (maps to `TODO-10`).
 - [ ] **M-10** Build script to fetch/store system logos into local DB workflow.
 - [ ] **M-11** Complete full route screen audit (desktop + mobile + interactive checks).
 - [ ] **M-12** Implement production error reporting decision (Sentry vs admin-email strategy) and validate alert delivery.
@@ -104,12 +107,70 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
   - [ ] **M-18c** On "Resolve", show a short comment textbox and persist the note.
   - [ ] **M-18d** Place flag indicator icon next to item title after the link icon.
 - [ ] **M-19** Standardize all list pages so cards render in grid layouts.
+- [ ] **H-01** Fix inline editing to be seamless, like Notion.
+- [ ] **H-02** Figure out and fix why Process Details takes so long to load (primary audit hooks: `TODO-01`, `TODO-03`, `TODO-08`).
+- [ ] **H-03** Fix Process Details slide-in title monstrosity.
+- [ ] **H-04** Make app background match marketing-site background.
+- [ ] **H-05** Fix plural noun rendering for singular counts (e.g., `1 Systems`).
 
 ## P2 — Hygiene / Post-Launch Risk Reduction
 
 - [ ] **M-14** Decide whether to sanitize/remove Cursus references from `sample data.sql` (especially before external sharing).
 - [ ] **M-15** Gap-fill any remaining mapper/helper unit tests not covered by current suite.
 - [ ] **M-16** Run Svelte 5 compatibility warning audit and clean remaining warnings.
+- [ ] **H-06** Make sure shared UI is componentized/tokenized as much as possible.
+
+## Performance & Correctness TODOs (Plausible vs Correct audit)
+
+### Perf-P0 — Request Waterfall (first-load latency)
+
+- [ ] **TODO-01** Parallelize flags query in process detail loader.
+  - File: `src/routes/app/processes/[slug]/+page.server.ts`
+  - Move flags query into existing `Promise.all(...)` batch (it depends on `orgId`, not action/role/system results).
+  - Impact: removes one round-trip on process detail first load (~50-150ms).
+- [ ] **TODO-02** Parallelize `getUser()` and MFA AAL check in `safeGetSession`.
+  - File: `src/hooks.server.ts`
+  - Use `Promise.all([supabase.auth.getUser(), supabase.auth.mfa.getAuthenticatorAssuranceLevel()])` after session null-check.
+  - Impact: removes one round-trip on every authenticated request (~50-150ms).
+- [ ] **TODO-03** Collapse `ensureOrgContext` into a single query.
+  - File: `src/lib/server/atlas.ts`
+  - Replace sequential `org_members` + `orgs` fetch with join/RPC returning org membership + org name together.
+  - Impact: removes one round-trip on every authenticated request.
+- [ ] **TODO-04** Collapse layout workspace name lookup into membership query.
+  - Files: `src/routes/app/+layout.server.ts`, `src/routes/(admin)/account/+layout.server.ts`
+  - Join org name onto membership lookup (or reuse same RPC as TODO-03).
+  - Impact: removes one round-trip on layout loads.
+
+### Perf-P1 — Algorithmic fixes
+
+- [ ] **TODO-05** Use `sc_resequence_actions` RPC for action insertion.
+  - File: `src/lib/server/app/actions/shared.ts` (`createOrUpdateActionRecord`)
+  - Replace N sequential sequence-shift updates with one resequence RPC call.
+  - Impact: scales better for larger processes (20+ actions).
+- [ ] **TODO-06** Replace auth-user pagination with profile-based email lookup.
+  - File: `src/routes/app/team/+page.server.ts` (`loadAuthEmailsById`)
+  - Stop scanning all auth users; persist/query email on `profiles` (or a dedicated lookup table).
+  - Impact: eliminates O(total_users) pagination calls on team page.
+
+### Perf-P2 — Compound overhead
+
+- [ ] **TODO-07** Consolidate nav count queries into one RPC.
+  - Files: `src/routes/app/+layout.server.ts`, `src/routes/(admin)/account/+layout.server.ts`
+  - Add `sc_nav_counts(p_org_id uuid)` returning processes/roles/systems/flags counts in one call.
+  - Impact: 4 round-trips → 1.
+- [ ] **TODO-08** Scope open-flag fetching to relevant entity IDs.
+  - Files: process/role/system detail and list loaders using open-flag index builds.
+  - Filter in SQL using `.in('target_id', [...ids])` where possible; avoid org-wide open-flag payloads.
+  - Impact: reduces payload and memory overhead at higher flag volumes.
+- [ ] **TODO-09** Add `.limit()` (or count-only path) to unbounded list-page flag queries.
+  - Files: `src/routes/app/processes/+page.server.ts`, `src/routes/app/roles/+page.server.ts`, `src/routes/app/systems/+page.server.ts`
+  - Cap payload size or fetch only counts for badges until detail modal opens.
+  - Impact: caps worst-case payload growth.
+
+### Perf-P3 — Correctness
+
+- [ ] **TODO-10** Fix logout bug (cannot sign out), tracked under `M-09`.
+  - Likely focus: `src/routes/(admin)/account/sign_out/+page.svelte` + account layout client hydration handoff.
 
 ---
 
@@ -117,8 +178,11 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
 
 1. M-01 → M-04 (environment + E2E enforcement fully active)
 2. M-05 → M-07 + M-17 (release candidate + deploy + production verification + deploy automation)
-3. M-08 → M-13 + M-18 + M-19 (demo/sales reliability + UX follow-up)
-4. M-14 → M-16 (cleanup backlog)
+3. M-08 → M-13 + M-18 + M-19 + H-01 → H-05 (demo/sales reliability + UX follow-up)
+4. M-14 → M-16 + H-06 (cleanup backlog + component/token hardening)
+5. Performance/correctness lane (non-revenue-blocking, high leverage):
+   - First wave: TODO-10 → TODO-02 → TODO-01 → TODO-03
+   - Follow-up wave: TODO-04 → TODO-09 as capacity allows
 
 ---
 
@@ -148,13 +212,15 @@ SMOKE_BASE_URL=https://systemscraft.co npm run -s onboarding:deployed
 ### Junior with review
 
 - demo workspace preparation
-- flags dashboard UX/state refresh + PRODUCT_FINDINGS follow-up (M-18/M-19)
+- flags/dashboard UX follow-up + PRODUCT_FINDINGS tasks (M-18/M-19, H-01, H-03, H-04, H-05)
 - data-layer test gap fill
 
 ### Advanced ownership
 
 - production error-reporting strategy + implementation
-- broad Svelte compatibility sweeps across shared components
+- performance root-cause work on heavy routes (H-02, TODO-01..TODO-04, TODO-07..TODO-09)
+- algorithmic data-path refactors (`sc_resequence_actions`, auth-email lookup) (TODO-05, TODO-06)
+- broad Svelte compatibility sweeps across shared components + tokenization/componentization hardening (H-06)
 - cross-cutting infra/security-sensitive changes
 
 ---
