@@ -47,6 +47,28 @@ const EMAIL_TEMPLATES: Record<string, { text?: string; html?: string }> = {
 
 type TemplateProps = Record<string, string>
 
+export const getPreferredFromEmail = () => {
+  const fromAdmin = env.PRIVATE_FROM_ADMIN_EMAIL
+  const admin = env.PRIVATE_ADMIN_EMAIL
+
+  // If we have a specific from address, use it.
+  if (fromAdmin) return fromAdmin
+
+  // If admin email looks like a personal email (gmail, etc), don't use it as 'from'
+  // as it will likely fail Resend verification.
+  const isPersonal =
+    admin?.includes("@gmail.com") ||
+    admin?.includes("@outlook.com") ||
+    admin?.includes("@hotmail.com") ||
+    admin?.includes("@icloud.com") ||
+    admin?.includes("@yahoo.com")
+
+  if (admin && !isPersonal) return admin
+
+  // Default to a system-owned domain that matches the project config if possible.
+  return "no-reply@systemscraft.co"
+}
+
 const escapeHtml = (value: string): string =>
   value
     .replace(/&/g, "&amp;")
@@ -79,20 +101,34 @@ export const sendAdminEmail = async ({
     return
   }
 
+  if (!env.PRIVATE_RESEND_API_KEY) {
+    console.warn(
+      "PRIVATE_RESEND_API_KEY is not set. Admin email will not be sent:",
+      subject,
+    )
+    return
+  }
+
   try {
     const resend = new Resend(env.PRIVATE_RESEND_API_KEY)
+    const fromEmail = getPreferredFromEmail()
     const resp = await resend.emails.send({
-      from: env.PRIVATE_FROM_ADMIN_EMAIL || env.PRIVATE_ADMIN_EMAIL,
+      from: fromEmail,
       to: [env.PRIVATE_ADMIN_EMAIL],
       subject: "ADMIN_MAIL: " + subject,
       text: body,
     })
 
     if (resp.error) {
-      console.log("Failed to send admin email, error:", resp.error)
+      console.error("Resend API error (admin email):", {
+        error: resp.error,
+        from: fromEmail,
+        to: env.PRIVATE_ADMIN_EMAIL,
+        subject,
+      })
     }
   } catch (e) {
-    console.log("Failed to send admin email, error:", e)
+    console.error("Unexpected error in sendAdminEmail:", e)
   }
 }
 
@@ -174,13 +210,17 @@ export const sendTemplatedEmail = async ({
   template_properties: TemplateProps
 }) => {
   if (!env.PRIVATE_RESEND_API_KEY) {
-    // email not configured.  Emails are optional so no error is thrown
+    console.warn(
+      "PRIVATE_RESEND_API_KEY is not set. Email will not be sent:",
+      template_name,
+      to_emails,
+    )
     return
   }
 
   const template = EMAIL_TEMPLATES[template_name]
   if (!template) {
-    console.log("No template found for email:", template_name)
+    console.error("No template found for email:", template_name)
     return
   }
 
@@ -197,7 +237,7 @@ export const sendTemplatedEmail = async ({
   }
 
   if (!plaintextBody && !htmlBody) {
-    console.log(
+    console.error(
       "No email body: requires plaintextBody or htmlBody. Template: ",
       template_name,
     )
@@ -221,9 +261,15 @@ export const sendTemplatedEmail = async ({
     const resp = await resend.emails.send(email)
 
     if (resp.error) {
-      console.log("Failed to send email, error:", resp.error)
+      console.error("Resend API error:", {
+        error: resp.error,
+        from: from_email,
+        to: to_emails,
+        subject,
+        template: template_name,
+      })
     }
   } catch (e) {
-    console.log("Failed to send email, error:", e)
+    console.error("Unexpected error in sendTemplatedEmail:", e)
   }
 }

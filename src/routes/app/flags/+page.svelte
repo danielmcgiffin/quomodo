@@ -14,7 +14,12 @@
         targetId: string | null
       }
     }
-    form?: { createFlagError?: string }
+    form?: {
+      createFlagError?: string
+      resolveFlagError?: string
+      dismissFlagError?: string
+      deleteFlagError?: string
+    }
   }
 
   let { data, form }: Props = $props()
@@ -50,6 +55,14 @@
       />
     </div>
   </div>
+
+  {#if form?.resolveFlagError || form?.dismissFlagError || form?.deleteFlagError}
+    <div class="sc-card sc-stack-top-12 mb-6">
+      <div class="sc-form-error">
+        {form.resolveFlagError || form.dismissFlagError || form.deleteFlagError}
+      </div>
+    </div>
+  {/if}
 
   <FlagsCardList flags={data.flags} {canModerate} />
 </div>

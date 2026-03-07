@@ -1,11 +1,11 @@
 <script lang="ts">
-  import ProcessPortal from "$lib/components/ProcessPortal.svelte"
   import SystemPortal from "$lib/components/SystemPortal.svelte"
   import RichText from "$lib/components/RichText.svelte"
   import RoleDetailHeader from "$lib/components/RoleDetailHeader.svelte"
   import CopyLinkButton from "$lib/components/CopyLinkButton.svelte"
   import FlagBadgeModal from "$lib/components/FlagBadgeModal.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
+  import RoleProcessGraph from "$lib/components/RoleProcessGraph.svelte"
   import { getAvatarColor } from "$lib/colors"
   import type { DirectFlagBadgeData, RelatedFlagBadgeData } from "$lib/flags"
 
@@ -170,40 +170,12 @@
               </div>
             </div>
           {:else}
-            {#each data.actionsByProcess as entry}
-              <div
-                class="sc-card sc-role-process-card"
-                id={`process-${entry.process.slug}`}
-              >
-                <div class="sc-meta">
-                  <ProcessPortal process={entry.process} />
-                </div>
-
-                {#if entry.actions.length === 0}
-                  <div class="sc-stack-top-8 sc-muted-line">
-                    No direct actions recorded.
-                  </div>
-                {:else}
-                  <div class="sc-role-action-grid">
-                    {#each entry.actions as action}
-                      <article class="sc-card sc-role-action-card">
-                        <div class="sc-action-label">
-                          Action {action.sequence}
-                        </div>
-                        <div class="sc-stack-top-8">
-                          <RichText html={action.descriptionHtml} />
-                        </div>
-                        {#if action.system}
-                          <div class="sc-stack-top-8">
-                            <SystemPortal system={action.system} size="sm" />
-                          </div>
-                        {/if}
-                      </article>
-                    {/each}
-                  </div>
-                {/if}
-              </div>
-            {/each}
+            <div class="sc-card sc-stack-top-8">
+              <RoleProcessGraph
+                role={data.role}
+                actionsByProcess={data.actionsByProcess}
+              />
+            </div>
           {/if}
         </div>
       {:else}
@@ -299,23 +271,5 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-  }
-
-  .sc-role-process-card {
-    margin-top: 12px;
-  }
-
-  .sc-role-action-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 10px;
-    margin-top: 12px;
-  }
-
-  .sc-role-action-card {
-    margin-top: 0;
-    background: var(--sc-bg-inset);
-    border-color: var(--sc-border);
-    padding: 12px;
   }
 </style>
