@@ -405,6 +405,7 @@ export interface Database {
           org_id: string
           process_id: string
           sequence: number
+          title: string
           description_rich: Json
           owner_role_id: string
           system_id: string
@@ -416,6 +417,7 @@ export interface Database {
           org_id: string
           process_id: string
           sequence: number
+          title?: string
           description_rich?: Json
           owner_role_id: string
           system_id: string
@@ -427,6 +429,7 @@ export interface Database {
           org_id?: string
           process_id?: string
           sequence?: number
+          title?: string
           description_rich?: Json
           owner_role_id?: string
           system_id?: string
@@ -549,6 +552,14 @@ export interface Database {
           p_expires_at: string
         }
         Returns: string
+      }
+      sc_resequence_actions: {
+        Args: {
+          p_org_id: string
+          p_process_id: string
+          p_action_ids: string[]
+        }
+        Returns: undefined
       }
     }
     Enums: {

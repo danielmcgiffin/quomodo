@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { ThumbsUp } from "lucide-svelte"
+  import type { Snippet } from "svelte"
+
   type FlagSidebarItem = {
     id: string
     href: string
@@ -10,41 +13,32 @@
   }
 
   interface Props {
+    title?: string
     flags?: FlagSidebarItem[]
     highlightedFlagId?: string | null
+    flagContext?: Snippet<[{ flag: FlagSidebarItem }]>
   }
-  let { flags = [], highlightedFlagId = null }: Props = $props()
+
+  let {
+    title = "Flags",
+    flags = [],
+    highlightedFlagId = null,
+    flagContext,
+  }: Props = $props()
 </script>
 
 <section
   class={`sc-section sc-flags-sidebar ${flags.length === 0 ? "is-empty" : ""}`}
 >
+  <div
+    class="sc-section-title px-1 text-xs font-bold uppercase tracking-widest text-slate-500 mb-4"
+  >
+    {title}
+  </div>
   {#if flags.length === 0}
-    <div
-      class="sc-flags-sidebar-empty sc-flags-sidebar-placeholder"
-      aria-hidden="true"
-    >
+    <div class="sc-flags-sidebar-empty sc-flags-sidebar-placeholder">
       <div class="flex flex-col items-center justify-center gap-2 py-10">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1"
-          class="h-7 w-7"
-          aria-hidden="true"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M7.498 18.485A2.25 2.25 0 0 1 5.25 16.238V7.5A2.25 2.25 0 0 1 7.5 5.25h1.846a.75.75 0 0 0 .69-.462l.932-2.233A.75.75 0 0 1 11.659 2h1.091c.901 0 1.644.73 1.644 1.631v1.066c0 .348-.09.69-.26.99l-1.308 2.28h4.139c1.093 0 1.918.986 1.705 2.06l-1.069 5.35a2.25 2.25 0 0 1-2.207 1.81H7.498Z"
-          />
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M5.25 7.5H4.5A2.25 2.25 0 0 0 2.25 9.75v6a2.25 2.25 0 0 0 2.25 2.25h.75"
-          />
-        </svg>
+        <ThumbsUp class="h-7 w-7" stroke-width={1.5} aria-hidden="true" />
         <div class="text-sm font-semibold">All clear</div>
       </div>
     </div>
@@ -52,16 +46,17 @@
     {#each flags as flag (flag.id)}
       <a
         class={`sc-card sc-card-flag sc-flag-link ${flag.id === highlightedFlagId ? "is-highlighted" : ""}`}
+        id={`flag-${flag.id}`}
         href={flag.href}
       >
         <div class="sc-byline">
           <div class="sc-flag-banner">
-            ⚑
-            <slot name="flag-context" {flag}>
-              {#if flag.context}
-                <span class="sc-portal-name">{flag.context}</span>
-              {/if}
-            </slot>
+            <span aria-hidden="true">⚑</span>
+            {#if flagContext}
+              {@render flagContext({ flag })}
+            {:else if flag.context}
+              <span class="sc-portal-name">{flag.context}</span>
+            {/if}
           </div>
         </div>
         <div class="sc-copy-md">

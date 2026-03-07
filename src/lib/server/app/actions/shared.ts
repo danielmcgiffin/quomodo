@@ -728,6 +728,7 @@ export const createFlagForProcessDetail = async ({
 }
 
 export type ActionDraft = {
+  title: string
   description: string
   descriptionRich?: RichTextDocument
   descriptionRichRaw?: string
@@ -745,6 +746,7 @@ export const readActionDraft = (formData: FormData): ActionDraft => {
   })
 
   return {
+    title: String(formData.get("title") ?? "").trim(),
     description: descriptionDraft.text,
     descriptionRich: descriptionDraft.rich,
     descriptionRichRaw: descriptionDraft.richRaw,
@@ -755,7 +757,7 @@ export const readActionDraft = (formData: FormData): ActionDraft => {
   }
 }
 
-type ActionSequenceRow = { id: string; sequence: number }
+export type ActionSequenceRow = { id: string; sequence: number }
 
 export const resequenceProcessActions = async ({
   supabase,
@@ -772,38 +774,19 @@ export const resequenceProcessActions = async ({
     return null
   }
 
-  const maxCurrentSequence = orderedActions.reduce(
-    (max, action) => Math.max(max, action.sequence),
-    0,
-  )
-  const stageBase = maxCurrentSequence + orderedActions.length + 50
-
-  for (const [index, action] of orderedActions.entries()) {
-    const stagedSequence = stageBase + index
-    const { error: stageError } = await supabase
-      .from("actions")
-      .update({ sequence: stagedSequence })
-      .eq("org_id", orgId)
-      .eq("process_id", processId)
-      .eq("id", action.id)
-
-    if (stageError) {
-      return stageError.message
-    }
+  const orderedActionIds = orderedActions.map((action) => action.id)
+  if (new Set(orderedActionIds).size !== orderedActionIds.length) {
+    return "Action ids must be unique."
   }
 
-  for (const [index, action] of orderedActions.entries()) {
-    const finalSequence = index + 1
-    const { error: finalError } = await supabase
-      .from("actions")
-      .update({ sequence: finalSequence })
-      .eq("org_id", orgId)
-      .eq("process_id", processId)
-      .eq("id", action.id)
+  const { error } = await supabase.rpc("sc_resequence_actions", {
+    p_org_id: orgId,
+    p_process_id: processId,
+    p_action_ids: orderedActionIds,
+  })
 
-    if (finalError) {
-      return finalError.message
-    }
+  if (error) {
+    return error.message
   }
 
   return null
@@ -855,6 +838,7 @@ export const createOrUpdateActionRecord = async ({
     const { error: updateError } = await supabase
       .from("actions")
       .update({
+        title: draft.title,
         description_rich: draft.descriptionRich,
         owner_role_id: draft.ownerRoleId,
         system_id: draft.systemId,
@@ -880,12 +864,36 @@ export const createOrUpdateActionRecord = async ({
       .limit(1)
       .maybeSingle()
     sequence = (maxRow?.sequence ?? 0) + 1
+  } else {
+    // Shift existing actions at or above this sequence up by 1
+    const { data: toShift } = await supabase
+      .from("actions")
+      .select("id, sequence")
+      .eq("org_id", orgId)
+      .eq("process_id", process.id)
+      .gte("sequence", sequence)
+      .order("sequence", { ascending: false })
+
+    if (toShift && toShift.length > 0) {
+      for (const row of toShift) {
+        const { error: shiftError } = await supabase
+          .from("actions")
+          .update({ sequence: row.sequence + 1 })
+          .eq("org_id", orgId)
+          .eq("id", row.id)
+
+        if (shiftError) {
+          return { ok: false, status: 400, message: shiftError.message }
+        }
+      }
+    }
   }
 
   const { error } = await supabase.from("actions").insert({
     org_id: orgId,
     process_id: process.id,
     sequence,
+    title: draft.title,
     description_rich: draft.descriptionRich,
     owner_role_id: draft.ownerRoleId,
     system_id: draft.systemId,

@@ -69,9 +69,22 @@ export const getPreferredFromEmail = () => {
   return "no-reply@systemscraft.co"
 }
 
-const renderTemplate = (template: string, props: TemplateProps) =>
+const escapeHtml = (value: string): string =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+
+const renderTemplate = (
+  template: string,
+  props: TemplateProps,
+  { escapeHtmlEntities = false }: { escapeHtmlEntities?: boolean } = {},
+) =>
   template.replace(/\{\{\{?\s*([A-Za-z0-9_]+)\s*\}?\}\}/g, (_match, key) => {
-    return props[key] ?? ""
+    const value = props[key] ?? ""
+    return escapeHtmlEntities ? escapeHtml(value) : value
   })
 
 // Sends an email to the admin email address.
@@ -218,7 +231,9 @@ export const sendTemplatedEmail = async ({
 
   let htmlBody: string | undefined = undefined
   if (template.html) {
-    htmlBody = renderTemplate(template.html, template_properties)
+    htmlBody = renderTemplate(template.html, template_properties, {
+      escapeHtmlEntities: true,
+    })
   }
 
   if (!plaintextBody && !htmlBody) {

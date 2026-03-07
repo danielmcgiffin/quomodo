@@ -1,8 +1,8 @@
 <script lang="ts">
-  import ActionEditorModal from "$lib/components/ActionEditorModal.svelte"
   import InlineCreateRoleModal from "$lib/components/InlineCreateRoleModal.svelte"
   import InlineCreateSystemModal from "$lib/components/InlineCreateSystemModal.svelte"
   import ProcessActionsSection from "$lib/components/ProcessActionsSection.svelte"
+  import type { DirectFlagBadgeData } from "$lib/flags"
 
   type SidebarRole = {
     id: string
@@ -18,14 +18,28 @@
   type ActionEntry = {
     id: string
     sequence: number
+    title: string
     descriptionRich: string
     descriptionHtml: string
     ownerRole: SidebarRole | null
     system: SidebarSystem | null
+    directFlagData: DirectFlagBadgeData
+  }
+
+  type ActionDraftSnapshot = {
+    actionTitleDraft: string
+    actionDescriptionDraft: string
+    actionDescriptionRichDraft: string
+    selectedOwnerRoleId: string
+    selectedSystemId: string
+    editingActionId: string
+    actionSequenceDraft: string
   }
 
   type ProcessForm = {
+    createActionSuccess?: boolean
     createActionError?: string
+    deleteActionSuccess?: boolean
     deleteActionError?: string
     reorderActionError?: string
     createRoleError?: string
@@ -34,11 +48,13 @@
     createSystemSuccess?: boolean
     createdRoleId?: string
     createdSystemId?: string
+    actionTitleDraft?: string
     actionDescriptionDraft?: string
     actionDescriptionRichDraft?: string
     selectedOwnerRoleId?: string
     selectedSystemId?: string
     editingActionId?: string
+    actionSequenceDraft?: string
     createFlagError?: string
     createFlagTargetType?: string
     createFlagTargetId?: string
@@ -47,6 +63,7 @@
 
   type Props = {
     actions: ActionEntry[]
+    processSlug: string
     allRoles: SidebarRole[]
     allSystems: SidebarSystem[]
     viewerRole: "owner" | "admin" | "editor" | "member"
@@ -56,6 +73,7 @@
 
   let {
     actions,
+    processSlug,
     allRoles,
     allSystems,
     viewerRole,
@@ -63,152 +81,132 @@
     form,
   }: Props = $props()
 
-  const htmlToDraftText = (html: string): string =>
-    html
-      .replace(/<[^>]*>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
+  const emptyDraftSnapshot = (): ActionDraftSnapshot => ({
+    actionTitleDraft: "",
+    actionDescriptionDraft: "",
+    actionDescriptionRichDraft: "",
+    selectedOwnerRoleId: "",
+    selectedSystemId: "",
+    editingActionId: "",
+    actionSequenceDraft: "",
+  })
 
-  const uniqueById = <T extends { id: string }>(
-    items: (T | null | undefined)[],
-  ): T[] => {
-    const seen = new Set<string>()
-    const result: T[] = []
-    for (const item of items) {
-      if (!item || seen.has(item.id)) {
-        continue
-      }
-      seen.add(item.id)
-      result.push(item)
-    }
-    return result
-  }
-
-  const actionRoles = $derived.by(() =>
-    uniqueById(actions.map((action: ActionEntry) => action.ownerRole ?? null)),
-  )
-  const actionSystems = $derived.by(() =>
-    uniqueById(actions.map((action: ActionEntry) => action.system ?? null)),
-  )
-
-  let selectedActionRoleId = $state("")
-  let selectedActionSystemId = $state("")
-  const filteredActions = $derived.by(() =>
-    actions.filter((action: ActionEntry) => {
-      if (
-        selectedActionRoleId &&
-        action.ownerRole?.id !== selectedActionRoleId
-      ) {
-        return false
-      }
-      if (
-        selectedActionSystemId &&
-        action.system?.id !== selectedActionSystemId
-      ) {
-        return false
-      }
-      return true
-    }),
-  )
-
-  let isCreateActionModalOpen = $state(false)
   let isCreateRoleModalOpen = $state(false)
   let isCreateSystemModalOpen = $state(false)
-  let actionDescriptionDraft = $state("")
-  let actionDescriptionRichDraft = $state("")
-  let selectedOwnerRoleId = $state("")
-  let selectedSystemId = $state("")
-  let editingActionId = $state<string | null>(null)
+  let modalDraft = $state<ActionDraftSnapshot>(emptyDraftSnapshot())
   let actionToastMessage = $state("")
   let toastTimer: ReturnType<typeof setTimeout> | null = null
 
-  const isInteractiveTarget = (target: EventTarget | null): boolean =>
-    target instanceof Element &&
-    Boolean(
-      target.closest(
-        "a, button, input, textarea, select, label, [role='button']",
-      ),
-    )
+  // Inline editing state
+  let editingActionId = $state<string | null>(null)
+  let insertingAtSequence = $state<number | null>(null)
+  let restoredDraft = $state<ActionDraftSnapshot | null>(null)
+  let lastHandledForm: ProcessForm | undefined = undefined
 
-  const openCreateActionModal = () => {
+  const openEditor = (action: ActionEntry) => {
+    editingActionId = action.id
+    insertingAtSequence = null
+    restoredDraft = null
+  }
+
+  const openInsert = (sequence: number) => {
     editingActionId = null
-    actionDescriptionDraft = ""
-    actionDescriptionRichDraft = ""
-    selectedOwnerRoleId = form?.createdRoleId ?? ""
-    selectedSystemId = form?.createdSystemId ?? ""
-    isCreateActionModalOpen = true
+    insertingAtSequence = sequence
+    restoredDraft = null
   }
 
-  const openEditActionModal = (event: MouseEvent, action: ActionEntry) => {
-    if (isInteractiveTarget(event.target)) {
-      return
-    }
-    editingActionId = action.id
-    actionDescriptionDraft = htmlToDraftText(action.descriptionHtml)
-    actionDescriptionRichDraft = action.descriptionRich
-    selectedOwnerRoleId = action.ownerRole?.id ?? ""
-    selectedSystemId = action.system?.id ?? ""
-    isCreateActionModalOpen = true
+  const closeEditor = () => {
+    editingActionId = null
+    insertingAtSequence = null
+    restoredDraft = null
   }
 
-  const onActionCardKeydown = (event: KeyboardEvent, action: ActionEntry) => {
-    if (isInteractiveTarget(event.target)) {
-      return
-    }
-    if (event.key !== "Enter" && event.key !== " ") {
-      return
-    }
-    event.preventDefault()
-    editingActionId = action.id
-    actionDescriptionDraft = htmlToDraftText(action.descriptionHtml)
-    actionDescriptionRichDraft = action.descriptionRich
-    selectedOwnerRoleId = action.ownerRole?.id ?? ""
-    selectedSystemId = action.system?.id ?? ""
-    isCreateActionModalOpen = true
+  const openCreateRoleModal = (draft: ActionDraftSnapshot) => {
+    modalDraft = { ...draft }
+    isCreateRoleModalOpen = true
+  }
+
+  const openCreateSystemModal = (draft: ActionDraftSnapshot) => {
+    modalDraft = { ...draft }
+    isCreateSystemModalOpen = true
   }
 
   $effect(() => {
+    // Skip if we already handled this exact form result
+    if (form === lastHandledForm) return
+
+    // Handle createAction success
+    if (form?.createActionSuccess) {
+      closeEditor()
+      lastHandledForm = form
+      return
+    }
+
+    // Handle deleteAction success
+    if (form?.deleteActionSuccess) {
+      closeEditor()
+      lastHandledForm = form
+      return
+    }
+
+    // Restore draft state from modal roundtrips
+    if (typeof form?.actionTitleDraft === "string") {
+      modalDraft.actionTitleDraft = form.actionTitleDraft
+    }
     if (typeof form?.actionDescriptionDraft === "string") {
-      actionDescriptionDraft = form.actionDescriptionDraft
+      modalDraft.actionDescriptionDraft = form.actionDescriptionDraft
     }
     if (typeof form?.actionDescriptionRichDraft === "string") {
-      actionDescriptionRichDraft = form.actionDescriptionRichDraft
+      modalDraft.actionDescriptionRichDraft = form.actionDescriptionRichDraft
     }
     if (typeof form?.selectedOwnerRoleId === "string") {
-      selectedOwnerRoleId = form.selectedOwnerRoleId
+      modalDraft.selectedOwnerRoleId = form.selectedOwnerRoleId
     }
     if (typeof form?.selectedSystemId === "string") {
-      selectedSystemId = form.selectedSystemId
+      modalDraft.selectedSystemId = form.selectedSystemId
     }
     if (typeof form?.editingActionId === "string") {
-      editingActionId = form.editingActionId || null
+      modalDraft.editingActionId = form.editingActionId
     }
-    if (
-      form?.createActionError ||
-      form?.deleteActionError ||
-      form?.createRoleError ||
-      form?.createRoleSuccess ||
-      form?.createSystemError ||
-      form?.createSystemSuccess
-    ) {
-      isCreateActionModalOpen = true
+    if (typeof form?.actionSequenceDraft === "string") {
+      modalDraft.actionSequenceDraft = form.actionSequenceDraft
     }
+
     if (form?.createRoleError) {
       isCreateRoleModalOpen = true
     }
     if (form?.createSystemError) {
       isCreateSystemModalOpen = true
     }
-    if (form?.createRoleSuccess && form?.createdRoleId) {
-      selectedOwnerRoleId = form.createdRoleId
-    }
-    if (form?.createSystemSuccess && form?.createdSystemId) {
-      selectedSystemId = form.createdSystemId
-    }
-    if (form?.createRoleSuccess) {
-      actionToastMessage = "Role created. It is preselected above."
-    } else if (form?.createSystemSuccess) {
-      actionToastMessage = "System created. It is preselected above."
+
+    if (form?.createRoleSuccess || form?.createSystemSuccess) {
+      // Restore inline editor state from echoed form fields
+      const restored: ActionDraftSnapshot = {
+        actionTitleDraft: form?.actionTitleDraft ?? "",
+        actionDescriptionDraft: form?.actionDescriptionDraft ?? "",
+        actionDescriptionRichDraft: form?.actionDescriptionRichDraft ?? "",
+        selectedOwnerRoleId: form?.selectedOwnerRoleId ?? "",
+        selectedSystemId: form?.selectedSystemId ?? "",
+        editingActionId: form?.editingActionId ?? "",
+        actionSequenceDraft: form?.actionSequenceDraft ?? "",
+      }
+
+      // Re-open the inline editor in the correct mode
+      if (restored.editingActionId) {
+        editingActionId = restored.editingActionId
+        insertingAtSequence = null
+      } else if (restored.actionSequenceDraft) {
+        insertingAtSequence = Number(restored.actionSequenceDraft) || null
+        editingActionId = null
+      }
+
+      restoredDraft = restored
+
+      if (form?.createRoleSuccess) {
+        actionToastMessage = "Role created. It is preselected in the editor."
+      } else {
+        actionToastMessage = "System created. It is preselected in the editor."
+      }
     } else {
       return
     }
@@ -224,12 +222,11 @@
 </script>
 
 <ProcessActionsSection
-  actions={filteredActions}
-  {actionRoles}
-  {actionSystems}
-  bind:selectedRoleId={selectedActionRoleId}
-  bind:selectedSystemId={selectedActionSystemId}
+  {actions}
+  {processSlug}
   totalActions={actions.length}
+  {allRoles}
+  {allSystems}
   {viewerRole}
   {highlightedActionId}
   reorderActionError={form?.reorderActionError}
@@ -237,30 +234,18 @@
   createFlagTargetType={form?.createFlagTargetType}
   createFlagTargetId={form?.createFlagTargetId}
   createFlagTargetPath={form?.createFlagTargetPath}
-  onCreateAction={openCreateActionModal}
-  onEditAction={openEditActionModal}
-  onActionKeydown={onActionCardKeydown}
-/>
-
-<ActionEditorModal
-  bind:open={isCreateActionModalOpen}
-  bind:editingActionId
-  bind:actionDescriptionDraft
-  bind:actionDescriptionRichDraft
-  bind:selectedOwnerRoleId
-  bind:selectedSystemId
-  {allRoles}
-  {allSystems}
+  {editingActionId}
+  {insertingAtSequence}
+  {restoredDraft}
   createdRoleId={form?.createdRoleId}
   createdSystemId={form?.createdSystemId}
   createActionError={form?.createActionError}
   deleteActionError={form?.deleteActionError}
-  onOpenRoleModal={() => {
-    isCreateRoleModalOpen = true
-  }}
-  onOpenSystemModal={() => {
-    isCreateSystemModalOpen = true
-  }}
+  onOpenEditor={openEditor}
+  onOpenInsert={openInsert}
+  onCloseEditor={closeEditor}
+  onRequestCreateRole={openCreateRoleModal}
+  onRequestCreateSystem={openCreateSystemModal}
 />
 
 <InlineCreateRoleModal
@@ -269,20 +254,30 @@
   errorMessage={form?.createRoleError}
   description="Create a role without leaving action authoring."
   helperText="This role is immediately available for action ownership."
-  {actionDescriptionDraft}
-  {actionDescriptionRichDraft}
+  actionTitleDraft={modalDraft.actionTitleDraft}
+  actionDescriptionDraft={modalDraft.actionDescriptionDraft}
+  actionDescriptionRichDraft={modalDraft.actionDescriptionRichDraft}
+  selectedOwnerRoleId={modalDraft.selectedOwnerRoleId}
+  selectedSystemId={modalDraft.selectedSystemId}
+  editingActionId={modalDraft.editingActionId}
+  actionSequenceDraft={modalDraft.actionSequenceDraft}
 />
 
 <InlineCreateSystemModal
   bind:open={isCreateSystemModalOpen}
   action="?/createSystem"
   roles={allRoles}
-  selectedRoleId={form?.createdRoleId}
+  selectedRoleId={modalDraft.selectedOwnerRoleId}
   errorMessage={form?.createSystemError}
   description="Create a system without leaving action authoring."
   helperText="This system is immediately available for action linking."
-  {actionDescriptionDraft}
-  {actionDescriptionRichDraft}
+  actionTitleDraft={modalDraft.actionTitleDraft}
+  actionDescriptionDraft={modalDraft.actionDescriptionDraft}
+  actionDescriptionRichDraft={modalDraft.actionDescriptionRichDraft}
+  selectedOwnerRoleId={modalDraft.selectedOwnerRoleId}
+  selectedSystemId={modalDraft.selectedSystemId}
+  editingActionId={modalDraft.editingActionId}
+  actionSequenceDraft={modalDraft.actionSequenceDraft}
 />
 
 {#if actionToastMessage}

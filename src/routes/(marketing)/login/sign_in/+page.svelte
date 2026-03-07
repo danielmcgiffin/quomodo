@@ -9,13 +9,22 @@
 
   const resolveNextPath = (): string => {
     const rawNext = $page.url.searchParams.get("next") ?? ""
+    const proxiedNext = `${data.basePath}${rawNext}`
     if (!rawNext.startsWith("/") || rawNext.startsWith("//")) {
-      return "/app/processes"
+      return `${data.basePath}/app/processes`
     }
-    return rawNext
+    return proxiedNext
   }
 
   onMount(() => {
+    // SR16-011: Clear focus before Supabase Auth UI mounts to prevent "Autofocus processing was blocked" warnings.
+    if (
+      typeof document !== "undefined" &&
+      document.activeElement instanceof HTMLElement
+    ) {
+      document.activeElement.blur()
+    }
+
     const supabase = data.supabase
     if (!supabase) {
       return
@@ -55,26 +64,24 @@
     <span>Email verified! Please sign in.</span>
   </div>
 {/if}
-<h1 class="text-3xl font-serif font-bold mb-6 text-[var(--mk-gold-text)]">
-  Sign In
-</h1>
+<h1 class="mk-auth-title">Sign in</h1>
 {#if data.authConfigured && data.supabase}
   <Auth
     supabaseClient={data.supabase}
     view="sign_in"
-    redirectTo={`${data.url}/auth/callback?next=${encodeURIComponent(resolveNextPath())}`}
+    redirectTo={`${data.authBaseUrl}/auth/callback?next=${encodeURIComponent(resolveNextPath())}`}
     providers={oauthProviders}
     socialLayout="horizontal"
     showLinks={false}
     appearance={sharedAppearance}
     additionalData={undefined}
   />
-  <div class="text-l text-[var(--mk-text-secondary)] mt-4">
-    <a class="underline" href="/login/forgot_password">Forgot password?</a>
+  <div class="mk-auth-link-row mt-4">
+    <a href={`${data.basePath}/login/forgot_password`}>Forgot password?</a>
   </div>
-  <div class="text-l text-[var(--mk-text-secondary)] mt-3">
-    Don't have an account? <a class="underline" href="/login/sign_up">Sign up</a
-    >.
+  <div class="mk-auth-link-row mt-3">
+    Don't have an account?
+    <a href={`${data.basePath}/login/sign_up`}>Sign up</a>.
   </div>
 {:else}
   <div role="alert" class="alert alert-error">

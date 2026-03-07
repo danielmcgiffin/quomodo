@@ -16,12 +16,17 @@ import {
 } from "$lib/server/app/actions/shared"
 import { mapSystemPortals } from "$lib/server/app/mappers/portals"
 import {
+  buildOpenFlagIndex,
+  getDirectFlagData,
+  getVisibleRelatedFlags,
+  type OpenFlagIndexRow,
+  type VisibleFlagTarget,
+} from "$lib/server/app/mappers/flag-index"
+import {
   mapActionsByProcess,
-  mapOpenFlags,
   mapRoleActionsPerformed,
   mapRoleOwnedProcesses,
   mapSystemsAccessed,
-  type OpenFlagRow,
   type RoleDetailActionRow,
   type RoleDetailProcessRow,
 } from "$lib/server/app/mappers/detail-relations"
@@ -38,15 +43,7 @@ type SystemRow = {
   name: string
   logo_url: string | null
 }
-type RoleFlagRow = {
-  id: string
-  flag_type: string
-  message: string
-  target_path: string | null
-  created_at: string
-}
-
-export const load = async ({ params, locals, url }) => {
+export const load = async ({ params, locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
   const failLoad = (contextName: string, error: unknown) =>
@@ -59,7 +56,7 @@ export const load = async ({ params, locals, url }) => {
 
   const { data: role, error: roleError } = await supabase
     .from("roles")
-  .select("id, slug, name, description_rich")
+    .select("id, slug, name, description_rich")
     .eq("org_id", context.orgId)
     .eq("slug", params.slug)
     .maybeSingle()
@@ -94,10 +91,11 @@ export const load = async ({ params, locals, url }) => {
         .order("name"),
       supabase
         .from("flags")
-        .select("id, flag_type, message, target_path, created_at")
+        .select(
+          "id, target_type, target_id, target_path, flag_type, message, created_at",
+        )
         .eq("org_id", context.orgId)
-        .eq("target_type", "role")
-        .eq("target_id", roleRow.id)
+        .in("target_type", ["role", "process", "system"])
         .eq("status", "open")
         .order("created_at", { ascending: false }),
     ])
@@ -137,18 +135,35 @@ export const load = async ({ params, locals, url }) => {
     actionsPerformed,
     roleId: roleRow.id,
   })
-  const roleFlagRows = (flagsResult.data ?? []) as RoleFlagRow[]
-  const openFlags = roleFlagRows.map((flag) => ({
-    id: flag.id,
-    flagType: flag.flag_type,
-    message: flag.message,
-    targetPath: flag.target_path,
-    createdAt: new Date(flag.created_at).toLocaleString(),
-    role: {
-      slug: roleRow.slug,
-      name: roleRow.name,
-    },
-  }))
+  const visibleTargets: VisibleFlagTarget[] = []
+
+  for (const entry of actionsByProcess) {
+    visibleTargets.push({
+      targetType: "process",
+      targetId: entry.process.id,
+      label: entry.process.name,
+    })
+    for (const action of entry.actions) {
+      if (!action.system) {
+        continue
+      }
+      visibleTargets.push({
+        targetType: "system",
+        targetId: action.system.id,
+        label: action.system.name,
+      })
+    }
+  }
+
+  const visibleFlagIds = new Set([
+    roleRow.id,
+    ...visibleTargets.map((target) => target.targetId),
+  ])
+  const openFlagIndex = buildOpenFlagIndex(
+    ((flagsResult.data ?? []) as OpenFlagIndexRow[]).filter((flag) =>
+      visibleFlagIds.has(flag.target_id),
+    ),
+  )
 
   return {
     role: {
@@ -163,9 +178,11 @@ export const load = async ({ params, locals, url }) => {
     actionsPerformed,
     systemsAccessed,
     actionsByProcess,
-    roleFlags: mapOpenFlags(roleFlagRows as OpenFlagRow[]),
-    openFlags,
-    highlightedFlagId: url.searchParams.get("flagId") ?? null,
+    roleDirectFlagData: getDirectFlagData(openFlagIndex, "role", roleRow.id),
+    actionsRelatedFlagData: getVisibleRelatedFlags(
+      openFlagIndex,
+      visibleTargets,
+    ),
     org: context,
   }
 }

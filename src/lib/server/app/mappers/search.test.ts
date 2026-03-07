@@ -53,7 +53,7 @@ describe("search mappers", () => {
     })
   })
 
-  it("maps action results to process deep-links with enriched action title", () => {
+  it("maps action results to process deep-links while preserving action title", () => {
     const rows: SearchAllRow[] = [
       {
         entity_type: "action",
@@ -106,7 +106,7 @@ describe("search mappers", () => {
     expect(results[0]).toEqual({
       id: "a1",
       type: "action",
-      title: "Action 2 in Client Onboarding",
+      title: "Action 2",
       snippet: "Send onboarding reminder email.",
       href: "/app/processes/client-onboarding?actionId=a1",
       actionSequence: 2,

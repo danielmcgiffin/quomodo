@@ -20,8 +20,16 @@ declare
   v_process_onboarding uuid;
   v_process_ops_review uuid;
 begin
+  if auth.uid() is null and auth.role() <> 'service_role' then
+    raise exception 'Not authenticated';
+  end if;
+
   if p_owner_user_id is null then
     raise exception 'p_owner_user_id is required';
+  end if;
+
+  if auth.role() <> 'service_role' and auth.uid() <> p_owner_user_id then
+    raise exception 'Can only seed for the current authenticated user';
   end if;
 
   if not exists (select 1 from auth.users u where u.id = p_owner_user_id) then
@@ -87,3 +95,7 @@ begin
   return v_org_id;
 end;
 $$;
+
+revoke all on function public.sc_seed_demo(uuid) from public;
+grant execute on function public.sc_seed_demo(uuid) to authenticated;
+grant execute on function public.sc_seed_demo(uuid) to service_role;

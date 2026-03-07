@@ -2,7 +2,7 @@
   import CreateProcessModal from "$lib/components/CreateProcessModal.svelte"
   import InlineCreateRoleModal from "$lib/components/InlineCreateRoleModal.svelte"
   import ProcessCardList from "$lib/components/ProcessCardList.svelte"
-  import FlagSidebar from "$lib/components/FlagSidebar.svelte"
+  import type { DirectFlagBadgeData, RelatedFlagBadgeData } from "$lib/flags"
 
   type RoleBadge = { id: string; slug: string; name: string; initials: string }
   type SystemBadge = { id: string; slug: string; name: string }
@@ -13,21 +13,14 @@
     descriptionHtml: string
     roleBadges: RoleBadge[]
     systemBadges: SystemBadge[]
-  }
-  type OpenFlag = {
-    id: string
-    flagType: string
-    createdAt: string
-    message: string
-    targetPath: string | null
-    process: { slug: string; name: string }
+    directFlagData: DirectFlagBadgeData
+    relatedFlagData: RelatedFlagBadgeData
   }
   type Props = {
     data: {
       org: { membershipRole: "owner" | "admin" | "editor" | "member" }
       roles: { id: string; name: string }[]
       processes: ProcessCard[]
-      openFlags: OpenFlag[]
     }
     form?: {
       createProcessError?: string
@@ -79,7 +72,7 @@
     helperText="This role is immediately available as process owner."
   />
 
-  <div class="sc-process-layout">
+  <div class="sc-process-layout sc-process-layout--single">
     <div class="sc-process-main">
       <div class="sc-page-head">
         <div class="flex flex-col">
@@ -111,20 +104,5 @@
         createFlagTargetPath={form?.createFlagTargetPath}
       />
     </div>
-
-    <aside class="sc-process-sidebar">
-      <FlagSidebar
-        flags={data.openFlags.map((flag) => ({
-          id: flag.id,
-          href: `/app/processes/${flag.process.slug}?flagId=${flag.id}`,
-          flagType: flag.flagType ?? "flag",
-          createdAt: flag.createdAt,
-          message: flag.message,
-          context: flag.process.name,
-          targetPath: flag.targetPath ?? undefined,
-        }))}
-        highlightedFlagId={null}
-      />
-    </aside>
   </div>
 </div>

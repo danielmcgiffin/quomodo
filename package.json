@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "vite dev",
+    "dev": "node scripts/dev-safe.mjs",
     "secrets:encrypt": "sops --encrypt --output .env.local.sops .env.local",
     "secrets:decrypt": "sops --decrypt --output .env.local .env.local.sops",
     "seed:dev": "node --env-file-if-exists=.env.local scripts/seed-dev.mjs",
@@ -54,7 +54,7 @@
     "prettier-plugin-svelte": "^3.2.6",
     "supabase": "^2.76.8",
     "super-sitemap": "^0.15.1",
-    "svelte": "^5.50.1",
+    "svelte": "^5.53.7",
     "svelte-check": "^4.3.6",
     "tailwindcss": "^4.0.9",
     "typescript": "^5.5.0",
@@ -68,13 +68,16 @@
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.45.2",
     "@tiptap/core": "^3.19.0",
+    "@tiptap/extension-image": "^3.19.0",
     "@tiptap/extension-link": "^3.19.0",
     "@tiptap/html": "^3.19.0",
     "@tiptap/starter-kit": "^3.19.0",
     "handlebars": "^4.7.8",
+    "lucide-svelte": "^0.572.0",
     "resend": "^3.5.0",
     "sanitize-html": "^2.17.0",
-    "stripe": "^13.3.0"
+    "stripe": "^13.3.0",
+    "svelte-dnd-action": "^0.9.69"
   },
   "overrides": {
     "@supabase/auth-ui-svelte": {
@@ -85,6 +88,14 @@
     },
     "@sveltejs/kit": {
       "cookie": "^0.7.0"
+    },
+    "devalue": "^5.6.3",
+    "qs": "^6.15.0",
+    "glob": {
+      "minimatch": "^9.0.7"
+    },
+    "editorconfig": {
+      "minimatch": "^9.0.7"
     },
     "tinyglobby": {
       "picomatch": "4.0.3"

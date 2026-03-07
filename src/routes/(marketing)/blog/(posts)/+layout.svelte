@@ -65,7 +65,7 @@
   {@html jsonldScript}
 </svelte:head>
 
-<article class="prose mx-auto py-12 px-6 font-sans">
+<article class="prose prose-invert mx-auto py-12 px-6 font-sans">
   <div class="text-sm text-accent">
     {currentPost.parsedDate?.toLocaleDateString("en-US", {
       month: "short",

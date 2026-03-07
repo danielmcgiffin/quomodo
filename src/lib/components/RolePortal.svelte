@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { getAvatarColor } from "$lib/colors"
+
   type RolePortalModel = {
     slug: string
     name: string
@@ -21,12 +23,14 @@
     base: { size: 32, font: 12 },
     lg: { size: 36, font: 14 },
   }
+
+  const avatarBg = $derived(getAvatarColor(role.name))
 </script>
 
 <a class="sc-portal sc-portal-role" href={`/app/roles/${role.slug}`}>
   <span
     class="sc-avatar"
-    style={`--avatar-size:${sizeMap[size].size}px;--avatar-font:${sizeMap[size].font}px;`}
+    style={`--avatar-size:${sizeMap[size].size}px;--avatar-font:${sizeMap[size].font}px; --avatar-bg: ${avatarBg};`}
     >{role.initials}</span
   >
   {#if showName}

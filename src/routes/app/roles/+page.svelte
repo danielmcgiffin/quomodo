@@ -1,10 +1,11 @@
 <script lang="ts">
   import RichTextEditor from "$lib/components/RichTextEditor.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
+  import { pendingEnhance } from "$lib/components/pending-enhance"
+  import FlagBadgeModal from "$lib/components/FlagBadgeModal.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
-  import FlagSidebar from "$lib/components/FlagSidebar.svelte"
-
-  import RolePortal from "$lib/components/RolePortal.svelte"
+  import { getAvatarColor } from "$lib/colors"
+  import type { DirectFlagBadgeData } from "$lib/flags"
 
   type RoleEntry = {
     id: string
@@ -14,18 +15,11 @@
     descriptionHtml: string
     processCount: number
     systemCount: number
+    directFlagData: DirectFlagBadgeData
   }
   type Props = {
     data: {
       roles: RoleEntry[]
-      openFlags: {
-        id: string
-        flagType: string
-        createdAt: string
-        message: string
-        targetPath: string | null
-        role: { slug: string; name: string }
-      }[]
       org: { membershipRole: "owner" | "admin" | "editor" | "member" }
     }
     form?: {
@@ -75,7 +69,7 @@
 </script>
 
 <div class="sc-process-page">
-  <div class="sc-process-layout">
+  <div class="sc-process-layout sc-process-layout--single">
     <div class="sc-process-main sc-rail-main">
       <div class="flex justify-between items-center gap-4 flex-wrap">
         <div class="flex flex-col">
@@ -98,7 +92,12 @@
         description="Capture who owns what. Role name is required."
         maxWidth="760px"
       >
-        <form class="sc-form" method="POST" action="?/createRole">
+        <form
+          class="sc-form"
+          method="POST"
+          action="?/createRole"
+          use:pendingEnhance
+        >
           {#if form?.createRoleError}
             <div class="sc-form-error">{form.createRoleError}</div>
           {/if}
@@ -123,26 +122,43 @@
             <div class="sc-page-subtitle">
               This role becomes a portal across the atlas.
             </div>
-            <button class="sc-btn" type="submit">Create Role</button>
+            <button
+              class="sc-btn"
+              type="submit"
+              data-loading-label="Creating..."
+            >
+              Create Role
+            </button>
           </div>
         </form>
       </ScModal>
 
       <div class="sc-section">
         {#each data.roles as role}
-          <div class="sc-card sc-entity-card sc-card-interactive">
-            <InlineEntityFlagControl
-              action="?/createFlag"
-              targetType="role"
-              targetId={role.id}
-              entityLabel={role.name}
-              viewerRole={data.org.membershipRole}
-              fieldTargets={roleFieldTargets}
-              errorMessage={form?.createFlagError}
-              errorTargetType={form?.createFlagTargetType}
-              errorTargetId={form?.createFlagTargetId}
-              errorTargetPath={form?.createFlagTargetPath}
-            />
+          <div class="sc-card sc-entity-card sc-card-interactive sc-role-card">
+            <div class="sc-role-card-actions">
+              <FlagBadgeModal
+                kind="direct"
+                label={`${role.name} direct flags`}
+                data={role.directFlagData}
+                viewerRole={data.org.membershipRole}
+                modalTitle={`${role.name} flags`}
+                modalDescription="Open flags attached directly to this role."
+              />
+              <InlineEntityFlagControl
+                inline={true}
+                action="?/createFlag"
+                targetType="role"
+                targetId={role.id}
+                entityLabel={role.name}
+                viewerRole={data.org.membershipRole}
+                fieldTargets={roleFieldTargets}
+                errorMessage={form?.createFlagError}
+                errorTargetType={form?.createFlagTargetType}
+                errorTargetId={form?.createFlagTargetId}
+                errorTargetPath={form?.createFlagTargetPath}
+              />
+            </div>
             <a
               href={`/app/roles/${role.slug}`}
               class="block"
@@ -154,7 +170,7 @@
               >
                 <span
                   class="sc-avatar"
-                  style="--avatar-size:36px;--avatar-font:14px;"
+                  style={`--avatar-size:36px;--avatar-font:14px; --avatar-bg: ${getAvatarColor(role.name)};`}
                   >{role.initials}</span
                 >
                 <span class="min-w-0 truncate">{role.name}</span>
@@ -168,20 +184,21 @@
         {/each}
       </div>
     </div>
-
-    <aside class="sc-process-sidebar">
-      <FlagSidebar
-        flags={data.openFlags.map((flag) => ({
-          id: flag.id,
-          href: `/app/roles/${flag.role.slug}?flagId=${flag.id}`,
-          flagType: flag.flagType ?? "flag",
-          createdAt: flag.createdAt,
-          message: flag.message,
-          context: flag.role.name,
-          targetPath: flag.targetPath ?? undefined,
-        }))}
-        highlightedFlagId={null}
-      />
-    </aside>
   </div>
 </div>
+
+<style>
+  .sc-role-card {
+    position: relative;
+  }
+
+  .sc-role-card-actions {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+</style>

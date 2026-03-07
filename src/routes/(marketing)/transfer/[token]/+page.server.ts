@@ -1,5 +1,4 @@
 import { fail, redirect } from "@sveltejs/kit"
-import { env } from "$env/dynamic/private"
 import { WebsiteBaseUrl, WebsiteName } from "../../../../config"
 import { getPreferredFromEmail, sendTemplatedEmail } from "$lib/mailer"
 import { ensureOrgContext, setActiveWorkspaceCookie } from "$lib/server/atlas"

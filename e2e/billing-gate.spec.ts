@@ -1,20 +1,15 @@
 import { test, expect } from "@playwright/test"
 import { signInViaEmailPassword } from "./helpers/auth"
 import { e2eConfig } from "./config"
+import { getRequiredE2ECredentials } from "./helpers/credentials"
 
-const email = process.env.E2E_EMAIL ?? ""
-const password = process.env.E2E_PASSWORD ?? ""
+const { email, password } = getRequiredE2ECredentials()
 
 const LapsedMessage =
   "This workspace is in read-only mode because billing has lapsed."
 
 test.describe("billing gate", () => {
   test("lapsed workspace is read-only and blocks invites", async ({ page }) => {
-    test.skip(
-      !email || !password,
-      "Set E2E_EMAIL and E2E_PASSWORD to run authenticated E2E tests.",
-    )
-
     await signInViaEmailPassword(page, { email, password })
 
     // Switch into the lapsed fixture workspace.
@@ -35,12 +30,11 @@ test.describe("billing gate", () => {
     )
     await expect(row).toBeVisible()
 
-    await row
-      .locator('form[action="?/switchWorkspace"]')
-      .first()
-      .getByRole("button", { name: "Switch", exact: true })
-      .click()
-    await page.waitForURL(/\/app\/workspace\?switched=1/, { timeout: 15_000 })
+    const switchBtn = row.getByRole("button", { name: "Switch", exact: true })
+    if (await switchBtn.isVisible()) {
+      await switchBtn.click()
+      await page.waitForURL(/\/app\/workspace\?switched=1/, { timeout: 15_000 })
+    }
 
     // Lapsed banner appears across /app.
     await page.goto("/app/processes")

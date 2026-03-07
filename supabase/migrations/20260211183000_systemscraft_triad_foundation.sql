@@ -318,6 +318,7 @@ as $$
   from public.org_members m
   where m.org_id = p_org_id
     and m.user_id = auth.uid()
+    and m.accepted_at is not null
   limit 1;
 $$;
 
@@ -333,6 +334,7 @@ as $$
     from public.org_members m
     where m.org_id = p_org_id
       and m.user_id = auth.uid()
+      and m.accepted_at is not null
   );
 $$;
 
@@ -394,22 +396,34 @@ security definer
 set search_path = public
 as $$
 declare
+  v_org_id uuid;
   v_process_id uuid;
   v_current_sequence integer;
   v_max_sequence integer;
   v_target_sequence integer;
 begin
+  if auth.uid() is null then
+    raise exception 'Not authenticated';
+  end if;
+
   if p_new_sequence < 1 then
     raise exception 'Sequence must be >= 1';
   end if;
 
-  select a.process_id, a.sequence
-  into v_process_id, v_current_sequence
+  select a.org_id, a.process_id, a.sequence
+  into v_org_id, v_process_id, v_current_sequence
   from public.actions a
   where a.id = p_action_id;
 
   if v_process_id is null then
     raise exception 'Action % not found', p_action_id;
+  end if;
+
+  if not public.sc_has_any_role(
+    v_org_id,
+    array['owner','admin','editor']::public.sc_membership_role[]
+  ) then
+    raise exception 'Insufficient permissions';
   end if;
 
   select max(a.sequence)
@@ -442,6 +456,103 @@ begin
   update public.actions
   set sequence = v_target_sequence
   where id = p_action_id;
+end;
+$$;
+
+create or replace function public.sc_resequence_actions(
+  p_org_id uuid,
+  p_process_id uuid,
+  p_action_ids uuid[]
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_action_count integer;
+begin
+  if auth.uid() is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  if p_org_id is null or p_process_id is null then
+    raise exception 'Organization and process are required';
+  end if;
+
+  if p_action_ids is null or array_length(p_action_ids, 1) is null then
+    raise exception 'Action ids are required';
+  end if;
+
+  if not exists (
+    select 1
+    from public.processes p
+    where p.id = p_process_id
+      and p.org_id = p_org_id
+  ) then
+    raise exception 'Process not found';
+  end if;
+
+  if not public.sc_has_any_role(
+    p_org_id,
+    array['owner','admin','editor']::public.sc_membership_role[]
+  ) then
+    raise exception 'Insufficient permissions';
+  end if;
+
+  if exists (
+    select 1
+    from unnest(p_action_ids) as ids(action_id)
+    where ids.action_id is null
+  ) then
+    raise exception 'Action ids cannot contain null values';
+  end if;
+
+  if exists (
+    select 1
+    from unnest(p_action_ids) as ids(action_id)
+    group by ids.action_id
+    having count(*) > 1
+  ) then
+    raise exception 'Action ids must be unique';
+  end if;
+
+  select count(*)
+  into v_action_count
+  from public.actions a
+  where a.org_id = p_org_id
+    and a.process_id = p_process_id;
+
+  if v_action_count <> array_length(p_action_ids, 1) then
+    raise exception 'Action list must include every action for the process';
+  end if;
+
+  if exists (
+    select 1
+    from unnest(p_action_ids) with ordinality as ids(action_id, position)
+    left join public.actions a
+      on a.id = ids.action_id
+      and a.org_id = p_org_id
+      and a.process_id = p_process_id
+    where a.id is null
+  ) then
+    raise exception 'Action list contains invalid action ids';
+  end if;
+
+  set constraints actions_process_sequence_unique deferred;
+
+  with ordered as (
+    select
+      ids.action_id,
+      ids.position::integer as sequence
+    from unnest(p_action_ids) with ordinality as ids(action_id, position)
+  )
+  update public.actions a
+  set sequence = ordered.sequence
+  from ordered
+  where a.id = ordered.action_id
+    and a.org_id = p_org_id
+    and a.process_id = p_process_id;
 end;
 $$;
 
@@ -508,10 +619,13 @@ for insert to authenticated
 with check (auth.uid() = owner_id);
 
 drop policy if exists orgs_update_owner_admin on public.orgs;
-create policy orgs_update_owner_admin on public.orgs
+drop policy if exists orgs_update_owner on public.orgs;
+drop policy if exists orgs_update_admin_without_owner_transfer on public.orgs;
+
+create policy orgs_update_owner on public.orgs
 for update to authenticated
-using (public.sc_has_any_role(id, array['owner','admin']::public.sc_membership_role[]))
-with check (public.sc_has_any_role(id, array['owner','admin']::public.sc_membership_role[]));
+using (public.sc_has_any_role(id, array['owner']::public.sc_membership_role[]))
+with check (public.sc_has_any_role(id, array['owner']::public.sc_membership_role[]));
 
 drop policy if exists orgs_delete_owner on public.orgs;
 create policy orgs_delete_owner on public.orgs
@@ -652,3 +766,8 @@ drop policy if exists flags_delete_owner_admin_editor on public.flags;
 create policy flags_delete_owner_admin_editor on public.flags
 for delete to authenticated
 using (public.sc_has_any_role(org_id, array['owner','admin','editor']::public.sc_membership_role[]));
+
+revoke all on function public.sc_reorder_action(uuid, integer) from public;
+revoke all on function public.sc_resequence_actions(uuid, uuid, uuid[]) from public;
+grant execute on function public.sc_reorder_action(uuid, integer) to authenticated;
+grant execute on function public.sc_resequence_actions(uuid, uuid, uuid[]) to authenticated;

@@ -1,9 +1,10 @@
 <script lang="ts">
-  import FlagSidebar from "$lib/components/FlagSidebar.svelte"
   import ProcessActionsPanel from "$lib/components/ProcessActionsPanel.svelte"
   import ProcessDetailHeader from "$lib/components/ProcessDetailHeader.svelte"
   import ProcessOverviewCard from "$lib/components/ProcessOverviewCard.svelte"
-  import ProcessTraverseCard from "$lib/components/ProcessTraverseCard.svelte"
+  import RolePortal from "$lib/components/RolePortal.svelte"
+  import SystemPortal from "$lib/components/SystemPortal.svelte"
+  import type { DirectFlagBadgeData, RelatedFlagBadgeData } from "$lib/flags"
 
   type SidebarRole = {
     id: string
@@ -20,10 +21,12 @@
   type ActionEntry = {
     id: string
     sequence: number
+    title: string
     descriptionRich: string
     descriptionHtml: string
     ownerRole: SidebarRole | null
     system: SidebarSystem | null
+    directFlagData: DirectFlagBadgeData
   }
   type ProcessForm = {
     updateProcessError?: string
@@ -67,31 +70,28 @@
     actions: ActionEntry[]
     allRoles: SidebarRole[]
     allSystems: SidebarSystem[]
-    processFlags: {
-      id: string
-      flagType: string
-      createdAt: string
-      message: string
-    }[]
+    processDirectFlagData: DirectFlagBadgeData
+    processRelatedFlagData: RelatedFlagBadgeData
     viewerRole: "owner" | "admin" | "editor" | "member"
     highlightedActionId: string | null
-    highlightedFlagId: string | null
   }
 
   let { data, form }: { data: ProcessData; form?: ProcessForm } = $props()
 
   const canEditProcess = $derived.by(() => data.viewerRole !== "member")
 
-  const actionRoles = $derived.by(() =>
-    data.actions
+  const actionRoles = $derived.by(() => {
+    const roles = data.actions
       .map((action) => action.ownerRole)
-      .filter((role): role is SidebarRole => Boolean(role)),
-  )
-  const actionSystems = $derived.by(() =>
-    data.actions
+      .filter((role): role is SidebarRole => Boolean(role))
+    return Array.from(new Map(roles.map((r) => [r.id, r])).values())
+  })
+  const actionSystems = $derived.by(() => {
+    const systems = data.actions
       .map((action) => action.system)
-      .filter((system): system is SidebarSystem => Boolean(system)),
-  )
+      .filter((system): system is SidebarSystem => Boolean(system))
+    return Array.from(new Map(systems.map((s) => [s.id, s])).values())
+  })
 </script>
 
 <div class="sc-process-page">
@@ -101,13 +101,18 @@
         process={data.process}
         allRoles={data.allRoles}
         canEdit={canEditProcess}
+        viewerRole={data.viewerRole}
+        directFlagData={data.processDirectFlagData}
+        relatedFlagData={data.processRelatedFlagData}
+        createFlagError={form?.createFlagError}
+        createFlagTargetType={form?.createFlagTargetType}
+        createFlagTargetId={form?.createFlagTargetId}
+        createFlagTargetPath={form?.createFlagTargetPath}
         {form}
       />
 
       <ProcessOverviewCard
         process={data.process}
-        {actionRoles}
-        {actionSystems}
         viewerRole={data.viewerRole}
         createFlagError={form?.createFlagError}
         createFlagTargetType={form?.createFlagTargetType}
@@ -117,6 +122,7 @@
 
       <ProcessActionsPanel
         actions={data.actions}
+        processSlug={data.process.slug}
         allRoles={data.allRoles}
         allSystems={data.allSystems}
         viewerRole={data.viewerRole}
@@ -126,19 +132,35 @@
     </div>
 
     <aside class="sc-process-sidebar">
-      <FlagSidebar
-        flags={data.processFlags.map((flag) => ({
-          id: flag.id,
-          href: `/app/processes/${data.process.slug}?flagId=${flag.id}`,
-          flagType: flag.flagType ?? "flag",
-          createdAt: flag.createdAt,
-          message: flag.message,
-          context: data.process.name,
-        }))}
-        highlightedFlagId={data.highlightedFlagId}
-      />
+      <div class="sc-section">
+        <div class="sc-section-title sc-sidebar-title">Who's Involved</div>
+        <div class="sc-card">
+          <div class="sc-byline">
+            {#if actionRoles.length === 0}
+              <span class="sc-page-subtitle">No action owners yet.</span>
+            {:else}
+              {#each actionRoles as role}
+                <RolePortal {role} />
+              {/each}
+            {/if}
+          </div>
+        </div>
+      </div>
+
+      <div class="sc-section">
+        <div class="sc-section-title sc-sidebar-title">What Systems</div>
+        <div class="sc-card">
+          <div class="sc-byline">
+            {#if actionSystems.length === 0}
+              <span class="sc-page-subtitle">No systems linked yet.</span>
+            {:else}
+              {#each actionSystems as system}
+                <SystemPortal {system} />
+              {/each}
+            {/if}
+          </div>
+        </div>
+      </div>
     </aside>
   </div>
-
-  <ProcessTraverseCard process={data.process} {actionRoles} {actionSystems} />
 </div>

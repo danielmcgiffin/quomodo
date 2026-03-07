@@ -153,31 +153,6 @@ const parseHiddenInput = (html, inputName) => {
   return value || null
 }
 
-const parseActionIdsInOrder = (html) => {
-  const dom = new JSDOM(html, { virtualConsole })
-  const forms = Array.from(
-    dom.window.document.querySelectorAll('form[action="?/reorderAction"]'),
-  )
-  const ids = []
-  for (const form of forms) {
-    const direction = form
-      .querySelector('input[name="direction"]')
-      ?.getAttribute("value")
-    if (direction !== "up") {
-      continue
-    }
-    const id = form
-      .querySelector('input[name="action_id"]')
-      ?.getAttribute("value")
-      ?.trim()
-    if (!id || ids.includes(id)) {
-      continue
-    }
-    ids.push(id)
-  }
-  return ids
-}
-
 const createAuthSession = () => {
   const cookieJar = new Map()
   const client = createServerClient(publicSupabaseUrl, publicSupabaseAnonKey, {
@@ -258,6 +233,78 @@ const requestApp = async ({
     headers,
     body,
   })
+}
+
+const findEntityIdInSearch = async ({
+  session,
+  query,
+  expectedType,
+  expectedHref,
+  label,
+}) => {
+  const searchResponse = await requestApp({
+    session,
+    path: `/app/search?q=${encodeURIComponent(query)}&limit=50`,
+    expectJson: true,
+  })
+  await expectStatus(searchResponse, [200], `${label} search fallback`)
+  const payload = await searchResponse.json()
+  const results = Array.isArray(payload.results) ? payload.results : []
+
+  const match = results.find((result) => {
+    if (
+      !result ||
+      result.type !== expectedType ||
+      typeof result.id !== "string"
+    ) {
+      return false
+    }
+    if (typeof result.href !== "string") {
+      return false
+    }
+    const hrefPath = new URL(result.href, `${baseUrl}/`).pathname
+    return hrefPath === expectedHref
+  })
+
+  return typeof match?.id === "string" ? match.id : null
+}
+
+const findActionIdsInSearch = async ({
+  session,
+  query,
+  processSlug,
+  label,
+}) => {
+  const searchResponse = await requestApp({
+    session,
+    path: `/app/search?q=${encodeURIComponent(query)}&limit=50`,
+    expectJson: true,
+  })
+  await expectStatus(searchResponse, [200], `${label} action search`)
+  const payload = await searchResponse.json()
+  const results = Array.isArray(payload.results) ? payload.results : []
+
+  const ids = []
+  for (const result of results) {
+    if (!result || result.type !== "action" || typeof result.id !== "string") {
+      continue
+    }
+    if (typeof result.href !== "string") {
+      continue
+    }
+    const href = new URL(result.href, `${baseUrl}/`)
+    if (href.pathname !== `/app/processes/${processSlug}`) {
+      continue
+    }
+    if (!href.searchParams.get("actionId")) {
+      continue
+    }
+    if (!ids.includes(result.id)) {
+      ids.push(result.id)
+    }
+  }
+
+  return ids
 }
 
 const serviceSupabase = createClient(
@@ -446,7 +493,19 @@ const run = async () => {
       const rolePageHtml = await rolePageResponse.text()
       artifacts.roleId = parseHiddenInput(rolePageHtml, "role_id") ?? ""
       if (!artifacts.roleId) {
-        throw new Error("Role detail missing role_id.")
+        artifacts.roleId =
+          (await findEntityIdInSearch({
+            session: authSession,
+            query: roleName,
+            expectedType: "role",
+            expectedHref: artifacts.rolePath,
+            label: "Resolve role id",
+          })) ?? ""
+      }
+      if (!artifacts.roleId) {
+        throw new Error(
+          "Unable to resolve role_id from detail page or search results.",
+        )
       }
 
       const createSystemResponse = await requestApp({
@@ -476,7 +535,19 @@ const run = async () => {
       const systemPageHtml = await systemPageResponse.text()
       artifacts.systemId = parseHiddenInput(systemPageHtml, "system_id") ?? ""
       if (!artifacts.systemId) {
-        throw new Error("System detail missing system_id.")
+        artifacts.systemId =
+          (await findEntityIdInSearch({
+            session: authSession,
+            query: `Onboarding System ${suffix}`,
+            expectedType: "system",
+            expectedHref: artifacts.systemPath,
+            label: "Resolve system id",
+          })) ?? ""
+      }
+      if (!artifacts.systemId) {
+        throw new Error(
+          "Unable to resolve system_id from detail page or search results.",
+        )
       }
 
       const createProcessResponse = await requestApp({
@@ -508,7 +579,19 @@ const run = async () => {
       artifacts.processId =
         parseHiddenInput(processPageHtml, "process_id") ?? ""
       if (!artifacts.processId) {
-        throw new Error("Process detail missing process_id.")
+        artifacts.processId =
+          (await findEntityIdInSearch({
+            session: authSession,
+            query: `Onboarding Process ${suffix}`,
+            expectedType: "process",
+            expectedHref: artifacts.processPath,
+            label: "Resolve process id",
+          })) ?? ""
+      }
+      if (!artifacts.processId) {
+        throw new Error(
+          "Unable to resolve process_id from detail page or search results.",
+        )
       }
 
       const createActionResponse = await requestApp({
@@ -595,8 +678,12 @@ const run = async () => {
           path: artifacts.processPath,
         })
         if (processPageResponse.status === 200) {
-          const html = await processPageResponse.text()
-          const actionIds = parseActionIdsInOrder(html)
+          const actionIds = await findActionIdsInSearch({
+            session: authSession,
+            query: suffix,
+            processSlug: artifacts.processSlug,
+            label: "Resolve cleanup action ids",
+          })
           for (const actionId of actionIds) {
             await requestApp({
               session: authSession,

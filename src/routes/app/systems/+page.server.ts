@@ -15,6 +15,13 @@ import {
 } from "$lib/server/app/actions/shared"
 import { mapRolePortals } from "$lib/server/app/mappers/portals"
 import {
+  buildOpenFlagIndex,
+  getDirectFlagData,
+  getVisibleRelatedFlags,
+  type OpenFlagIndexRow,
+  type VisibleFlagTarget,
+} from "$lib/server/app/mappers/flag-index"
+import {
   mapSystemDirectory,
   type SystemDirectoryRow,
 } from "$lib/server/app/mappers/directory"
@@ -47,9 +54,11 @@ export const load = async ({ locals }) => {
         .order("name"),
       supabase
         .from("flags")
-        .select("id, target_id, target_path, flag_type, message, created_at")
+        .select(
+          "id, target_type, target_id, target_path, flag_type, message, created_at",
+        )
         .eq("org_id", context.orgId)
-        .eq("target_type", "system")
+        .in("target_type", ["system", "role"])
         .eq("status", "open")
         .order("created_at", { ascending: false }),
       supabase
@@ -81,47 +90,37 @@ export const load = async ({ locals }) => {
     system_id: string
   }[]
 
+  const openFlagIndex = buildOpenFlagIndex(
+    (flagsResult.data ?? []) as OpenFlagIndexRow[],
+  )
+
   const systems = mapSystemDirectory({
     rows: systemsData as SystemDirectoryRow[],
     roleById,
     richToHtml,
     actionData,
+  }).map((system) => {
+    const visibleTargets: VisibleFlagTarget[] = system.ownerRole
+      ? [
+          {
+            targetType: "role",
+            targetId: system.ownerRole.id,
+            label: system.ownerRole.name,
+          },
+        ]
+      : []
+
+    return {
+      ...system,
+      directFlagData: getDirectFlagData(openFlagIndex, "system", system.id),
+      relatedFlagData: getVisibleRelatedFlags(openFlagIndex, visibleTargets),
+    }
   })
-  const systemById = new Map(systems.map((system) => [system.id, system]))
-  const openFlags = (
-    (flagsResult.data ?? []) as {
-      id: string
-      target_id: string
-      target_path: string | null
-      flag_type: string
-      message: string
-      created_at: string
-    }[]
-  )
-    .map((flag) => {
-      const system = systemById.get(flag.target_id)
-      if (!system) {
-        return null
-      }
-      return {
-        id: flag.id,
-        flagType: flag.flag_type,
-        message: flag.message,
-        targetPath: flag.target_path,
-        createdAt: new Date(flag.created_at).toLocaleString(),
-        system: {
-          slug: system.slug,
-          name: system.name,
-        },
-      }
-    })
-    .filter((flag): flag is NonNullable<typeof flag> => flag !== null)
 
   return {
     org: context,
     roles: rolesResultData,
     systems,
-    openFlags,
   }
 }
 

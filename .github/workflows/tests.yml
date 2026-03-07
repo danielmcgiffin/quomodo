@@ -9,16 +9,13 @@ env:
   PRIVATE_SUPABASE_SERVICE_ROLE: ${{ secrets.PRIVATE_SUPABASE_SERVICE_ROLE || 'fake_service_role' }}
   PRIVATE_STRIPE_API_KEY: ${{ secrets.PRIVATE_STRIPE_API_KEY || 'fake_strip_api_key' }}
 
-  # E2E auth (SR-05): set these in repo secrets to enable authenticated Playwright tests.
+  # Authenticated E2E prerequisites (required for Playwright app/billing/crud suites).
   E2E_EMAIL: ${{ secrets.E2E_EMAIL || '' }}
   E2E_PASSWORD: ${{ secrets.E2E_PASSWORD || '' }}
-
-  # SR-05A (Dedicated E2E Supabase): override these in step-level env for Playwright.
-  # Secrets expected:
-  # - E2E_PUBLIC_SUPABASE_URL
-  # - E2E_PUBLIC_SUPABASE_ANON_KEY
-  # - E2E_PRIVATE_SUPABASE_SERVICE_ROLE
-  # - E2E_PRIVATE_STRIPE_API_KEY (can be a test key for E2E project)
+  E2E_PUBLIC_SUPABASE_URL: ${{ secrets.E2E_PUBLIC_SUPABASE_URL || '' }}
+  E2E_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.E2E_PUBLIC_SUPABASE_ANON_KEY || '' }}
+  E2E_PRIVATE_SUPABASE_SERVICE_ROLE: ${{ secrets.E2E_PRIVATE_SUPABASE_SERVICE_ROLE || '' }}
+  E2E_PRIVATE_STRIPE_API_KEY: ${{ secrets.E2E_PRIVATE_STRIPE_API_KEY || '' }}
 
 jobs:
   build_and_test:
@@ -40,18 +37,21 @@ jobs:
       - name: Install Playwright (Chromium)
         run: npx playwright install --with-deps chromium
 
+      - name: Validate authenticated E2E env
+        run: node scripts/require-e2e-env.mjs
+
       - name: Seed E2E fixtures
         run: npm run seed:e2e
         env:
-          PUBLIC_SUPABASE_URL: ${{ secrets.E2E_PUBLIC_SUPABASE_URL || env.PUBLIC_SUPABASE_URL }}
-          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.E2E_PUBLIC_SUPABASE_ANON_KEY || env.PUBLIC_SUPABASE_ANON_KEY }}
-          PRIVATE_SUPABASE_SERVICE_ROLE: ${{ secrets.E2E_PRIVATE_SUPABASE_SERVICE_ROLE || env.PRIVATE_SUPABASE_SERVICE_ROLE }}
-          PRIVATE_STRIPE_API_KEY: ${{ secrets.E2E_PRIVATE_STRIPE_API_KEY || env.PRIVATE_STRIPE_API_KEY }}
+          PUBLIC_SUPABASE_URL: ${{ env.E2E_PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ env.E2E_PUBLIC_SUPABASE_ANON_KEY }}
+          PRIVATE_SUPABASE_SERVICE_ROLE: ${{ env.E2E_PRIVATE_SUPABASE_SERVICE_ROLE }}
+          PRIVATE_STRIPE_API_KEY: ${{ env.E2E_PRIVATE_STRIPE_API_KEY || env.PRIVATE_STRIPE_API_KEY }}
 
       - name: E2E (Playwright)
         run: npm run test:e2e
         env:
-          PUBLIC_SUPABASE_URL: ${{ secrets.E2E_PUBLIC_SUPABASE_URL || env.PUBLIC_SUPABASE_URL }}
-          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.E2E_PUBLIC_SUPABASE_ANON_KEY || env.PUBLIC_SUPABASE_ANON_KEY }}
-          PRIVATE_SUPABASE_SERVICE_ROLE: ${{ secrets.E2E_PRIVATE_SUPABASE_SERVICE_ROLE || env.PRIVATE_SUPABASE_SERVICE_ROLE }}
-          PRIVATE_STRIPE_API_KEY: ${{ secrets.E2E_PRIVATE_STRIPE_API_KEY || env.PRIVATE_STRIPE_API_KEY }}
+          PUBLIC_SUPABASE_URL: ${{ env.E2E_PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ env.E2E_PUBLIC_SUPABASE_ANON_KEY }}
+          PRIVATE_SUPABASE_SERVICE_ROLE: ${{ env.E2E_PRIVATE_SUPABASE_SERVICE_ROLE }}
+          PRIVATE_STRIPE_API_KEY: ${{ env.E2E_PRIVATE_STRIPE_API_KEY || env.PRIVATE_STRIPE_API_KEY }}

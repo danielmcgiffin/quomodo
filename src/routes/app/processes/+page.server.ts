@@ -21,10 +21,15 @@ import {
   type SystemPortalModel,
 } from "$lib/server/app/mappers/portals"
 import {
-  mapOpenProcessFlags,
+  buildOpenFlagIndex,
+  getDirectFlagData,
+  getVisibleRelatedFlags,
+  type OpenFlagIndexRow,
+  type VisibleFlagTarget,
+} from "$lib/server/app/mappers/flag-index"
+import {
   mapProcessCards,
   type ProcessActionLinkRow,
-  type ProcessFlagLinkRow,
   type ProcessListRow,
 } from "$lib/server/app/mappers/processes"
 
@@ -78,9 +83,11 @@ export const load = async ({ locals }) => {
       .order("process_id"),
     supabase
       .from("flags")
-      .select("id, target_id, target_path, flag_type, message, created_at")
+      .select(
+        "id, target_type, target_id, target_path, flag_type, message, created_at",
+      )
       .eq("org_id", context.orgId)
-      .eq("target_type", "process")
+      .in("target_type", ["process", "role", "system"])
       .eq("status", "open")
       .order("created_at", { ascending: false }),
   ])
@@ -112,15 +119,9 @@ export const load = async ({ locals }) => {
   const systemById = new Map(
     systems.map((system: SystemPortalModel) => [system.id, system]),
   )
-  const processById = new Map(
-    processRows.map((row) => [
-      row.id,
-      {
-        id: row.id,
-        slug: row.slug,
-        name: row.name,
-      },
-    ]),
+
+  const openFlagIndex = buildOpenFlagIndex(
+    (flagsResult.data ?? []) as OpenFlagIndexRow[],
   )
 
   const processes = mapProcessCards({
@@ -129,18 +130,31 @@ export const load = async ({ locals }) => {
     roleById,
     systemById,
     richToHtml,
-  })
+  }).map((process) => {
+    const visibleTargets: VisibleFlagTarget[] = [
+      ...process.roleBadges.map((role) => ({
+        targetType: "role" as const,
+        targetId: role.id,
+        label: role.name,
+      })),
+      ...process.systemBadges.map((system) => ({
+        targetType: "system" as const,
+        targetId: system.id,
+        label: system.name,
+      })),
+    ]
 
-  const openFlags = mapOpenProcessFlags({
-    flagRows: (flagsResult.data ?? []) as ProcessFlagLinkRow[],
-    processById,
+    return {
+      ...process,
+      directFlagData: getDirectFlagData(openFlagIndex, "process", process.id),
+      relatedFlagData: getVisibleRelatedFlags(openFlagIndex, visibleTargets),
+    }
   })
 
   return {
     org: context,
     roles,
     processes,
-    openFlags,
   }
 }
 

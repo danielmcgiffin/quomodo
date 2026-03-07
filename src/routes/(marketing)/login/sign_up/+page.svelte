@@ -2,8 +2,19 @@
   import { Auth } from "@supabase/auth-ui-svelte"
   import { sharedAppearance, oauthProviders } from "../login_config"
   import { page } from "$app/stores"
+  import { onMount } from "svelte"
 
   let { data } = $props()
+
+  onMount(() => {
+    // SR16-011: Clear focus before Supabase Auth UI mounts to prevent "Autofocus processing was blocked" warnings.
+    if (
+      typeof document !== "undefined" &&
+      document.activeElement instanceof HTMLElement
+    ) {
+      document.activeElement.blur()
+    }
+  })
 
   const resolveNextPath = (): string => {
     const rawNext = $page.url.searchParams.get("next") ?? ""
@@ -18,22 +29,20 @@
   <title>Sign up</title>
 </svelte:head>
 
-<h1 class="text-3xl font-serif font-bold mb-6 text-[var(--mk-gold-text)]">
-  Sign Up
-</h1>
+<h1 class="mk-auth-title">Sign up</h1>
 {#if data.authConfigured && data.supabase}
   <Auth
     supabaseClient={data.supabase}
     view="sign_up"
-    redirectTo={`${data.url}/auth/callback?next=${encodeURIComponent(resolveNextPath())}`}
+    redirectTo={`${data.authBaseUrl}/auth/callback?next=${encodeURIComponent(resolveNextPath())}`}
     showLinks={false}
     providers={oauthProviders}
     socialLayout="horizontal"
     appearance={sharedAppearance}
     additionalData={undefined}
   />
-  <div class="text-l text-[var(--mk-text-secondary)] mt-4 mb-2">
-    Have an account? <a class="underline" href="/login/sign_in">Sign in</a>.
+  <div class="mk-auth-link-row mt-4 mb-2">
+    Have an account? <a href={`${data.basePath}/login/sign_in`}>Sign in</a>.
   </div>
 {:else}
   <div role="alert" class="alert alert-error">

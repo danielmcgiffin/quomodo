@@ -1,6 +1,7 @@
 <script lang="ts">
   import ScModal from "$lib/components/ScModal.svelte"
   import RichTextEditor from "$lib/components/RichTextEditor.svelte"
+  import { pendingEnhance } from "$lib/components/pending-enhance"
 
   let {
     open = $bindable(false),
@@ -28,7 +29,12 @@
   description="Capture key info about the process. All fields required."
   maxWidth="760px"
 >
-  <form class="sc-form" method="POST" action="?/createProcess">
+  <form
+    class="sc-form"
+    method="POST"
+    action="?/createProcess"
+    use:pendingEnhance
+  >
     {#if createProcessError}
       <div class="sc-form-error">{createProcessError}</div>
     {/if}
@@ -74,7 +80,9 @@
       <button class="sc-btn secondary" type="button" onclick={onOpenRoleModal}>
         Create Role
       </button>
-      <button class="sc-btn" type="submit">Create Process</button>
+      <button class="sc-btn" type="submit" data-loading-label="Creating...">
+        Create Process
+      </button>
     </div>
     {#if createRoleSuccess}
       <div class="sc-page-subtitle">

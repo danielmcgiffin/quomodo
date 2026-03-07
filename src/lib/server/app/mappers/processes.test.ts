@@ -110,6 +110,7 @@ describe("process mappers", () => {
           id: "a1",
           process_id: "p1",
           sequence: 2,
+          title: "Sync CRM",
           description_rich: { any: "x" },
           owner_role_id: "r1",
           system_id: "s1",
@@ -125,6 +126,7 @@ describe("process mappers", () => {
         id: "a1",
         processId: "p1",
         sequence: 2,
+        title: "Sync CRM",
         descriptionHtml: "<p>x</p>",
         ownerRole: roleById.get("r1"),
         system: systemById.get("s1"),
@@ -134,11 +136,15 @@ describe("process mappers", () => {
     const flags = mapProcessDetailFlags([
       {
         id: "f1",
+        target_type: "action",
+        target_id: "a1",
         flag_type: "question",
         message: "M",
         created_at: new Date("2026-02-14T00:00:00Z").toISOString(),
       },
     ])
+    expect(flags[0]!.targetType).toBe("action")
+    expect(flags[0]!.targetId).toBe("a1")
     expect(flags[0]!.flagType).toBe("question")
     expect(flags[0]!.message).toBe("M")
   })

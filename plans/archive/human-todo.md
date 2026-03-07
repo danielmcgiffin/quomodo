@@ -2,8 +2,10 @@
 - [x] fix flag page so it doesn't have a flag sidebar (can't flag flags?)
 - [x] light green outline for empty flag sidebars with just a thumbs-up outline icon
 - [ ] flags dashboard: center main body + filterable grid of flags
+- [ ] add logout button
+- [ ] add script that fetches a system logo and adds it to a local db
 - [ ] Claude IA convo solutioning
-- [x] Screen Check (`plans/SR-16_SCREEN_ROUTE_AUDIT.md`)
+- [ ] Screen Check (`plans/SR-16_SCREEN_ROUTE_AUDIT.md`)
       Based on your project's file structure, here is the complete checklist of every screen (route) in your application.
 
 I have grouped them by their logical section (Marketing, App, Account) to make this list easier to review.

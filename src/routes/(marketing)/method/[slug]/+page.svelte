@@ -21,25 +21,32 @@
   </header>
 
   <section class="mk-method-actions">
-    {#each data.section.actions as item}
-      <div class="mk-method-action-card">
+    {#each data.section.actions as item, actionIndex}
+      <article class="mk-method-action-card">
+        <p class="mk-method-action-index">
+          Action {String(actionIndex + 1).padStart(2, "0")}
+        </p>
         <h2>{item.title}</h2>
         <p>{item.description}</p>
-      </div>
+      </article>
     {/each}
   </section>
 
   <nav class="mk-method-nav" aria-label="Method navigation">
     {#if data.previous}
-      <a href={methodPath(data.previous.slug)}>&larr; {data.previous.title}</a>
+      <a class="mk-btn mk-btn-quiet" href={methodPath(data.previous.slug)}
+        >&larr; {data.previous.title}</a
+      >
     {:else}
       <span></span>
     {/if}
 
     {#if data.next}
-      <a href={methodPath(data.next.slug)}>{data.next.title} &rarr;</a>
+      <a class="mk-btn mk-btn-primary" href={methodPath(data.next.slug)}
+        >{data.next.title} &rarr;</a
+      >
     {:else}
-      <a href="/contact">Talk to us &rarr;</a>
+      <a class="mk-btn mk-btn-primary" href="/contact">Talk to us &rarr;</a>
     {/if}
   </nav>
 </article>

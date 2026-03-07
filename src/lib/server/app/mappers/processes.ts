@@ -123,6 +123,7 @@ export type ProcessDetailActionRow = {
   id: string
   process_id: string
   sequence: number
+  title: string
   description_rich: unknown
   owner_role_id: string
   system_id: string
@@ -130,6 +131,8 @@ export type ProcessDetailActionRow = {
 
 export type ProcessDetailFlagRow = {
   id: string
+  target_type: "process" | "action"
+  target_id: string
   flag_type: string
   message: string
   created_at: string
@@ -150,6 +153,7 @@ export const mapProcessDetailActions = ({
     id: row.id,
     processId: row.process_id,
     sequence: row.sequence,
+    title: row.title,
     descriptionHtml: richToHtml(row.description_rich),
     ownerRole: roleById.get(row.owner_role_id),
     system: systemById.get(row.system_id),
@@ -158,6 +162,8 @@ export const mapProcessDetailActions = ({
 export const mapProcessDetailFlags = (rows: ProcessDetailFlagRow[]) =>
   rows.map((flag) => ({
     id: flag.id,
+    targetType: flag.target_type,
+    targetId: flag.target_id,
     flagType: flag.flag_type,
     message: flag.message,
     createdAt: new Date(flag.created_at).toLocaleString(),

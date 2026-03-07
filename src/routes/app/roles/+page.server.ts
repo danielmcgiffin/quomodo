@@ -16,6 +16,11 @@ import {
   mapRoleDirectory,
   type RoleDirectoryRow,
 } from "$lib/server/app/mappers/directory"
+import {
+  buildOpenFlagIndex,
+  getDirectFlagData,
+  type OpenFlagIndexRow,
+} from "$lib/server/app/mappers/flag-index"
 
 export const load = async ({ locals }) => {
   const context = await ensureOrgContext(locals)
@@ -36,7 +41,9 @@ export const load = async ({ locals }) => {
         .order("name"),
       supabase
         .from("flags")
-        .select("id, target_id, target_path, flag_type, message, created_at")
+        .select(
+          "id, target_type, target_id, target_path, flag_type, message, created_at",
+        )
         .eq("org_id", context.orgId)
         .eq("target_type", "role")
         .eq("status", "open")
@@ -74,6 +81,9 @@ export const load = async ({ locals }) => {
     owner_role_id: string
     system_id: string
   }[]
+  const openFlagIndex = buildOpenFlagIndex(
+    (flagsResult.data ?? []) as OpenFlagIndexRow[],
+  )
 
   const roles = mapRoleDirectory({
     rows: rolesData,
@@ -81,41 +91,14 @@ export const load = async ({ locals }) => {
     richToHtml,
     processData,
     actionData,
-  })
-  const roleById = new Map(roles.map((role) => [role.id, role]))
-  const openFlags = (
-    (flagsResult.data ?? []) as {
-      id: string
-      target_id: string
-      target_path: string | null
-      flag_type: string
-      message: string
-      created_at: string
-    }[]
-  )
-    .map((flag) => {
-      const role = roleById.get(flag.target_id)
-      if (!role) {
-        return null
-      }
-      return {
-        id: flag.id,
-        flagType: flag.flag_type,
-        message: flag.message,
-        targetPath: flag.target_path,
-        createdAt: new Date(flag.created_at).toLocaleString(),
-        role: {
-          slug: role.slug,
-          name: role.name,
-        },
-      }
-    })
-    .filter((flag): flag is NonNullable<typeof flag> => flag !== null)
+  }).map((role) => ({
+    ...role,
+    directFlagData: getDirectFlagData(openFlagIndex, "role", role.id),
+  }))
 
   return {
     org: context,
     roles,
-    openFlags,
   }
 }
 

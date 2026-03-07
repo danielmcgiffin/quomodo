@@ -262,9 +262,10 @@ export const mapSearchResults = ({
       })
       const snippet = fallbackSnippet || row.title
       const title =
-        row.entity_type === "action" && actionRoute
-          ? `Action ${actionRoute.sequence} in ${actionRoute.process.name}`
-          : row.title
+        row.title ||
+        (row.entity_type === "action" && actionRoute
+          ? `Action ${actionRoute.sequence}`
+          : "Untitled")
 
       let actionSequence: number | null = null
       let portalProcess: SearchPortalProcess | null = null

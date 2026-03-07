@@ -341,13 +341,13 @@ A product is saleable when:
 
 #### SR-16: Full screen audit — all ~40 routes
 
-- **What**: Systematically visit every screen listed in `plans/human/todo.md` and verify:
+- **What**: Systematically visit every screen listed in `plans/archive/human-todo.md` and verify:
   - Page loads without console errors
   - Layout isn't broken (no overflows, missing content, blank sections)
   - Interactive elements work (buttons, forms, modals, links)
   - Mobile viewport (375px) doesn't break layout
 - **How**:
-  1. Use the screen checklist from `plans/human/todo.md`
+  1. Use the screen checklist from `plans/archive/human-todo.md`
   2. Visit each route manually (or with Playwright `page.goto()` + screenshot)
   3. Log issues as sub-tasks
   4. Fix blocking issues (broken pages, non-functional buttons)
@@ -404,13 +404,13 @@ A product is saleable when:
   3. This is simpler but gives you awareness without a third-party service
 - **Done when**: Server errors reach you within minutes
 
-#### SR-20: Add uptime monitoring
+#### SR-20: Add uptime monitoring [COMPLETE]
 
 - **What**: External ping on `https://systemscraft.co` to alert on downtime
 - **How**: Use a free service (UptimeRobot, BetterUptime, or Cloudflare Health Checks)
-  1. Create a monitor for `https://systemscraft.co` — check every 5 minutes
-  2. Create a monitor for `https://systemscraft.co/pricing` (to verify app rendering, not just DNS)
-  3. Configure alerts to your email/Slack
+  1. [x] Create a monitor for `https://systemscraft.co` — check every 5 minutes
+  2. [x] Create a monitor for `https://systemscraft.co/pricing` (to verify app rendering, not just DNS)
+  3. [x] Configure alerts to your email/Slack
 - **Done when**: You get alerted if the site goes down
 
 ---

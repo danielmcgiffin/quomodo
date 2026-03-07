@@ -28,7 +28,10 @@
         </div>
         <div class="ac-body">
           <div class="ac-desc ac-desc--truncated">
-            <div class="ac-desc-inner">{@html action.descriptionHtml}</div>
+            <div class="ac-desc-inner">
+              <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+              {@html action.descriptionHtml}
+            </div>
           </div>
           <div class="ac-fork">
             <div class="ac-bracket"></div>

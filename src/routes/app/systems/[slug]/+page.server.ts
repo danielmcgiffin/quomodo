@@ -18,11 +18,16 @@ import {
   mapSystemPortals,
 } from "$lib/server/app/mappers/portals"
 import {
+  buildOpenFlagIndex,
+  getDirectFlagData,
+  getVisibleRelatedFlags,
+  type OpenFlagIndexRow,
+  type VisibleFlagTarget,
+} from "$lib/server/app/mappers/flag-index"
+import {
   filterProcessesUsing,
   filterRolesUsing,
-  mapOpenFlags,
   mapSystemActionsUsing,
-  type OpenFlagRow,
   type SystemDetailActionRow,
 } from "$lib/server/app/mappers/detail-relations"
 
@@ -36,14 +41,6 @@ type SystemRow = {
   logo_url: string | null
 }
 type RoleRow = { id: string; slug: string; name: string }
-type SystemFlagRow = {
-  id: string
-  flag_type: string
-  message: string
-  target_path: string | null
-  created_at: string
-}
-
 export const load = async ({ params, locals }) => {
   const context = await ensureOrgContext(locals)
   const supabase = locals.supabase
@@ -94,10 +91,11 @@ export const load = async ({ params, locals }) => {
         .order("name"),
       supabase
         .from("flags")
-        .select("id, flag_type, message, target_path, created_at")
+        .select(
+          "id, target_type, target_id, target_path, flag_type, message, created_at",
+        )
         .eq("org_id", context.orgId)
-        .eq("target_type", "system")
-        .eq("target_id", systemRow.id)
+        .in("target_type", ["system", "process", "role"])
         .eq("status", "open")
         .order("created_at", { ascending: false }),
     ])
@@ -133,18 +131,42 @@ export const load = async ({ params, locals }) => {
     roles,
     actionsUsing,
   })
-  const systemFlagRows = (flagsResult.data ?? []) as SystemFlagRow[]
-  const openFlags = systemFlagRows.map((flag) => ({
-    id: flag.id,
-    flagType: flag.flag_type,
-    message: flag.message,
-    targetPath: flag.target_path,
-    createdAt: new Date(flag.created_at).toLocaleString(),
-    system: {
-      slug: systemRow.slug,
-      name: systemRow.name,
-    },
-  }))
+  const visibleTargets: VisibleFlagTarget[] = []
+
+  for (const process of processesUsing) {
+    visibleTargets.push({
+      targetType: "process",
+      targetId: process.id,
+      label: process.name,
+    })
+  }
+  for (const action of actionsUsing) {
+    if (!action.ownerRole) {
+      continue
+    }
+    visibleTargets.push({
+      targetType: "role",
+      targetId: action.ownerRole.id,
+      label: action.ownerRole.name,
+    })
+  }
+  for (const role of rolesUsing) {
+    visibleTargets.push({
+      targetType: "role",
+      targetId: role.id,
+      label: role.name,
+    })
+  }
+
+  const visibleFlagIds = new Set([
+    systemRow.id,
+    ...visibleTargets.map((target) => target.targetId),
+  ])
+  const openFlagIndex = buildOpenFlagIndex(
+    ((flagsResult.data ?? []) as OpenFlagIndexRow[]).filter((flag) =>
+      visibleFlagIds.has(flag.target_id),
+    ),
+  )
 
   return {
     org: context,
@@ -163,8 +185,15 @@ export const load = async ({ params, locals }) => {
     actionsUsing,
     processesUsing,
     rolesUsing,
-    systemFlags: mapOpenFlags(systemFlagRows as OpenFlagRow[]),
-    openFlags,
+    systemDirectFlagData: getDirectFlagData(
+      openFlagIndex,
+      "system",
+      systemRow.id,
+    ),
+    systemRelatedFlagData: getVisibleRelatedFlags(
+      openFlagIndex,
+      visibleTargets,
+    ),
   }
 }
 

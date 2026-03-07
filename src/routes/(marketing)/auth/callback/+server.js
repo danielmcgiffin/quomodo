@@ -10,7 +10,17 @@ const resolveNextPath = (value) => {
   return value
 }
 
+/** @param {string} pathname */
+const resolveProxyPrefix = (pathname) => {
+  const match = pathname.match(/^\/proxy\/\d+/)
+  return match ? match[0] : ""
+}
+
 export const GET = async ({ url, locals: { supabase } }) => {
+  const proxyPrefix = resolveProxyPrefix(url.pathname)
+  /** @param {string} path */
+  const withProxyPrefix = (path) => `${proxyPrefix}${path}`
+
   const code = url.searchParams.get("code")
   if (code) {
     try {
@@ -19,7 +29,7 @@ export const GET = async ({ url, locals: { supabase } }) => {
       // If you open in another browser, need to redirect to login.
       // Should not display error
       if (isAuthApiError(error)) {
-        redirect(303, "/login/sign_in?verified=true")
+        redirect(303, withProxyPrefix("/login/sign_in?verified=true"))
       } else {
         throw error
       }
@@ -28,8 +38,8 @@ export const GET = async ({ url, locals: { supabase } }) => {
 
   const next = resolveNextPath(url.searchParams.get("next"))
   if (next) {
-    redirect(303, next)
+    redirect(303, withProxyPrefix(next))
   }
 
-  redirect(303, "/app/processes")
+  redirect(303, withProxyPrefix("/app/processes"))
 }

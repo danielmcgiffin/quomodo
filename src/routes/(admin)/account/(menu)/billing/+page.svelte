@@ -1,12 +1,12 @@
 <script lang="ts">
   import SettingsModule from "../settings/settings_module.svelte"
-  import PricingModule from "../../../../(marketing)/pricing/pricing_module.svelte"
-  import {
-    pricingPlans,
-    defaultPlanId,
-  } from "../../../../(marketing)/pricing/pricing_plans"
+  import PricingModule from "$lib/marketing/PricingModule.svelte"
+  import { marketingSite } from "$lib/marketing/site"
 
   let { data } = $props()
+
+  const pricingPlans = marketingSite.pricing.plans
+  const defaultPlanId = marketingSite.defaultPlanId
 
   const currentPlanId = $derived(data.currentPlanId ?? defaultPlanId)
   const currentPlanName = $derived(
