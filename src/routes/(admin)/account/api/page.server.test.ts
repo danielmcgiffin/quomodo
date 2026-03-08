@@ -20,12 +20,16 @@ describe("toggleEmailSubscription", () => {
     eq: vi.fn().mockReturnThis(),
     single: vi.fn().mockResolvedValue({ data: null }),
     update: vi.fn().mockReturnThis(),
+    auth: {
+      signOut: vi.fn().mockResolvedValue({ error: null }),
+    },
   }
 
   const mockSafeGetSession = vi.fn()
 
   beforeEach(() => {
     vi.clearAllMocks()
+    mockSupabase.auth.signOut.mockResolvedValue({ error: null })
   })
 
   it("should redirect if no session", async () => {
@@ -119,5 +123,31 @@ describe("toggleEmailSubscription", () => {
     expect(fail).toHaveBeenCalledWith(500, {
       message: "Failed to update subscription status",
     })
+  })
+
+  it("should sign out and redirect to sign in when a session exists", async () => {
+    mockSafeGetSession.mockResolvedValue({ session: { user: { id: "user123" } } })
+
+    await expect(
+      actions.signout({
+        locals: { supabase: mockSupabase, safeGetSession: mockSafeGetSession },
+      } as any),
+    ).rejects.toThrow("Redirect")
+
+    expect(mockSupabase.auth.signOut).toHaveBeenCalledTimes(1)
+    expect(redirect).toHaveBeenCalledWith(303, "/login/sign_in")
+  })
+
+  it("should redirect to sign in without signing out when no session exists", async () => {
+    mockSafeGetSession.mockResolvedValue({ session: null })
+
+    await expect(
+      actions.signout({
+        locals: { supabase: mockSupabase, safeGetSession: mockSafeGetSession },
+      } as any),
+    ).rejects.toThrow("Redirect")
+
+    expect(mockSupabase.auth.signOut).not.toHaveBeenCalled()
+    expect(redirect).toHaveBeenCalledWith(303, "/login/sign_in")
   })
 })

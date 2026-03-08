@@ -71,3 +71,11 @@
   editButtonTitle="Delete Account"
   editLink="/account/settings/delete_account"
 />
+
+<section class="sc-card p-6 mt-6">
+  <div class="sc-section-title mb-3">Session</div>
+  <div class="sc-copy-md mb-4">Sign out of your SystemsCraft account on this device.</div>
+  <form method="POST" action="/account/api?/signout">
+    <button type="submit" class="sc-btn secondary">Sign out</button>
+  </form>
+</section>

@@ -11,10 +11,12 @@
     role,
     size = "md",
     showName = true,
+    disableLink = false,
   }: {
     role: RolePortalModel
     size?: "sm" | "md" | "base" | "lg"
     showName?: boolean
+    disableLink?: boolean
   } = $props()
 
   const sizeMap = {
@@ -27,13 +29,26 @@
   const avatarBg = $derived(getAvatarColor(role.name))
 </script>
 
-<a class="sc-portal sc-portal-role" href={`/app/roles/${role.slug}`}>
-  <span
-    class="sc-avatar"
-    style={`--avatar-size:${sizeMap[size].size}px;--avatar-font:${sizeMap[size].font}px; --avatar-bg: ${avatarBg};`}
-    >{role.initials}</span
-  >
-  {#if showName}
-    <span class="sc-portal-name">{role.name}</span>
-  {/if}
-</a>
+{#if disableLink}
+  <span class="sc-portal sc-portal-role">
+    <span
+      class="sc-avatar"
+      style={`--avatar-size:${sizeMap[size].size}px;--avatar-font:${sizeMap[size].font}px; --avatar-bg: ${avatarBg};`}
+      >{role.initials}</span
+    >
+    {#if showName}
+      <span class="sc-portal-name">{role.name}</span>
+    {/if}
+  </span>
+{:else}
+  <a class="sc-portal sc-portal-role" href={`/app/roles/${role.slug}`}>
+    <span
+      class="sc-avatar"
+      style={`--avatar-size:${sizeMap[size].size}px;--avatar-font:${sizeMap[size].font}px; --avatar-bg: ${avatarBg};`}
+      >{role.initials}</span
+    >
+    {#if showName}
+      <span class="sc-portal-name">{role.name}</span>
+    {/if}
+  </a>
+{/if}

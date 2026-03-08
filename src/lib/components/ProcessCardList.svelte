@@ -97,56 +97,57 @@
         <a
           class="sc-process-card-clickable-area"
           href={`/app/processes/${process.slug}`}
-        >
-          <div class="sc-process-card-content">
-            <div class="sc-process-card-info">
-              <div class="sc-section-title sc-process-card-title-row">
-                <span class="sc-portal sc-portal-process">{process.name}</span>
-              </div>
-              <div class="sc-page-subtitle">
-                <RichText html={process.descriptionHtml} />
+          aria-label={`Open process ${process.name}`}
+        ></a>
+
+        <div class="sc-process-card-content">
+          <div class="sc-process-card-info">
+            <div class="sc-section-title sc-process-card-title-row">
+              <span class="sc-portal sc-portal-process">{process.name}</span>
+            </div>
+            <div class="sc-page-subtitle">
+              <RichText html={process.descriptionHtml} />
+            </div>
+          </div>
+
+          <div class="sc-process-badge-rows">
+            <div class="sc-process-badge-row">
+              <span class="sc-process-badge-label">Roles</span>
+              <div
+                class="sc-process-badges"
+                style={`--overlap: ${process.roleBadges.length > 3 ? "-10px" : "-4px"}`}
+              >
+                {#if process.roleBadges.length === 0}
+                  <span class="sc-page-subtitle">None</span>
+                {:else}
+                  {#each process.roleBadges as role}
+                    <span class="sc-process-badge" title={role.name}>
+                      <RolePortal {role} size="sm" showName={false} />
+                    </span>
+                  {/each}
+                {/if}
               </div>
             </div>
 
-            <div class="sc-process-badge-rows">
-              <div class="sc-process-badge-row">
-                <span class="sc-process-badge-label">Roles</span>
-                <div
-                  class="sc-process-badges"
-                  style={`--overlap: ${process.roleBadges.length > 3 ? "-10px" : "-4px"}`}
-                >
-                  {#if process.roleBadges.length === 0}
-                    <span class="sc-page-subtitle">None</span>
-                  {:else}
-                    {#each process.roleBadges as role}
-                      <span class="sc-process-badge" title={role.name}>
-                        <RolePortal {role} size="sm" showName={false} />
-                      </span>
-                    {/each}
-                  {/if}
-                </div>
-              </div>
-
-              <div class="sc-process-badge-row">
-                <span class="sc-process-badge-label">Systems</span>
-                <div
-                  class="sc-process-badges"
-                  style={`--overlap: ${process.systemBadges.length > 3 ? "-10px" : "-4px"}`}
-                >
-                  {#if process.systemBadges.length === 0}
-                    <span class="sc-page-subtitle">None</span>
-                  {:else}
-                    {#each process.systemBadges as system}
-                      <span class="sc-process-badge" title={system.name}>
-                        <SystemPortal {system} size="sm" showName={false} />
-                      </span>
-                    {/each}
-                  {/if}
-                </div>
+            <div class="sc-process-badge-row">
+              <span class="sc-process-badge-label">Systems</span>
+              <div
+                class="sc-process-badges"
+                style={`--overlap: ${process.systemBadges.length > 3 ? "-10px" : "-4px"}`}
+              >
+                {#if process.systemBadges.length === 0}
+                  <span class="sc-page-subtitle">None</span>
+                {:else}
+                  {#each process.systemBadges as system}
+                    <span class="sc-process-badge" title={system.name}>
+                      <SystemPortal {system} size="sm" showName={false} />
+                    </span>
+                  {/each}
+                {/if}
               </div>
             </div>
           </div>
-        </a>
+        </div>
       </article>
     {/each}
   {/if}
@@ -162,7 +163,7 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    z-index: 2;
+    z-index: 3;
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -171,11 +172,12 @@
   }
 
   .sc-process-card-clickable-area {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
     display: block;
-    padding: 16px;
     text-decoration: none;
     color: inherit;
-    width: 100%;
   }
 
   .sc-process-card-clickable-area:hover {
@@ -183,8 +185,10 @@
   }
 
   .sc-process-card-content {
-    /* Layout handled in app.css but ensuring it works inside the link */
+    position: relative;
+    z-index: 2;
     width: 100%;
+    padding: 16px;
   }
 
   .sc-process-card-title-row {

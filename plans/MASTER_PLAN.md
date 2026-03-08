@@ -94,9 +94,9 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
   - [x] **M-08a** Removed per-page flag sidebars and added inline primary-entity counts.
   - [x] **M-08b** Add modal-first direct/related flag indicators + `/app/flags` filtering/deep-link support.
   - Plan: `plans/FLAG_VISIBILITY_PASS_B_PLAN.md`
-- [ ] **M-09** Ensure logout UX and correctness in app flow.
-  - [ ] **M-09a** Add/logout button where missing in app UX flow.
-  - [ ] **M-09b** Fix sign-out correctness bug on `/account/sign_out` (maps to `TODO-10`).
+- [x] **M-09** Ensure logout UX and correctness in app flow.
+  - [x] **M-09a** Add/logout button where missing in app UX flow.
+  - [x] **M-09b** Fix sign-out correctness bug on `/account/sign_out` (maps to `TODO-10`).
 - [ ] **M-10** Build script to fetch/store system logos into local DB workflow.
 - [ ] **M-11** Complete full route screen audit (desktop + mobile + interactive checks).
 - [ ] **M-12** Implement production error reporting decision (Sentry vs admin-email strategy) and validate alert delivery.
@@ -169,7 +169,7 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
 
 ### Perf-P3 — Correctness
 
-- [ ] **TODO-10** Fix logout bug (cannot sign out), tracked under `M-09`.
+- [x] **TODO-10** Fix logout bug (cannot sign out), tracked under `M-09`.
   - Likely focus: `src/routes/(admin)/account/sign_out/+page.svelte` + account layout client hydration handoff.
 
 ---
