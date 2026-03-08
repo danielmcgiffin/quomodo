@@ -332,9 +332,9 @@ export const actions = {
     const { session } = await safeGetSession()
     if (session) {
       await supabase.auth.signOut()
-      redirect(303, "/")
+      redirect(303, "/login/sign_in")
     } else {
-      redirect(303, "/")
+      redirect(303, "/login/sign_in")
     }
   },
 }
