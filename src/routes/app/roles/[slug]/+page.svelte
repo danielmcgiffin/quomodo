@@ -65,6 +65,10 @@
   )
 </script>
 
+<svelte:head>
+  <title>{data.role.name} · Role</title>
+</svelte:head>
+
 <div class="sc-process-page">
   <div class="sc-process-layout">
     <div class="sc-process-main sc-rail-main">

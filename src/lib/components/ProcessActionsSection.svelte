@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { dndzone, TRIGGERS, type DndEvent } from "svelte-dnd-action"
+  import {
+    dragHandle,
+    dragHandleZone,
+    TRIGGERS,
+    type DndEvent,
+  } from "svelte-dnd-action"
   import { flip } from "svelte/animate"
   import ActionInlineEditor from "$lib/components/ActionInlineEditor.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
@@ -262,7 +267,13 @@
   </div>
   <div class="sc-action-card-side">
     <div class="flex items-center justify-between gap-2">
-      <div class="sc-action-sequence">{index + 1}</div>
+      <div
+        class="sc-action-sequence"
+        use:dragHandle
+        aria-label={`Drag action ${index + 1}`}
+      >
+        {index + 1}
+      </div>
     </div>
     <div class="sc-action-side-row">
       {#if action.ownerRole}
@@ -346,12 +357,11 @@
   {:else}
     <!-- eslint-disable @typescript-eslint/no-explicit-any -->
     <div
-      use:dndzone={{
+      use:dragHandleZone={{
         items,
         flipDurationMs,
         dragDisabled: !canReorder || isEditing,
-        handleSelector: ".sc-action-sequence",
-        msecsToDrag: 300,
+        delayTouchStart: 300,
       } as any}
       onconsider={handleDndConsider as any}
       onfinalize={handleDndFinalize as any}

@@ -450,14 +450,14 @@ button[disabled].authBtn::before {
 .sc-floating-search {
   display: none;
   position: fixed;
-  bottom: 24px;
-  left: 24px;
-  width: 56px;
-  height: 56px;
-  border-radius: 28px;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
   background: var(--sc-brand);
   color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
   align-items: center;
   justify-content: center;
   border: none;
@@ -475,6 +475,10 @@ button[disabled].authBtn::before {
   .sc-mobile-header,
   .sc-floating-search {
     display: flex;
+  }
+
+  .sc-main {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   }
 
   .sc-sidebar {

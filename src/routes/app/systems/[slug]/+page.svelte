@@ -108,6 +108,10 @@
   // Draft handling + edit modal are encapsulated in SystemDetailHeader to keep the page lean.
 </script>
 
+<svelte:head>
+  <title>{data.system.name} · System</title>
+</svelte:head>
+
 <div class="sc-process-page">
   <div class="sc-process-layout">
     <div class="sc-process-main sc-rail-main">

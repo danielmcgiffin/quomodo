@@ -52,6 +52,10 @@
   })
 </script>
 
+<svelte:head>
+  <title>Processes</title>
+</svelte:head>
+
 <div class="sc-process-page">
   <CreateProcessModal
     bind:open={isCreateProcessModalOpen}

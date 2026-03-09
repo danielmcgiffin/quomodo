@@ -98,6 +98,15 @@
     return $page.url.pathname.startsWith(resolve(href))
   }
 
+  const showFloatingSearch = $derived.by(() => {
+    const pathname = $page.url.pathname
+    return !(
+      pathname.startsWith(resolve("/account")) ||
+      pathname.startsWith(resolve("/app/team")) ||
+      pathname.startsWith(resolve("/app/workspace"))
+    )
+  })
+
   const onWindowKeydown = (event: KeyboardEvent) => {
     if (
       event.defaultPrevented ||
@@ -492,24 +501,26 @@
     {/if}
 
     {#if !isStackMode}
-      <button
-        class="sc-floating-search"
-        type="button"
-        onclick={() => (isSearchOpen = true)}
-        aria-label="Open search"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-          stroke="currentColor"
-          stroke-width="2"
-          fill="none"
+      {#if showFloatingSearch}
+        <button
+          class="sc-floating-search"
+          type="button"
+          onclick={() => (isSearchOpen = true)}
+          aria-label="Open search"
         >
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-      </button>
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
+      {/if}
 
       <AppSearchOverlay bind:open={isSearchOpen} />
     {/if}

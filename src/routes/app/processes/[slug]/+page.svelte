@@ -94,6 +94,10 @@
   })
 </script>
 
+<svelte:head>
+  <title>{data.process.name} · Process</title>
+</svelte:head>
+
 <div class="sc-process-page">
   <div class="sc-process-layout">
     <div class="sc-process-main">

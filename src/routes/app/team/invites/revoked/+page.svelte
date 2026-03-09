@@ -24,6 +24,10 @@
   let { data }: Props = $props()
 </script>
 
+<svelte:head>
+  <title>Revoked Invites</title>
+</svelte:head>
+
 <div class="sc-page">
   <div class="sc-page-head">
     <div class="flex items-center gap-4">

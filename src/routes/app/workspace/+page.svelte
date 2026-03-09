@@ -34,6 +34,10 @@
   let { data, form }: Props = $props()
 </script>
 
+<svelte:head>
+  <title>Workspace</title>
+</svelte:head>
+
 <div class="sc-page">
   <div class="sc-page-head">
     <div class="flex flex-col">

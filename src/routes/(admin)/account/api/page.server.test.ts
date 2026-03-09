@@ -126,6 +126,18 @@ describe("toggleEmailSubscription", () => {
   })
 
   it("should sign out and redirect to sign in when a session exists", async () => {
+    mockSafeGetSession.mockResolvedValue({ session: { user: { id: "user123" } } })
+
+    await expect(
+      actions.signout({
+        locals: { supabase: mockSupabase, safeGetSession: mockSafeGetSession },
+      } as any),
+    ).rejects.toThrow("Redirect")
+
+    expect(mockSupabase.auth.signOut).toHaveBeenCalledTimes(1)
+    expect(redirect).toHaveBeenCalledWith(303, "/login/sign_in")
+  })
+
   it("should redirect to sign in without signing out when no session exists", async () => {
     mockSafeGetSession.mockResolvedValue({ session: null })
 

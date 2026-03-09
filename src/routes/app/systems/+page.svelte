@@ -115,6 +115,10 @@
   })
 </script>
 
+<svelte:head>
+  <title>Systems</title>
+</svelte:head>
+
 <div class="sc-process-page">
   <div class="sc-process-layout">
     <div class="sc-process-main sc-rail-main">
