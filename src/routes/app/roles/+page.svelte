@@ -181,6 +181,7 @@
                       viewerRole={data.org.membershipRole}
                       modalTitle={`${role.name} flags`}
                       modalDescription="Open flags attached directly to this role."
+                      directOriginHref={`/app/roles/${role.slug}`}
                     />
                     <InlineEntityFlagControl
                       inline={true}

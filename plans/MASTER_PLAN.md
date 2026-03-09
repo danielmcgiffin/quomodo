@@ -104,11 +104,11 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
   - Follow-up plan: `plans/M11_AUDIT_FOLLOWUP_PLAN.md`
 - [ ] **M-12** Implement production error reporting decision (Sentry vs admin-email strategy) and validate alert delivery.
 - [ ] **M-13** Prepare and lock a high-quality demo workspace + secure demo credentials.
-- [ ] **M-18** Flag UX follow-up pass from `plans/PRODUCT_FINDINGS.md`.
-  - [ ] **M-18a** In flag modal, link to the flag origin (where it was created), not dashboard.
-  - [ ] **M-18b** Add resolved-flag history log with resolved-at timestamp and actor.
-  - [ ] **M-18c** On "Resolve", show a short comment textbox and persist the note.
-  - [ ] **M-18d** Place flag indicator icon next to item title after the link icon.
+- [x] **M-18** Flag UX follow-up pass from `plans/PRODUCT_FINDINGS.md`.
+  - [x] **M-18a** In flag modal, link to the flag origin (where it was created), not dashboard.
+  - [x] **M-18b** Add resolved-flag history log with resolved-at timestamp and actor.
+  - [x] **M-18c** On "Resolve", show a short comment textbox and persist the note.
+  - [x] **M-18d** Place flag indicator icon next to item title after the link icon.
 - [x] **M-19** Standardize all list pages so cards render in grid layouts.
 - [x] **M-20** Standardize atlas list cards around triad-summary content.
   - Process cards now summarize title + roles + systems without long descriptions.

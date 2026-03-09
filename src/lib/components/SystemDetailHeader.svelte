@@ -145,6 +145,11 @@
   <div class="flex flex-col">
     <div class="sc-system-title-row">
       <div class="sc-page-title">{system.name}</div>
+      <CopyLinkButton
+        variant="icon"
+        href={`/app/systems/${system.slug}`}
+        label="Copy system link"
+      />
       <FlagBadgeModal
         kind="direct"
         label={`${system.name} direct flags`}
@@ -152,6 +157,7 @@
         {viewerRole}
         modalTitle={`${system.name} flags`}
         modalDescription="Open flags attached directly to this system."
+        directOriginHref={`/app/systems/${system.slug}`}
       />
       <FlagBadgeModal
         kind="related"
@@ -160,11 +166,6 @@
         {viewerRole}
         modalTitle={`${system.name} related flags`}
         modalDescription="Open flags on linked processes and roles visible on this page."
-      />
-      <CopyLinkButton
-        variant="icon"
-        href={`/app/systems/${system.slug}`}
-        label="Copy system link"
       />
       <InlineEntityFlagControl
         inline={true}

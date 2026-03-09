@@ -11,6 +11,7 @@ export const POST = async ({ locals, request }) => {
   const payload = (await request.json().catch(() => null)) as {
     id?: string
     action?: "resolve" | "dismiss"
+    resolutionNote?: string
   } | null
 
   const id = String(payload?.id ?? "").trim()
@@ -20,12 +21,15 @@ export const POST = async ({ locals, request }) => {
     return json({ error: "Invalid flag update." }, { status: 400 })
   }
 
+  const resolutionNote = String(payload?.resolutionNote ?? "").trim()
+
   const updatePayload =
     action === "resolve"
       ? {
           status: "resolved" as const,
           resolved_at: new Date().toISOString(),
           resolved_by: context.userId,
+          resolution_note: resolutionNote || null,
         }
       : {
           status: "dismissed" as const,

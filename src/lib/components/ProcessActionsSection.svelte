@@ -226,6 +226,11 @@
       <div class="font-bold text-lg sc-action-title-hit">
         {action.title || `Action ${action.sequence}`}
       </div>
+      <CopyLinkButton
+        variant="icon"
+        href={`/app/processes/${processSlug}#step-${action.sequence}`}
+        label={`Copy link to action ${action.sequence}`}
+      />
       <FlagBadgeModal
         kind="direct"
         label={`${action.title || `Action ${action.sequence}`} flags`}
@@ -233,11 +238,7 @@
         {viewerRole}
         modalTitle={`${action.title || `Action ${action.sequence}`} flags`}
         modalDescription="Open flags attached directly to this action."
-      />
-      <CopyLinkButton
-        variant="icon"
-        href={`/app/processes/${processSlug}#step-${action.sequence}`}
-        label={`Copy link to action ${action.sequence}`}
+        directOriginHref={`/app/processes/${processSlug}?actionId=${action.id}#step-${action.sequence}`}
       />
       <InlineEntityFlagControl
         inline={true}

@@ -27,7 +27,11 @@ describe("flags mappers", () => {
   it("maps action targets with process context in label", () => {
     const processById = new Map(processRows.map((row) => [row.id, row]))
     expect(mapActionTargets({ actionRows, processById })).toEqual([
-      { id: "a1", label: "Action 2 in Onboarding" },
+      {
+        id: "a1",
+        label: "Action 2 in Onboarding",
+        href: "/app/processes/onboarding?actionId=a1",
+      },
     ])
   })
 

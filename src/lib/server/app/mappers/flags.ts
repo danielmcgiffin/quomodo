@@ -1,3 +1,4 @@
+import { buildFlagsHref } from "$lib/flags"
 import {
   mapRolePortals,
   type RolePortalModel,
@@ -22,60 +23,50 @@ export type FlagsRow = {
   message: string
   created_at: string
   status: string
+  resolved_at?: string | null
+  resolved_by?: string | null
+  resolution_note?: string | null
 }
 
-export type ActionTarget = { id: string; label: string }
+export type ActionTarget = { id: string; label: string; href: string }
 
 type FlagProcessTarget = FlagsProcessRow | null
 type FlagRoleTarget = RolePortalModel | null
 type FlagSystemTarget = FlagsSystemRow | null
 type FlagActionTarget = ActionTarget | null
 
+type FlagsDashboardBase = {
+  id: string
+  targetId: string
+  targetPath: string | null
+  flagType: string
+  message: string
+  createdAt: string
+  status: string
+  resolvedAt: string | null
+  resolvedBy: string | null
+  resolvedByLabel: string | null
+  resolutionNote: string | null
+  originHref: string
+}
+
 export type FlagsDashboardEntry =
-  | {
-      id: string
+  | (FlagsDashboardBase & {
       targetType: "process"
-      targetId: string
-      targetPath: string | null
-      flagType: string
-      message: string
-      createdAt: string
-      status: string
       target: FlagProcessTarget
-    }
-  | {
-      id: string
+    })
+  | (FlagsDashboardBase & {
       targetType: "role"
-      targetId: string
-      targetPath: string | null
-      flagType: string
-      message: string
-      createdAt: string
-      status: string
       target: FlagRoleTarget
-    }
-  | {
-      id: string
+    })
+  | (FlagsDashboardBase & {
       targetType: "system"
-      targetId: string
-      targetPath: string | null
-      flagType: string
-      message: string
-      createdAt: string
-      status: string
       target: FlagSystemTarget
-    }
-  | {
-      id: string
+    })
+  | (FlagsDashboardBase & {
       targetType: "action"
-      targetId: string
-      targetPath: string | null
-      flagType: string
-      message: string
-      createdAt: string
-      status: string
       target: FlagActionTarget
-    }
+    })
 
 export type FlagsFilterStatus = "open" | "resolved" | "dismissed"
 export type FlagsFilterParams = {
@@ -85,6 +76,22 @@ export type FlagsFilterParams = {
 }
 
 const toTargetLabel = (type: string, name: string) => `${type}: ${name}`
+
+const formatResolverName = (
+  resolvedBy: string | null,
+  resolverNameById?: Map<string, string>,
+) => {
+  if (!resolvedBy) {
+    return null
+  }
+
+  const profileName = resolverNameById?.get(resolvedBy)?.trim()
+  if (profileName) {
+    return profileName
+  }
+
+  return `User ${resolvedBy.slice(0, 8)}`
+}
 
 export const parseFlagsFilterParams = (
   searchParams: URLSearchParams,
@@ -123,9 +130,18 @@ export const mapActionTargets = ({
     const label = process
       ? `Action ${action.sequence} in ${process.name}`
       : `Action ${action.sequence}`
+
+    const href = process
+      ? `/app/processes/${process.slug}?actionId=${action.id}`
+      : buildFlagsHref({
+          targetType: "action",
+          targetId: action.id,
+        })
+
     return {
       id: action.id,
       label,
+      href,
     }
   })
 
@@ -164,12 +180,14 @@ export const mapFlagsDashboard = ({
   roleRows,
   systemById,
   actionTargets,
+  resolverNameById,
 }: {
   flagsRows: FlagsRow[]
   processById: Map<string, FlagsProcessRow>
   roleRows: FlagsRoleRow[]
   systemById: Map<string, FlagsSystemRow>
   actionTargets: ActionTarget[]
+  resolverNameById?: Map<string, string>
 }): FlagsDashboardEntry[] => {
   const roleById = new Map<string, RolePortalModel>(
     mapRolePortals(roleRows).map((role) => [role.id, role]),
@@ -184,34 +202,63 @@ export const mapFlagsDashboard = ({
       message: flag.message,
       createdAt: new Date(flag.created_at).toLocaleString(),
       status: flag.status,
+      resolvedAt: flag.resolved_at
+        ? new Date(flag.resolved_at).toLocaleString()
+        : null,
+      resolvedBy: flag.resolved_by ?? null,
+      resolvedByLabel: formatResolverName(
+        flag.resolved_by ?? null,
+        resolverNameById,
+      ),
+      resolutionNote: flag.resolution_note ?? null,
     }
 
     if (flag.target_type === "process") {
+      const processTarget = processById.get(flag.target_id) ?? null
       return {
         ...common,
         targetType: "process",
-        target: processById.get(flag.target_id) ?? null,
+        target: processTarget,
+        originHref: processTarget
+          ? `/app/processes/${processTarget.slug}`
+          : buildFlagsHref({ targetType: "process", targetId: flag.target_id }),
       }
     }
+
     if (flag.target_type === "role") {
+      const roleTarget = roleById.get(flag.target_id) ?? null
       return {
         ...common,
         targetType: "role",
-        target: roleById.get(flag.target_id) ?? null,
+        target: roleTarget,
+        originHref: roleTarget
+          ? `/app/roles/${roleTarget.slug}`
+          : buildFlagsHref({ targetType: "role", targetId: flag.target_id }),
       }
     }
+
     if (flag.target_type === "system") {
+      const systemTarget = systemById.get(flag.target_id) ?? null
       return {
         ...common,
         targetType: "system",
-        target: systemById.get(flag.target_id) ?? null,
+        target: systemTarget,
+        originHref: systemTarget
+          ? `/app/systems/${systemTarget.slug}`
+          : buildFlagsHref({ targetType: "system", targetId: flag.target_id }),
       }
     }
+
+    const actionTarget =
+      actionTargets.find((action) => action.id === flag.target_id) ?? null
+
     return {
       ...common,
       targetType: "action",
-      target:
-        actionTargets.find((action) => action.id === flag.target_id) ?? null,
+      target: actionTarget,
+      originHref:
+        actionTarget?.href ??
+        buildFlagsHref({ targetType: "action", targetId: flag.target_id }),
     }
   })
 }

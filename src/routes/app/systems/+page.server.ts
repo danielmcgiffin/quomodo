@@ -120,6 +120,7 @@ export const load = async ({ locals }) => {
             targetType: "role",
             targetId: system.ownerRole.id,
             label: system.ownerRole.name,
+            href: `/app/roles/${system.ownerRole.slug}`,
           },
         ]
       : []

@@ -138,6 +138,7 @@ export const load = async ({ params, locals }) => {
       targetType: "process",
       targetId: process.id,
       label: process.name,
+      href: `/app/processes/${process.slug}`,
     })
   }
   for (const action of actionsUsing) {
@@ -148,6 +149,7 @@ export const load = async ({ params, locals }) => {
       targetType: "role",
       targetId: action.ownerRole.id,
       label: action.ownerRole.name,
+      href: `/app/roles/${action.ownerRole.slug}`,
     })
   }
   for (const role of rolesUsing) {
@@ -155,6 +157,7 @@ export const load = async ({ params, locals }) => {
       targetType: "role",
       targetId: role.id,
       label: role.name,
+      href: `/app/roles/${role.slug}`,
     })
   }
 

@@ -8,6 +8,7 @@
       viewerRole: "owner" | "admin" | "editor" | "member"
       targetOptions: { value: string; label: string }[]
       flags: FlagsDashboardEntry[]
+      resolvedHistory: FlagsDashboardEntry[]
       filters: {
         status: "open" | "resolved" | "dismissed"
         targetType: "process" | "role" | "system" | "action" | null
@@ -69,4 +70,14 @@
   {/if}
 
   <FlagsCardList flags={data.flags} {canModerate} />
+
+  {#if data.filters.status === "open" && data.resolvedHistory.length > 0}
+    <div class="sc-section sc-stack-top-16">
+      <div class="sc-section-title">Resolved history</div>
+      <div class="sc-page-subtitle">
+        Recent resolved and dismissed flags with actor + timestamp.
+      </div>
+      <FlagsCardList flags={data.resolvedHistory} canModerate={false} />
+    </div>
+  {/if}
 </div>

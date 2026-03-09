@@ -142,6 +142,7 @@ export const load = async ({ params, locals }) => {
       targetType: "process",
       targetId: entry.process.id,
       label: entry.process.name,
+      href: `/app/processes/${entry.process.slug}`,
     })
     for (const action of entry.actions) {
       if (!action.system) {
@@ -151,6 +152,7 @@ export const load = async ({ params, locals }) => {
         targetType: "system",
         targetId: action.system.id,
         label: action.system.name,
+        href: `/app/systems/${action.system.slug}`,
       })
     }
   }

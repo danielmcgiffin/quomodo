@@ -257,35 +257,6 @@
                   </div>
 
                   <div class="sc-system-title-actions">
-                    <FlagBadgeModal
-                      kind="direct"
-                      label={`${system.name} direct flags`}
-                      data={system.directFlagData}
-                      viewerRole={data.org.membershipRole}
-                      modalTitle={`${system.name} flags`}
-                      modalDescription="Open flags attached directly to this system."
-                    />
-                    <FlagBadgeModal
-                      kind="related"
-                      label={`${system.name} related flags`}
-                      data={system.relatedFlagData}
-                      viewerRole={data.org.membershipRole}
-                      modalTitle={`${system.name} related flags`}
-                      modalDescription="Open flags on visible linked entities on this card."
-                    />
-                    <InlineEntityFlagControl
-                      inline={true}
-                      action="?/createFlag"
-                      targetType="system"
-                      targetId={system.id}
-                      entityLabel={system.name}
-                      viewerRole={data.org.membershipRole}
-                      fieldTargets={systemFieldTargets}
-                      errorMessage={form?.createFlagError}
-                      errorTargetType={form?.createFlagTargetType}
-                      errorTargetId={form?.createFlagTargetId}
-                      errorTargetPath={form?.createFlagTargetPath}
-                    />
                     {#if isValidUrl(system.location)}
                       <a
                         href={system.location}
@@ -310,6 +281,36 @@
                         </svg>
                       </a>
                     {/if}
+                    <FlagBadgeModal
+                      kind="direct"
+                      label={`${system.name} direct flags`}
+                      data={system.directFlagData}
+                      viewerRole={data.org.membershipRole}
+                      modalTitle={`${system.name} flags`}
+                      modalDescription="Open flags attached directly to this system."
+                      directOriginHref={`/app/systems/${system.slug}`}
+                    />
+                    <FlagBadgeModal
+                      kind="related"
+                      label={`${system.name} related flags`}
+                      data={system.relatedFlagData}
+                      viewerRole={data.org.membershipRole}
+                      modalTitle={`${system.name} related flags`}
+                      modalDescription="Open flags on visible linked entities on this card."
+                    />
+                    <InlineEntityFlagControl
+                      inline={true}
+                      action="?/createFlag"
+                      targetType="system"
+                      targetId={system.id}
+                      entityLabel={system.name}
+                      viewerRole={data.org.membershipRole}
+                      fieldTargets={systemFieldTargets}
+                      errorMessage={form?.createFlagError}
+                      errorTargetType={form?.createFlagTargetType}
+                      errorTargetId={form?.createFlagTargetId}
+                      errorTargetPath={form?.createFlagTargetPath}
+                    />
                   </div>
                 </div>
 

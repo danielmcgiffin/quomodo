@@ -29,7 +29,7 @@ export const load = async ({ locals, url }) => {
   const flagsQuery = supabase
     .from("flags")
     .select(
-      "id, target_type, target_id, target_path, flag_type, message, created_at, status",
+      "id, target_type, target_id, target_path, flag_type, message, created_at, status, resolved_at, resolved_by, resolution_note",
     )
     .eq("org_id", context.orgId)
     .eq("status", filters.status)
@@ -48,6 +48,7 @@ export const load = async ({ locals, url }) => {
     systemsResult,
     actionsResult,
     flagsResult,
+    resolvedHistoryResult,
   ] = await Promise.all([
     supabase
       .from("processes")
@@ -70,6 +71,15 @@ export const load = async ({ locals, url }) => {
       .eq("org_id", context.orgId)
       .order("sequence", { ascending: true }),
     flagsQuery,
+    supabase
+      .from("flags")
+      .select(
+        "id, target_type, target_id, target_path, flag_type, message, created_at, status, resolved_at, resolved_by, resolution_note",
+      )
+      .eq("org_id", context.orgId)
+      .in("status", ["resolved", "dismissed"])
+      .order("resolved_at", { ascending: false })
+      .limit(40),
   ])
 
   if (processesResult.error) {
@@ -87,6 +97,9 @@ export const load = async ({ locals, url }) => {
   if (flagsResult.error) {
     failLoad("app.flags.load.flags", flagsResult.error)
   }
+  if (resolvedHistoryResult.error) {
+    failLoad("app.flags.load.resolvedHistory", resolvedHistoryResult.error)
+  }
 
   const processById = new Map(
     ((processesResult.data ?? []) as FlagsProcessRow[]).map((x) => [x.id, x]),
@@ -100,6 +113,37 @@ export const load = async ({ locals, url }) => {
     processById,
   })
 
+  const resolverNameById = new Map<string, string>()
+  const resolvedByIds = [
+    ...new Set(
+      [
+        ...((flagsResult.data ?? []) as FlagsRow[]).map((flag) =>
+          flag.resolved_by?.trim(),
+        ),
+        ...((resolvedHistoryResult.data ?? []) as FlagsRow[]).map((flag) =>
+          flag.resolved_by?.trim(),
+        ),
+      ].filter((id): id is string => Boolean(id)),
+    ),
+  ]
+
+  if (resolvedByIds.length > 0) {
+    const { data: resolverProfiles, error: resolverProfilesError } =
+      await locals.supabaseServiceRole
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", resolvedByIds)
+
+    if (resolverProfilesError) {
+      failLoad("app.flags.load.resolverProfiles", resolverProfilesError)
+    }
+
+    for (const profile of
+      (resolverProfiles ?? []) as { id: string; full_name: string | null }[]) {
+      resolverNameById.set(profile.id, profile.full_name?.trim() ?? "")
+    }
+  }
+
   const targetOptions = mapFlagTargetOptions({
     processRows: (processesResult.data ?? []) as FlagsProcessRow[],
     roleRows: (rolesResult.data ?? []) as FlagsRoleRow[],
@@ -112,11 +156,21 @@ export const load = async ({ locals, url }) => {
     roleRows: (rolesResult.data ?? []) as FlagsRoleRow[],
     systemById,
     actionTargets,
+    resolverNameById,
+  })
+  const resolvedHistory = mapFlagsDashboard({
+    flagsRows: (resolvedHistoryResult.data ?? []) as FlagsRow[],
+    processById,
+    roleRows: (rolesResult.data ?? []) as FlagsRoleRow[],
+    systemById,
+    actionTargets,
+    resolverNameById,
   })
 
   return {
     viewerRole: context.membershipRole,
     flags,
+    resolvedHistory,
     targetOptions,
     filters,
   }

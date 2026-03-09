@@ -171,6 +171,7 @@ export const load = async ({ params, locals, url }) => {
         targetType: "role",
         targetId: action.ownerRole.id,
         label: action.ownerRole.name,
+        href: `/app/roles/${action.ownerRole.slug}`,
       })
     }
     if (action.system) {
@@ -178,6 +179,7 @@ export const load = async ({ params, locals, url }) => {
         targetType: "system",
         targetId: action.system.id,
         label: action.system.name,
+        href: `/app/systems/${action.system.slug}`,
       })
     }
   }

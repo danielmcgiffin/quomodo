@@ -13,6 +13,27 @@
     flags: FlagsDashboardEntry[]
     canModerate: boolean
   } = $props()
+
+  let resolvingFlagId = $state<string | null>(null)
+  let resolutionNoteDraft = $state("")
+
+  const startResolveDraft = (flagId: string) => {
+    resolvingFlagId = flagId
+    resolutionNoteDraft = ""
+  }
+
+  const cancelResolveDraft = () => {
+    resolvingFlagId = null
+    resolutionNoteDraft = ""
+  }
+
+  const isOpenFlag = (flag: FlagsDashboardEntry) => flag.status === "open"
+
+  const statusLabelByType: Record<string, string> = {
+    open: "Open",
+    resolved: "Resolved",
+    dismissed: "Dismissed",
+  }
 </script>
 
 <div class="sc-section">
@@ -30,10 +51,14 @@
               href={`/app/flags#flag-${flag.id}`}
               label="Copy link to flag"
             />
-            {#if canModerate}
-              <form method="POST" action="?/resolveFlag" use:pendingEnhance>
-                <input type="hidden" name="id" value={flag.id} />
-                <button class="sc-icon-btn" type="submit" title="Resolve">
+            {#if canModerate && isOpenFlag(flag)}
+              {#if resolvingFlagId !== flag.id}
+                <button
+                  class="sc-icon-btn"
+                  type="button"
+                  title="Resolve"
+                  onclick={() => startResolveDraft(flag.id)}
+                >
                   <svg
                     viewBox="0 0 20 20"
                     width="16"
@@ -47,7 +72,7 @@
                     />
                   </svg>
                 </button>
-              </form>
+              {/if}
               <form method="POST" action="?/dismissFlag" use:pendingEnhance>
                 <input type="hidden" name="id" value={flag.id} />
                 <button class="sc-icon-btn" type="submit" title="Dismiss">
@@ -99,14 +124,50 @@
         </div>
 
         <div class="sc-postit-body">
-          <div class="sc-postit-message">
+          <a class="sc-postit-message sc-flag-origin-link" href={flag.originHref}>
             {flag.message}
-          </div>
+          </a>
+
+          {#if canModerate && isOpenFlag(flag) && resolvingFlagId === flag.id}
+            <form
+              class="sc-flag-resolve-form"
+              method="POST"
+              action="?/resolveFlag"
+              use:pendingEnhance
+              onsubmit={cancelResolveDraft}
+            >
+              <input type="hidden" name="id" value={flag.id} />
+              <label class="sc-flag-resolve-label" for={`resolution-note-${flag.id}`}>
+                Resolution note (optional)
+              </label>
+              <textarea
+                id={`resolution-note-${flag.id}`}
+                class="sc-search sc-field sc-textarea sc-flag-resolve-textarea"
+                name="resolution_note"
+                bind:value={resolutionNoteDraft}
+                rows="3"
+                maxlength="280"
+                placeholder="Add context for why this was resolved"
+              ></textarea>
+              <div class="sc-flag-resolve-actions">
+                <button class="sc-btn" type="submit" data-loading-label="Resolving...">
+                  Resolve
+                </button>
+                <button
+                  class="sc-btn secondary"
+                  type="button"
+                  onclick={cancelResolveDraft}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          {/if}
         </div>
 
         <div class="sc-postit-footer">
           <div class="sc-postit-meta">
-            <span class="text-xs opacity-60">{flag.createdAt}</span>
+            <span class="text-xs opacity-60">Raised {flag.createdAt}</span>
             <div class="sc-postit-target">
               {#if flag.targetType === "process" && flag.target}
                 <ProcessPortal process={flag.target} size="sm" />
@@ -115,14 +176,93 @@
               {:else if flag.targetType === "role" && flag.target}
                 <RolePortal role={flag.target} size="sm" />
               {:else if flag.targetType === "action" && flag.target}
-                <span class="text-xs font-semibold truncate"
-                  >{flag.target.label}</span
-                >
+                <a class="sc-portal sc-portal-process" href={flag.target.href}>
+                  <span class="sc-portal-name">{flag.target.label}</span>
+                </a>
               {/if}
             </div>
           </div>
+
+          {#if flag.targetPath}
+            <div class="sc-flag-target-path">Path: {flag.targetPath}</div>
+          {/if}
+
+          {#if !isOpenFlag(flag)}
+            <div class="sc-flag-resolution-line">
+              <span class="sc-pill">
+                {statusLabelByType[flag.status] ?? flag.status}
+              </span>
+              {#if flag.resolvedAt}
+                <span>{flag.resolvedAt}</span>
+              {/if}
+              {#if flag.resolvedByLabel}
+                <span>by {flag.resolvedByLabel}</span>
+              {/if}
+            </div>
+            {#if flag.resolutionNote}
+              <div class="sc-flag-resolution-note">“{flag.resolutionNote}”</div>
+            {/if}
+          {/if}
         </div>
       </div>
     {/each}
   </div>
 </div>
+
+<style>
+  .sc-flag-origin-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .sc-flag-origin-link:hover,
+  .sc-flag-origin-link:focus-visible {
+    color: var(--sc-green);
+    text-decoration: underline;
+  }
+
+  .sc-flag-resolve-form {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sc-flag-resolve-label {
+    font-size: var(--sc-font-xs, 0.75rem);
+    color: var(--sc-text-muted);
+    font-weight: 600;
+  }
+
+  .sc-flag-resolve-textarea {
+    min-height: 74px;
+  }
+
+  .sc-flag-resolve-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .sc-flag-target-path {
+    color: var(--sc-text-light);
+    font-size: var(--sc-font-xs, 0.75rem);
+    margin-top: 6px;
+  }
+
+  .sc-flag-resolution-line {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--sc-font-xs, 0.75rem);
+    color: var(--sc-text-muted);
+  }
+
+  .sc-flag-resolution-note {
+    margin-top: 6px;
+    font-size: var(--sc-font-sm, 0.875rem);
+    color: var(--sc-text-muted);
+  }
+</style>

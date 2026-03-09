@@ -142,6 +142,11 @@
   <div class="flex flex-col">
     <div class="sc-process-title-row">
       <div class="sc-page-title">{process.name}</div>
+      <CopyLinkButton
+        variant="icon"
+        href={`/app/processes/${process.slug}`}
+        label="Copy process link"
+      />
       <FlagBadgeModal
         kind="direct"
         label={`${process.name} direct flags`}
@@ -149,6 +154,7 @@
         {viewerRole}
         modalTitle={`${process.name} flags`}
         modalDescription="Open flags attached directly to this process."
+        directOriginHref={`/app/processes/${process.slug}`}
       />
       <FlagBadgeModal
         kind="related"
@@ -157,11 +163,6 @@
         {viewerRole}
         modalTitle={`${process.name} related flags`}
         modalDescription="Open flags on linked roles and systems visible on this page."
-      />
-      <CopyLinkButton
-        variant="icon"
-        href={`/app/processes/${process.slug}`}
-        label="Copy process link"
       />
       <InlineEntityFlagControl
         inline={true}

@@ -83,19 +83,20 @@
             <div class="min-w-0">
               <div class="sc-role-title-row">
                 <div class="sc-page-title">{data.role.name}</div>
-                <FlagBadgeModal
-                  kind="direct"
-                  label={`${data.role.name} direct flags`}
-                  data={data.roleDirectFlagData}
-                  viewerRole={data.org.membershipRole}
-                  modalTitle={`${data.role.name} flags`}
-                  modalDescription="Open flags attached directly to this role."
-                />
                 <div class="sc-role-title-icons">
                   <CopyLinkButton
                     variant="icon"
                     href={`/app/roles/${data.role.slug}`}
                     label="Copy role link"
+                  />
+                  <FlagBadgeModal
+                    kind="direct"
+                    label={`${data.role.name} direct flags`}
+                    data={data.roleDirectFlagData}
+                    viewerRole={data.org.membershipRole}
+                    modalTitle={`${data.role.name} flags`}
+                    modalDescription="Open flags attached directly to this role."
+                    directOriginHref={`/app/roles/${data.role.slug}`}
                   />
                   <InlineEntityFlagControl
                     inline={true}

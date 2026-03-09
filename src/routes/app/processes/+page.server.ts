@@ -136,11 +136,13 @@ export const load = async ({ locals }) => {
         targetType: "role" as const,
         targetId: role.id,
         label: role.name,
+        href: `/app/roles/${role.slug}`,
       })),
       ...process.systemBadges.map((system) => ({
         targetType: "system" as const,
         targetId: system.id,
         label: system.name,
+        href: `/app/systems/${system.slug}`,
       })),
     ]
 

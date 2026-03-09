@@ -20,6 +20,7 @@ export type VisibleFlagTarget = {
   targetType: FlagTargetType
   targetId: string
   label: string
+  href: string
 }
 
 type OpenFlagIndex = Map<string, FlagBadgeFlag[]>
@@ -96,10 +97,12 @@ export const getVisibleRelatedFlags = (
         label: target.label,
         targetType: target.targetType,
         targetId: target.targetId,
-        href: buildFlagsHref({
-          targetType: target.targetType,
-          targetId: target.targetId,
-        }),
+        href:
+          target.href ||
+          buildFlagsHref({
+            targetType: target.targetType,
+            targetId: target.targetId,
+          }),
         flags,
       }
     })

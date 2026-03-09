@@ -17,6 +17,7 @@
     modalTitle?: string
     modalDescription?: string
     className?: string
+    directOriginHref?: string
   }
 
   let {
@@ -27,11 +28,14 @@
     modalTitle,
     modalDescription = "",
     className = "",
+    directOriginHref,
   }: Props = $props()
 
   let isOpen = $state(false)
   let pendingFlagId = $state<string | null>(null)
   let submitError = $state("")
+  let resolveFlagId = $state<string | null>(null)
+  let resolutionNoteDraft = $state("")
 
   const canModerate = $derived(viewerRole !== "member")
   const count = $derived(kind === "direct" ? data.count : data.count)
@@ -43,9 +47,29 @@
     modalTitle ?? `${label} ${kind === "direct" ? "flags" : "related flags"}`,
   )
 
+  $effect(() => {
+    if (!isOpen) {
+      resolveFlagId = null
+      resolutionNoteDraft = ""
+      submitError = ""
+    }
+  })
+
+  const startResolve = (flagId: string) => {
+    resolveFlagId = flagId
+    resolutionNoteDraft = ""
+    submitError = ""
+  }
+
+  const cancelResolve = () => {
+    resolveFlagId = null
+    resolutionNoteDraft = ""
+  }
+
   const updateFlagStatus = async (
     flagId: string,
     action: "resolve" | "dismiss",
+    resolutionNote = "",
   ) => {
     submitError = ""
     pendingFlagId = flagId
@@ -56,6 +80,7 @@
       body: JSON.stringify({
         id: flagId,
         action,
+        resolutionNote,
       }),
     })
 
@@ -66,13 +91,24 @@
         error?: string
       } | null
       submitError = payload?.error ?? "Unable to update flag."
-      return
+      return false
     }
 
     await invalidateAll()
+
+    if (action === "resolve") {
+      cancelResolve()
+    }
+
+    return true
   }
 
-  const getFlagHref = (flag: FlagBadgeFlag) =>
+  const submitResolve = async (flagId: string) => {
+    await updateFlagStatus(flagId, "resolve", resolutionNoteDraft)
+  }
+
+  const getDirectOriginHref = (flag: FlagBadgeFlag) =>
+    directOriginHref ||
     buildFlagsHref({
       targetType: flag.targetType,
       targetId: flag.targetId,
@@ -109,14 +145,16 @@
                 </div>
                 {#if canModerate}
                   <div class="sc-flag-modal-actions">
-                    <button
-                      class="sc-icon-btn"
-                      type="button"
-                      disabled={pendingFlagId === flag.id}
-                      onclick={() => updateFlagStatus(flag.id, "resolve")}
-                    >
-                      Resolve
-                    </button>
+                    {#if resolveFlagId !== flag.id}
+                      <button
+                        class="sc-icon-btn"
+                        type="button"
+                        disabled={pendingFlagId === flag.id}
+                        onclick={() => startResolve(flag.id)}
+                      >
+                        Resolve
+                      </button>
+                    {/if}
                     <button
                       class="sc-icon-btn"
                       type="button"
@@ -129,12 +167,47 @@
                 {/if}
               </div>
 
-              {#if canModerate}
-                <a class="sc-flag-modal-link" href={getFlagHref(flag)}>
-                  {flag.message}
-                </a>
-              {:else}
-                <div class="sc-flag-modal-message">{flag.message}</div>
+              <a class="sc-flag-modal-link" href={getDirectOriginHref(flag)}>
+                {flag.message}
+              </a>
+
+              {#if canModerate && resolveFlagId === flag.id}
+                <form
+                  class="sc-flag-resolve-form"
+                  onsubmit={(event) => {
+                    event.preventDefault()
+                    void submitResolve(flag.id)
+                  }}
+                >
+                  <label class="sc-flag-resolve-label" for={`flag-resolve-${flag.id}`}>
+                    Resolution note (optional)
+                  </label>
+                  <textarea
+                    id={`flag-resolve-${flag.id}`}
+                    class="sc-search sc-field sc-textarea sc-flag-resolve-textarea"
+                    bind:value={resolutionNoteDraft}
+                    rows="3"
+                    maxlength="280"
+                    placeholder="Add context for why this was resolved"
+                  ></textarea>
+                  <div class="sc-flag-resolve-actions">
+                    <button
+                      class="sc-btn"
+                      type="submit"
+                      disabled={pendingFlagId === flag.id}
+                    >
+                      Resolve
+                    </button>
+                    <button
+                      class="sc-btn secondary"
+                      type="button"
+                      disabled={pendingFlagId === flag.id}
+                      onclick={cancelResolve}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
               {/if}
 
               <div class="sc-flag-modal-meta">{flag.createdAt}</div>
@@ -147,16 +220,9 @@
           {#each relatedData.groups as group (group.key)}
             <section class="sc-flag-modal-group">
               <div class="sc-flag-modal-group-head">
-                {#if canModerate}
-                  <a
-                    class="sc-section-title sc-flag-modal-group-link"
-                    href={group.href}
-                  >
-                    {group.label}
-                  </a>
-                {:else}
-                  <div class="sc-section-title">{group.label}</div>
-                {/if}
+                <a class="sc-section-title sc-flag-modal-group-link" href={group.href}>
+                  {group.label}
+                </a>
                 <span class="sc-pill">{group.flags.length} open</span>
               </div>
 
@@ -170,14 +236,16 @@
                       </div>
                       {#if canModerate}
                         <div class="sc-flag-modal-actions">
-                          <button
-                            class="sc-icon-btn"
-                            type="button"
-                            disabled={pendingFlagId === flag.id}
-                            onclick={() => updateFlagStatus(flag.id, "resolve")}
-                          >
-                            Resolve
-                          </button>
+                          {#if resolveFlagId !== flag.id}
+                            <button
+                              class="sc-icon-btn"
+                              type="button"
+                              disabled={pendingFlagId === flag.id}
+                              onclick={() => startResolve(flag.id)}
+                            >
+                              Resolve
+                            </button>
+                          {/if}
                           <button
                             class="sc-icon-btn"
                             type="button"
@@ -190,12 +258,50 @@
                       {/if}
                     </div>
 
-                    {#if canModerate}
-                      <a class="sc-flag-modal-link" href={group.href}>
-                        {flag.message}
-                      </a>
-                    {:else}
-                      <div class="sc-flag-modal-message">{flag.message}</div>
+                    <a class="sc-flag-modal-link" href={group.href}>
+                      {flag.message}
+                    </a>
+
+                    {#if canModerate && resolveFlagId === flag.id}
+                      <form
+                        class="sc-flag-resolve-form"
+                        onsubmit={(event) => {
+                          event.preventDefault()
+                          void submitResolve(flag.id)
+                        }}
+                      >
+                        <label
+                          class="sc-flag-resolve-label"
+                          for={`flag-resolve-related-${flag.id}`}
+                        >
+                          Resolution note (optional)
+                        </label>
+                        <textarea
+                          id={`flag-resolve-related-${flag.id}`}
+                          class="sc-search sc-field sc-textarea sc-flag-resolve-textarea"
+                          bind:value={resolutionNoteDraft}
+                          rows="3"
+                          maxlength="280"
+                          placeholder="Add context for why this was resolved"
+                        ></textarea>
+                        <div class="sc-flag-resolve-actions">
+                          <button
+                            class="sc-btn"
+                            type="submit"
+                            disabled={pendingFlagId === flag.id}
+                          >
+                            Resolve
+                          </button>
+                          <button
+                            class="sc-btn secondary"
+                            type="button"
+                            disabled={pendingFlagId === flag.id}
+                            onclick={cancelResolve}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
                     {/if}
 
                     <div class="sc-flag-modal-meta">{flag.createdAt}</div>
@@ -286,6 +392,28 @@
   .sc-flag-modal-actions {
     display: inline-flex;
     align-items: center;
+    gap: 8px;
+  }
+
+  .sc-flag-resolve-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sc-flag-resolve-label {
+    font-size: var(--sc-font-xs, 0.75rem);
+    color: var(--sc-text-muted);
+    font-weight: 600;
+  }
+
+  .sc-flag-resolve-textarea {
+    min-height: 74px;
+  }
+
+  .sc-flag-resolve-actions {
+    display: flex;
+    justify-content: flex-end;
     gap: 8px;
   }
 

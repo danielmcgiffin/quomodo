@@ -91,6 +91,7 @@
                 {viewerRole}
                 modalTitle={`${process.name} flags`}
                 modalDescription="Open flags attached directly to this process."
+                directOriginHref={`/app/processes/${process.slug}`}
               />
               <FlagBadgeModal
                 kind="related"
