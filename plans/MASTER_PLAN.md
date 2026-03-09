@@ -1,7 +1,7 @@
 # SystemsCraft Master Plan
 
 Owner: Danny McGiffin  
-Last updated: 2026-03-08  
+Last updated: 2026-03-09  
 Status: Active — single source of truth
 Operation Glorious Eagle
 
@@ -108,7 +108,11 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
   - [ ] **M-18b** Add resolved-flag history log with resolved-at timestamp and actor.
   - [ ] **M-18c** On "Resolve", show a short comment textbox and persist the note.
   - [ ] **M-18d** Place flag indicator icon next to item title after the link icon.
-- [ ] **M-19** Standardize all list pages so cards render in grid layouts.
+- [x] **M-19** Standardize all list pages so cards render in grid layouts.
+- [ ] **M-20** Standardize atlas list cards around triad-summary content.
+  - Process cards should summarize title + roles + systems without long descriptions.
+  - Role cards should summarize title + processes + systems without growing arbitrarily tall.
+  - System cards should summarize title + owner + connected processes/roles in the same grammar.
 - [ ] **H-01** Fix inline editing to be seamless, like Notion.
 - [ ] **H-02** Figure out and fix why Process Details takes so long to load (primary audit hooks: `TODO-01`, `TODO-03`, `TODO-08`).
 - [ ] **H-03** Fix Process Details slide-in title monstrosity.
@@ -180,8 +184,8 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
 
 1. M-01 → M-04 (environment + E2E enforcement fully active)
 2. M-05 → M-07 + M-17 (release candidate + deploy + production verification + deploy automation)
-3. M-08 → M-13 + M-18 + M-19 + H-01 → H-05 (demo/sales reliability + UX follow-up)
-   - Audit-derived UI polish order: `M-19` → `H-03` → `M-18` → `H-05`
+3. M-08 → M-13 + M-18 + M-19 + M-20 + H-01 → H-05 (demo/sales reliability + UX follow-up)
+   - Audit-derived UI polish order: `M-19` → `M-20` → `H-03` → `M-18` → `H-05`
 4. M-14 → M-16 + H-06 (cleanup backlog + component/token hardening)
 5. Performance/correctness lane (non-revenue-blocking, high leverage):
    - First wave: TODO-10 → TODO-02 → TODO-01 → TODO-03
