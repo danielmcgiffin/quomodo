@@ -8,10 +8,12 @@
     system,
     size = "md",
     showName = true,
+    disableLink = false,
   }: {
     system: SystemPortalModel & { logoUrl?: string | null }
     size?: "sm" | "md" | "base" | "lg"
     showName?: boolean
+    disableLink?: boolean
   } = $props()
 
   const sizeMap = {
@@ -22,26 +24,52 @@
   }
 </script>
 
-<a class="sc-portal sc-portal-system" href={`/app/systems/${system.slug}`}>
-  <span class="sc-system" style={`--system-size:${sizeMap[size]}px;`}>
-    {#if system.logoUrl}
-      <img
-        src={system.logoUrl}
-        alt={system.name}
-        class="w-full h-full object-cover rounded-full"
-      />
-    {:else}
-      <svg viewBox="0 0 100 100" aria-hidden="true">
-        <polygon
-          points="50,6 92,29 92,71 50,94 8,71 8,29"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="8"
+{#if disableLink}
+  <span class="sc-portal sc-portal-system">
+    <span class="sc-system" style={`--system-size:${sizeMap[size]}px;`}>
+      {#if system.logoUrl}
+        <img
+          src={system.logoUrl}
+          alt={system.name}
+          class="w-full h-full object-cover rounded-full"
         />
-      </svg>
+      {:else}
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <polygon
+            points="50,6 92,29 92,71 50,94 8,71 8,29"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="8"
+          />
+        </svg>
+      {/if}
+    </span>
+    {#if showName}
+      <span class="sc-portal-name">{system.name}</span>
     {/if}
   </span>
-  {#if showName}
-    <span class="sc-portal-name">{system.name}</span>
-  {/if}
-</a>
+{:else}
+  <a class="sc-portal sc-portal-system" href={`/app/systems/${system.slug}`}>
+    <span class="sc-system" style={`--system-size:${sizeMap[size]}px;`}>
+      {#if system.logoUrl}
+        <img
+          src={system.logoUrl}
+          alt={system.name}
+          class="w-full h-full object-cover rounded-full"
+        />
+      {:else}
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <polygon
+            points="50,6 92,29 92,71 50,94 8,71 8,29"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="8"
+          />
+        </svg>
+      {/if}
+    </span>
+    {#if showName}
+      <span class="sc-portal-name">{system.name}</span>
+    {/if}
+  </a>
+{/if}
