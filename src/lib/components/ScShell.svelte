@@ -212,6 +212,30 @@
     stackTarget = null
   }
 
+  const getStackTitleFromAnchor = (anchor: HTMLAnchorElement) => {
+    const explicitTitle = anchor.dataset.stackTitle?.trim()
+    if (explicitTitle) {
+      return explicitTitle
+    }
+
+    const ariaLabel = anchor.getAttribute("aria-label")?.trim()
+    if (ariaLabel) {
+      const openEntityMatch = ariaLabel.match(
+        /^Open\s+(?:process|role|system)\s+(.+)$/i,
+      )
+      if (openEntityMatch?.[1]?.trim()) {
+        return openEntityMatch[1].trim()
+      }
+      return ariaLabel
+    }
+
+    return (
+      anchor.querySelector(".sc-portal-name")?.textContent?.trim() ||
+      anchor.textContent?.trim() ||
+      "Details"
+    )
+  }
+
   const onDocumentClick = (event: MouseEvent) => {
     if (isStackMode || !(event.target instanceof Element) || !appContentRoot) {
       return
@@ -250,11 +274,7 @@
 
     event.preventDefault()
     const href = `${url.pathname}${url.search}${url.hash}`
-    const title =
-      anchor.getAttribute("aria-label")?.trim() ||
-      anchor.querySelector(".sc-portal-name")?.textContent?.trim() ||
-      anchor.textContent?.trim() ||
-      "Details"
+    const title = getStackTitleFromAnchor(anchor)
     openStackTarget({ href, title, kind })
   }
 </script>
