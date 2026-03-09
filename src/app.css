@@ -431,11 +431,31 @@ button[disabled].authBtn::before {
   cursor: pointer;
   color: var(--sc-text);
   margin-left: -8px;
+  flex: 0 0 auto;
+}
+
+.sc-mobile-logo {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  overflow: hidden;
+}
+
+.sc-mobile-logo-image {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: 32px;
+  object-fit: contain;
 }
 
 .sc-mobile-actions {
   display: flex;
   align-items: center;
+  flex: 0 0 auto;
 }
 
 .sc-sidebar-overlay {
@@ -475,6 +495,14 @@ button[disabled].authBtn::before {
   .sc-mobile-header,
   .sc-floating-search {
     display: flex;
+  }
+
+  .sc-mobile-header {
+    gap: 8px;
+  }
+
+  .sc-mobile-logo-image {
+    height: 28px;
   }
 
   .sc-main {

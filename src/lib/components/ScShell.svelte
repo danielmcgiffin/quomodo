@@ -286,11 +286,7 @@
       </button>
 
       <a class="sc-mobile-logo" href={resolve("/app/processes")}>
-        <img
-          src={logoSrc}
-          alt="SystemsCraft"
-          style="max-width: 120px; height: auto; display: block;"
-        />
+        <img class="sc-mobile-logo-image" src={logoSrc} alt="SystemsCraft" />
       </a>
 
       <div class="sc-mobile-actions">
