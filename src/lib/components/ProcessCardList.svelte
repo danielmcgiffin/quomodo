@@ -48,17 +48,19 @@
   }
 </script>
 
-<div class="sc-section">
-  {#if processes.length === 0}
+{#if processes.length === 0}
+  <div class="sc-section">
     <div class="sc-card">
       <div class="sc-page-subtitle">
         No processes yet. Start by writing your first process.
       </div>
     </div>
-  {:else}
+  </div>
+{:else}
+  <div class="sc-section sc-entity-list-grid">
     {#each processes as process}
       <article
-        class="sc-card sc-entity-card sc-process-card sc-card-interactive"
+        class="sc-card sc-entity-card sc-card-interactive sc-process-card sc-entity-family-card"
       >
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -95,22 +97,24 @@
         </div>
 
         <a
-          class="sc-process-card-clickable-area"
+          class="sc-entity-card-overlay"
           href={`/app/processes/${process.slug}`}
           aria-label={`Open process ${process.name}`}
+          tabindex="-1"
         ></a>
 
-        <div class="sc-process-card-content">
-          <div class="sc-process-card-info">
+        <div class="sc-entity-card-body">
+          <div class="sc-entity-card-header">
             <div class="sc-section-title sc-process-card-title-row">
               <span class="sc-portal sc-portal-process">{process.name}</span>
             </div>
-            <div class="sc-page-subtitle">
-              <RichText html={process.descriptionHtml} />
-            </div>
           </div>
 
-          <div class="sc-process-badge-rows">
+          <div class="sc-page-subtitle sc-entity-card-summary">
+            <RichText html={process.descriptionHtml} />
+          </div>
+
+          <div class="sc-process-badge-rows sc-entity-card-meta">
             <div class="sc-process-badge-row">
               <span class="sc-process-badge-label">Roles</span>
               <div
@@ -150,19 +154,14 @@
         </div>
       </article>
     {/each}
-  {/if}
-</div>
+  </div>
+{/if}
 
 <style>
-  .sc-process-card {
-    padding: 0;
-    position: relative;
-  }
-
   .sc-process-card-actions {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 12px;
+    right: 12px;
     z-index: 3;
     display: inline-flex;
     align-items: center;
@@ -171,29 +170,10 @@
     justify-content: flex-end;
   }
 
-  .sc-process-card-clickable-area {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    display: block;
-    text-decoration: none;
-    color: inherit;
-  }
-
-  .sc-process-card-clickable-area:hover {
-    color: inherit;
-  }
-
-  .sc-process-card-content {
-    position: relative;
-    z-index: 2;
-    width: 100%;
-    padding: 16px;
-  }
-
   .sc-process-card-title-row {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    margin-bottom: 0;
   }
 </style>

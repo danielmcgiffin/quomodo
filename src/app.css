@@ -897,27 +897,59 @@ button[disabled].authBtn::before {
   margin-top: 10px;
 }
 
-.sc-process-card {
-  display: flex;
-  gap: 8px;
-}
-
-.sc-process-card-content {
+.sc-entity-list-grid {
   display: grid;
-  grid-template-columns: 1fr 200px;
-  gap: 20px;
-  width: 100%;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
 
-.sc-process-card-info {
+.sc-entity-list-grid .sc-card {
+  margin-top: 0;
+}
+
+.sc-entity-family-card {
+  padding: 0;
+  min-height: 212px;
+}
+
+.sc-entity-card-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.sc-entity-card-overlay:hover {
+  color: inherit;
+}
+
+.sc-entity-card-body {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-height: 100%;
+  padding: 16px;
+}
+
+.sc-entity-card-header {
+  padding-right: 140px;
   min-width: 0;
 }
 
-.sc-process-card-link {
-  display: block;
-  width: 100%;
-  color: inherit;
-  text-decoration: none;
+.sc-entity-card-summary {
+  min-height: 52px;
+}
+
+.sc-entity-card-summary p {
+  margin: 0;
+}
+
+.sc-entity-card-meta {
+  margin-top: auto;
 }
 
 .sc-process-card .sc-section-title {
@@ -1832,9 +1864,16 @@ button[disabled].authBtn::before {
 }
 
 @media (max-width: 740px) {
-  .sc-process-card-content {
-    grid-template-columns: 1fr;
-    gap: 12px;
+  .sc-entity-list-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sc-entity-card-header {
+    padding-right: 0;
+  }
+
+  .sc-entity-family-card {
+    min-height: 0;
   }
 
   .sc-action-card {

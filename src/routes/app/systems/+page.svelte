@@ -1,6 +1,7 @@
 <script lang="ts">
   import SystemPortal from "$lib/components/SystemPortal.svelte"
   import RolePortal from "$lib/components/RolePortal.svelte"
+  import RichText from "$lib/components/RichText.svelte"
   import RichTextEditor from "$lib/components/RichTextEditor.svelte"
   import ScModal from "$lib/components/ScModal.svelte"
   import InlineCreateRoleModal from "$lib/components/InlineCreateRoleModal.svelte"
@@ -120,9 +121,9 @@
 </svelte:head>
 
 <div class="sc-process-page">
-  <div class="sc-process-layout">
-    <div class="sc-process-main sc-rail-main">
-      <div class="flex justify-between items-center gap-4 flex-wrap">
+  <div class="sc-process-layout sc-process-layout--single">
+    <div class="sc-process-main">
+      <div class="sc-page-head">
         <div class="flex flex-col">
           <div class="sc-page-title text-2xl font-bold">Systems</div>
           <div class="sc-page-subtitle">
@@ -228,28 +229,56 @@
         helperText="This role is immediately available as system owner."
       />
 
-      <div class="sc-section">
-        {#each data.systems as system}
-          <div class="sc-card sc-entity-card relative group">
-            <div class="relative z-10">
-              <InlineEntityFlagControl
-                action="?/createFlag"
-                targetType="system"
-                targetId={system.id}
-                entityLabel={system.name}
-                viewerRole={data.org.membershipRole}
-                fieldTargets={systemFieldTargets}
-                errorMessage={form?.createFlagError}
-                errorTargetType={form?.createFlagTargetType}
-                errorTargetId={form?.createFlagTargetId}
-                errorTargetPath={form?.createFlagTargetPath}
-              />
+      {#if data.systems.length === 0}
+        <div class="sc-section">
+          <div class="sc-card">
+            <div class="sc-page-subtitle">
+              No systems yet. Record your first system to map dependencies.
+            </div>
+          </div>
+        </div>
+      {:else}
+        <div class="sc-section sc-entity-list-grid">
+          {#each data.systems as system}
+            <article class="sc-card sc-entity-card sc-card-interactive sc-entity-family-card">
+              <div class="sc-system-card-actions">
+                <FlagBadgeModal
+                  kind="direct"
+                  label={`${system.name} direct flags`}
+                  data={system.directFlagData}
+                  viewerRole={data.org.membershipRole}
+                  modalTitle={`${system.name} flags`}
+                  modalDescription="Open flags attached directly to this system."
+                />
+                <FlagBadgeModal
+                  kind="related"
+                  label={`${system.name} related flags`}
+                  data={system.relatedFlagData}
+                  viewerRole={data.org.membershipRole}
+                  modalTitle={`${system.name} related flags`}
+                  modalDescription="Open flags on visible linked entities on this card."
+                />
+                <InlineEntityFlagControl
+                  inline={true}
+                  action="?/createFlag"
+                  targetType="system"
+                  targetId={system.id}
+                  entityLabel={system.name}
+                  viewerRole={data.org.membershipRole}
+                  fieldTargets={systemFieldTargets}
+                  errorMessage={form?.createFlagError}
+                  errorTargetType={form?.createFlagTargetType}
+                  errorTargetId={form?.createFlagTargetId}
+                  errorTargetPath={form?.createFlagTargetPath}
+                />
+              </div>
+
               {#if isValidUrl(system.location)}
                 <a
                   href={system.location}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="sc-location-btn"
+                  class="sc-location-btn sc-location-btn--inline"
                   title="Visit system"
                 >
                   <svg
@@ -269,67 +298,74 @@
                   <span>Link</span>
                 </a>
               {/if}
-            </div>
 
-            <a
-              href={`/app/systems/${system.slug}`}
-              class="absolute inset-0 z-0 focus:outline-none"
-              aria-label={`Open system ${system.name}`}
-              tabindex="-1"
-            ></a>
+              <a
+                href={`/app/systems/${system.slug}`}
+                class="sc-entity-card-overlay"
+                aria-label={`Open system ${system.name}`}
+                tabindex="-1"
+              ></a>
 
-            <div class="block">
-              <div class="sc-byline relative pointer-events-none">
-                <div
-                  class="relative z-10 pointer-events-auto sc-system-card-heading"
-                >
-                  <SystemPortal {system} size="lg" />
-                  <FlagBadgeModal
-                    kind="direct"
-                    label={`${system.name} direct flags`}
-                    data={system.directFlagData}
-                    viewerRole={data.org.membershipRole}
-                    modalTitle={`${system.name} flags`}
-                    modalDescription="Open flags attached directly to this system."
-                  />
-                  <FlagBadgeModal
-                    kind="related"
-                    label={`${system.name} related flags`}
-                    data={system.relatedFlagData}
-                    viewerRole={data.org.membershipRole}
-                    modalTitle={`${system.name} related flags`}
-                    modalDescription="Open flags on visible linked entities on this card."
-                  />
-                </div>
-                {#if system.ownerRole}
-                  <span>Owner</span>
-                  <div class="relative z-10 pointer-events-auto">
-                    <RolePortal role={system.ownerRole} size="sm" />
+              <div class="sc-entity-card-body">
+                <div class="sc-entity-card-header">
+                  <div class="sc-section-title sc-system-card-heading">
+                    <SystemPortal system={system} size="lg" disableLink={true} />
                   </div>
-                {/if}
-                <span class="sc-pill relative z-10 pointer-events-auto"
-                  >{system.processCount} processes</span
-                >
-                <span class="sc-pill relative z-10 pointer-events-auto"
-                  >{system.roleCount} roles</span
-                >
+                </div>
+
+                <div class="sc-page-subtitle sc-entity-card-summary">
+                  <RichText html={system.descriptionHtml} />
+                </div>
+
+                <div class="sc-byline sc-entity-card-meta">
+                  {#if system.ownerRole}
+                    <span>Owner</span>
+                    <div class="relative z-10 pointer-events-auto">
+                      <RolePortal role={system.ownerRole} size="sm" />
+                    </div>
+                  {/if}
+                  <span class="sc-pill">{system.processCount} processes</span>
+                  <span class="sc-pill">{system.roleCount} roles</span>
+                </div>
               </div>
-            </div>
-          </div>
-        {/each}
-      </div>
+            </article>
+          {/each}
+        </div>
+      {/if}
     </div>
   </div>
 </div>
 
 <style>
-  .sc-process-layout {
-    grid-template-columns: minmax(0, 1fr);
+  .sc-system-card-actions {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .sc-system-card-heading {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    margin-bottom: 0;
+  }
+
+  .sc-location-btn--inline {
+    top: 52px;
+    right: 12px;
+    z-index: 3;
+  }
+
+  @media (max-width: 960px) {
+    .sc-location-btn--inline {
+      top: 48px;
+      right: 12px;
+    }
   }
 </style>
