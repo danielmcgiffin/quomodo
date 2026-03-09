@@ -42,12 +42,20 @@
       close()
     }
   }
+
+  const portalToBody = (node: HTMLElement) => {
+    if (typeof document === "undefined") {
+      return
+    }
+    document.body.appendChild(node)
+  }
 </script>
 
 <svelte:window onkeydown={onWindowKeydown} />
 
 {#if open}
   <div
+    use:portalToBody
     class="sc-modal-backdrop"
     role="button"
     tabindex="0"

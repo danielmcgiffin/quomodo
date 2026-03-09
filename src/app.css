@@ -939,15 +939,6 @@ button[disabled].authBtn::before {
   pointer-events: none;
 }
 
-.sc-process-card-title-actions.sc-flag-modal-host-active,
-.sc-role-card-actions.sc-flag-modal-host-active,
-.sc-system-title-actions.sc-flag-modal-host-active {
-  z-index: 40;
-}
-
-.sc-entity-card-body.sc-flag-modal-card-active {
-  z-index: 50;
-}
 
 .sc-entity-card-header {
   padding-right: 140px;
