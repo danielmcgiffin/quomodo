@@ -32,6 +32,7 @@
   let isOpen = $state(false)
   let pendingFlagId = $state<string | null>(null)
   let submitError = $state("")
+  let modalAnchor = $state<HTMLElement | null>(null)
 
   const canModerate = $derived(viewerRole !== "member")
   const count = $derived(kind === "direct" ? data.count : data.count)
@@ -42,6 +43,28 @@
   const resolvedTitle = $derived(
     modalTitle ?? `${label} ${kind === "direct" ? "flags" : "related flags"}`,
   )
+
+  $effect(() => {
+    if (!modalAnchor || typeof document === "undefined") {
+      return
+    }
+
+    const stackHost = modalAnchor.closest(
+      ".sc-process-card-title-actions, .sc-role-card-actions, .sc-system-title-actions",
+    ) as HTMLElement | null
+
+    const cardBody = modalAnchor.closest(
+      ".sc-entity-card-body",
+    ) as HTMLElement | null
+
+    stackHost?.classList.toggle("sc-flag-modal-host-active", isOpen)
+    cardBody?.classList.toggle("sc-flag-modal-card-active", isOpen)
+
+    return () => {
+      stackHost?.classList.remove("sc-flag-modal-host-active")
+      cardBody?.classList.remove("sc-flag-modal-card-active")
+    }
+  })
 
   const updateFlagStatus = async (
     flagId: string,
@@ -80,18 +103,19 @@
 </script>
 
 {#if count > 0}
-  <button class={badgeClass} type="button" onclick={() => (isOpen = true)}>
-    <span aria-hidden="true">{icon}</span>
-    <span>{count}</span>
-    <span class="sr-only">{label}</span>
-  </button>
+  <span class="sc-flag-modal-anchor" bind:this={modalAnchor}>
+    <button class={badgeClass} type="button" onclick={() => (isOpen = true)}>
+      <span aria-hidden="true">{icon}</span>
+      <span>{count}</span>
+      <span class="sr-only">{label}</span>
+    </button>
 
-  <ScModal
-    bind:open={isOpen}
-    title={resolvedTitle}
-    description={modalDescription}
-    maxWidth="760px"
-  >
+    <ScModal
+      bind:open={isOpen}
+      title={resolvedTitle}
+      description={modalDescription}
+      maxWidth="760px"
+    >
     <div class="sc-flag-modal">
       {#if submitError}
         <div class="sc-form-error">{submitError}</div>
@@ -208,9 +232,14 @@
       {/if}
     </div>
   </ScModal>
+  </span>
 {/if}
 
 <style>
+  .sc-flag-modal-anchor {
+    display: inline-flex;
+  }
+
   .sc-flag-indicator {
     display: inline-flex;
     align-items: center;
