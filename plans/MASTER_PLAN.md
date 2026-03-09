@@ -110,10 +110,10 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
   - [ ] **M-18c** On "Resolve", show a short comment textbox and persist the note.
   - [ ] **M-18d** Place flag indicator icon next to item title after the link icon.
 - [x] **M-19** Standardize all list pages so cards render in grid layouts.
-- [ ] **M-20** Standardize atlas list cards around triad-summary content.
-  - Process cards should summarize title + roles + systems without long descriptions.
-  - Role cards should summarize title + processes + systems without growing arbitrarily tall.
-  - System cards should summarize title + owner + connected processes/roles in the same grammar.
+- [x] **M-20** Standardize atlas list cards around triad-summary content.
+  - Process cards now summarize title + roles + systems without long descriptions.
+  - Role cards now summarize title + processes + systems without growing arbitrarily tall.
+  - System cards now summarize title + owner + connected processes/roles in the same grammar.
   - Plan: `plans/M20_TRIAD_CARD_PLAN.md`
 - [ ] **H-01** Fix inline editing to be seamless, like Notion.
 - [ ] **H-02** Figure out and fix why Process Details takes so long to load (primary audit hooks: `TODO-01`, `TODO-03`, `TODO-08`).
