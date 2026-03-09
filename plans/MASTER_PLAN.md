@@ -32,6 +32,7 @@ Active findings intake:
 - `plans/PRODUCT_FINDINGS.md` (ingested into backlog tasks M-18, M-19, and H-01..H-06)
 - `plans/M11_AUDIT_FOLLOWUP_PLAN.md` (implementation sequence derived from the completed M-11 route audit)
 - `plans/M20_TRIAD_CARD_PLAN.md` (implementation spec for atlas list-card content grammar after M-19)
+- `plans/M21_FLAG_HISTORY_TIMELINE_PLAN.md` (implementation spec for EPI-169 resolved-history timeline tab)
 - Performance + correctness audit TODOs (2026-03-06) ingested as `TODO-01`..`TODO-10` in Section 4.
 
 ---
@@ -115,6 +116,8 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
   - Role cards now summarize title + processes + systems without growing arbitrarily tall.
   - System cards now summarize title + owner + connected processes/roles in the same grammar.
   - Plan: `plans/M20_TRIAD_CARD_PLAN.md`
+- [ ] **M-21** Upgrade `/app/flags` resolved history into a dedicated searchable timeline tab with sticky date rail (`EPI-169`).
+  - Plan: `plans/M21_FLAG_HISTORY_TIMELINE_PLAN.md`
 - [ ] **H-01** Fix inline editing to be seamless, like Notion.
 - [ ] **H-02** Figure out and fix why Process Details takes so long to load (primary audit hooks: `TODO-01`, `TODO-03`, `TODO-08`).
 - [x] **H-03** Fix Process Details slide-in title monstrosity.
@@ -186,8 +189,8 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
 
 1. M-01 → M-04 (environment + E2E enforcement fully active)
 2. M-05 → M-07 + M-17 (release candidate + deploy + production verification + deploy automation)
-3. M-08 → M-13 + M-18 + M-19 + M-20 + H-01 → H-05 (demo/sales reliability + UX follow-up)
-   - Audit-derived UI polish order: `M-19` → `M-20` → `H-03` → `M-18` → `H-05`
+3. M-08 → M-13 + M-18 + M-19 + M-20 + M-21 + H-01 → H-05 (demo/sales reliability + UX follow-up)
+   - Audit-derived UI polish order: `M-19` → `M-20` → `H-03` → `M-18` → `M-21` → `H-05`
 4. M-14 → M-16 + H-06 (cleanup backlog + component/token hardening)
 5. Performance/correctness lane (non-revenue-blocking, high leverage):
    - First wave: TODO-10 → TODO-02 → TODO-01 → TODO-03
