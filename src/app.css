@@ -935,6 +935,10 @@ button[disabled].authBtn::before {
   padding: 16px;
 }
 
+.sc-entity-family-card .sc-entity-card-body {
+  pointer-events: none;
+}
+
 .sc-entity-card-header {
   padding-right: 140px;
   min-width: 0;

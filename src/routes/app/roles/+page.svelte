@@ -221,6 +221,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    pointer-events: auto;
   }
 
   .sc-role-card-title {

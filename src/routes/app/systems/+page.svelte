@@ -320,7 +320,7 @@
                 <div class="sc-byline sc-entity-card-meta">
                   {#if system.ownerRole}
                     <span>Owner</span>
-                    <div class="relative z-10 pointer-events-auto">
+                    <div class="sc-system-card-owner-link">
                       <RolePortal role={system.ownerRole} size="sm" />
                     </div>
                   {/if}
@@ -354,6 +354,12 @@
     align-items: center;
     gap: 8px;
     margin-bottom: 0;
+  }
+
+  .sc-system-card-owner-link {
+    position: relative;
+    z-index: 3;
+    pointer-events: auto;
   }
 
   .sc-location-btn--inline {

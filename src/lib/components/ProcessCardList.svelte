@@ -118,7 +118,7 @@
             <div class="sc-process-badge-row">
               <span class="sc-process-badge-label">Roles</span>
               <div
-                class="sc-process-badges"
+                class="sc-process-badges sc-process-card-badge-cluster"
                 style={`--overlap: ${process.roleBadges.length > 3 ? "-10px" : "-4px"}`}
               >
                 {#if process.roleBadges.length === 0}
@@ -136,7 +136,7 @@
             <div class="sc-process-badge-row">
               <span class="sc-process-badge-label">Systems</span>
               <div
-                class="sc-process-badges"
+                class="sc-process-badges sc-process-card-badge-cluster"
                 style={`--overlap: ${process.systemBadges.length > 3 ? "-10px" : "-4px"}`}
               >
                 {#if process.systemBadges.length === 0}
@@ -168,6 +168,13 @@
     gap: 8px;
     flex-wrap: wrap;
     justify-content: flex-end;
+    pointer-events: auto;
+  }
+
+  .sc-process-card-badge-cluster {
+    position: relative;
+    z-index: 3;
+    pointer-events: auto;
   }
 
   .sc-process-card-title-row {
