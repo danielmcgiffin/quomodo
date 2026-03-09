@@ -38,7 +38,7 @@ export const load = async ({ locals }) => {
       route: "/app/systems",
     })
 
-  const [rolesResult, systemsResult, flagsResult, actionsResult] =
+  const [rolesResult, systemsResult, flagsResult, actionsResult, processesResult] =
     await Promise.all([
       supabase
         .from("roles")
@@ -65,6 +65,10 @@ export const load = async ({ locals }) => {
         .from("actions")
         .select("process_id, owner_role_id, system_id")
         .eq("org_id", context.orgId),
+      supabase
+        .from("processes")
+        .select("id, slug, name")
+        .eq("org_id", context.orgId),
     ])
 
   if (rolesResult.error) {
@@ -79,9 +83,18 @@ export const load = async ({ locals }) => {
   if (actionsResult.error) {
     failLoad("app.systems.load.actions", actionsResult.error)
   }
+  if (processesResult.error) {
+    failLoad("app.systems.load.processes", processesResult.error)
+  }
 
   const rolesResultData = mapRolePortals((rolesResult.data ?? []) as RoleRow[])
   const roleById = new Map(rolesResultData.map((role) => [role.id, role]))
+
+  const processById = new Map(
+    ((processesResult.data ?? []) as { id: string; slug: string; name: string }[]).map(
+      (process) => [process.id, process],
+    ),
+  )
 
   const systemsData = systemsResult.data ?? []
   const actionData = (actionsResult.data ?? []) as {
@@ -97,6 +110,7 @@ export const load = async ({ locals }) => {
   const systems = mapSystemDirectory({
     rows: systemsData as SystemDirectoryRow[],
     roleById,
+    processById,
     richToHtml,
     actionData,
   }).map((system) => {

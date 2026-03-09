@@ -18,6 +18,7 @@ describe("mapRoleDirectory", () => {
       richToHtml: (value) => (value ? "<p>desc</p>" : ""),
       processData: [],
       actionData: [],
+      systemById: new Map(),
     })
 
     expect(result).toEqual([
@@ -29,6 +30,8 @@ describe("mapRoleDirectory", () => {
         descriptionHtml: "<p>desc</p>",
         processCount: 0,
         systemCount: 0,
+        relatedProcesses: [],
+        relatedSystems: [],
       },
     ])
   })
@@ -54,6 +57,7 @@ describe("mapSystemDirectory", () => {
     const result = mapSystemDirectory({
       rows,
       roleById,
+      processById: new Map(),
       richToHtml: () => "",
       actionData: [],
     })
@@ -69,6 +73,8 @@ describe("mapSystemDirectory", () => {
         ownerRole,
         processCount: 0,
         roleCount: 0,
+        relatedProcesses: [],
+        relatedRoles: [],
       },
     ])
   })
@@ -98,6 +104,7 @@ describe("mapSystemDirectory", () => {
     const result = mapSystemDirectory({
       rows,
       roleById: new Map(),
+      processById: new Map(),
       richToHtml: () => "<p>x</p>",
       actionData: [],
     })
@@ -113,6 +120,8 @@ describe("mapSystemDirectory", () => {
         ownerRole: null,
         processCount: 0,
         roleCount: 0,
+        relatedProcesses: [],
+        relatedRoles: [],
       },
       {
         id: "s2",
@@ -124,6 +133,8 @@ describe("mapSystemDirectory", () => {
         ownerRole: null,
         processCount: 0,
         roleCount: 0,
+        relatedProcesses: [],
+        relatedRoles: [],
       },
     ])
   })

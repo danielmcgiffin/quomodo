@@ -5,21 +5,30 @@ export type RoleDirectoryRow = {
   description_rich: unknown
 }
 
+type RelatedEntityLink = {
+  id: string
+  slug: string
+  name: string
+}
+
 export const mapRoleDirectory = ({
   rows,
   makeInitials,
   richToHtml,
   processData,
   actionData,
+  systemById,
 }: {
   rows: RoleDirectoryRow[]
   makeInitials: (name: string) => string
   richToHtml: (value: unknown) => string
-  processData: { id: string; owner_role_id: string | null }[]
+  processData: { id: string; slug: string; name: string; owner_role_id: string | null }[]
   actionData: { process_id: string; owner_role_id: string; system_id: string }[]
+  systemById: Map<string, RelatedEntityLink>
 }) => {
+  const processById = new Map(processData.map((process) => [process.id, process]))
+
   return rows.map((row) => {
-    // Process count: owned processes + processes where they own at least one action
     const ownedProcessIds = new Set(
       processData.filter((p) => p.owner_role_id === row.id).map((p) => p.id),
     )
@@ -28,17 +37,22 @@ export const mapRoleDirectory = ({
         .filter((a) => a.owner_role_id === row.id)
         .map((a) => a.process_id),
     )
-    const involvedProcessCount = new Set([
-      ...ownedProcessIds,
-      ...actionProcessIds,
-    ]).size
+    const relatedProcesses = [...new Set([...ownedProcessIds, ...actionProcessIds])]
+      .map((processId) => processById.get(processId))
+      .filter((process): process is NonNullable<typeof process> => Boolean(process))
+      .map((process) => ({ id: process.id, slug: process.slug, name: process.name }))
+      .sort((a, b) => a.name.localeCompare(b.name))
 
-    // System count: unique systems where they own an action
-    const touchedSystemCount = new Set(
-      actionData
-        .filter((a) => a.owner_role_id === row.id)
-        .map((a) => a.system_id),
-    ).size
+    const relatedSystems = [
+      ...new Set(
+        actionData
+          .filter((a) => a.owner_role_id === row.id)
+          .map((a) => a.system_id),
+      ),
+    ]
+      .map((systemId) => systemById.get(systemId))
+      .filter((system): system is RelatedEntityLink => Boolean(system))
+      .sort((a, b) => a.name.localeCompare(b.name))
 
     return {
       id: row.id,
@@ -46,8 +60,10 @@ export const mapRoleDirectory = ({
       name: row.name,
       initials: makeInitials(row.name),
       descriptionHtml: richToHtml(row.description_rich),
-      processCount: involvedProcessCount,
-      systemCount: touchedSystemCount,
+      processCount: relatedProcesses.length,
+      systemCount: relatedSystems.length,
+      relatedProcesses,
+      relatedSystems,
     }
   })
 }
@@ -67,26 +83,28 @@ type OwnerRole = { id: string; slug: string; name: string; initials: string }
 export const mapSystemDirectory = ({
   rows,
   roleById,
+  processById,
   richToHtml,
   actionData,
 }: {
   rows: SystemDirectoryRow[]
   roleById: Map<string, OwnerRole>
+  processById: Map<string, RelatedEntityLink>
   richToHtml: (value: unknown) => string
   actionData: { process_id: string; owner_role_id: string; system_id: string }[]
 }) =>
   rows.map((row) => {
-    // Process count: unique processes that have at least one action using this system
-    const involvedProcessCount = new Set(
-      actionData.filter((a) => a.system_id === row.id).map((a) => a.process_id),
-    ).size
+    const systemActions = actionData.filter((a) => a.system_id === row.id)
 
-    // Role count: unique roles that own an action using this system
-    const touchingRoleCount = new Set(
-      actionData
-        .filter((a) => a.system_id === row.id)
-        .map((a) => a.owner_role_id),
-    ).size
+    const relatedProcesses = [...new Set(systemActions.map((a) => a.process_id))]
+      .map((processId) => processById.get(processId))
+      .filter((process): process is RelatedEntityLink => Boolean(process))
+      .sort((a, b) => a.name.localeCompare(b.name))
+
+    const relatedRoles = [...new Set(systemActions.map((a) => a.owner_role_id))]
+      .map((roleId) => roleById.get(roleId))
+      .filter((role): role is OwnerRole => Boolean(role))
+      .sort((a, b) => a.name.localeCompare(b.name))
 
     return {
       id: row.id,
@@ -98,7 +116,9 @@ export const mapSystemDirectory = ({
       ownerRole: row.owner_role_id
         ? (roleById.get(row.owner_role_id) ?? null)
         : null,
-      processCount: involvedProcessCount,
-      roleCount: touchingRoleCount,
+      processCount: relatedProcesses.length,
+      roleCount: relatedRoles.length,
+      relatedProcesses,
+      relatedRoles,
     }
   })

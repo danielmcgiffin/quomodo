@@ -32,7 +32,7 @@ export const load = async ({ locals }) => {
       requestId: locals.requestId,
       route: "/app/roles",
     })
-  const [rolesResult, flagsResult, processesResult, actionsResult] =
+  const [rolesResult, flagsResult, processesResult, actionsResult, systemsResult] =
     await Promise.all([
       supabase
         .from("roles")
@@ -50,11 +50,15 @@ export const load = async ({ locals }) => {
         .order("created_at", { ascending: false }),
       supabase
         .from("processes")
-        .select("id, owner_role_id")
+        .select("id, slug, name, owner_role_id")
         .eq("org_id", context.orgId),
       supabase
         .from("actions")
         .select("process_id, owner_role_id, system_id")
+        .eq("org_id", context.orgId),
+      supabase
+        .from("systems")
+        .select("id, slug, name")
         .eq("org_id", context.orgId),
     ])
 
@@ -70,10 +74,15 @@ export const load = async ({ locals }) => {
   if (actionsResult.error) {
     failLoad("app.roles.load.actions", actionsResult.error)
   }
+  if (systemsResult.error) {
+    failLoad("app.roles.load.systems", systemsResult.error)
+  }
 
   const rolesData = (rolesResult.data ?? []) as unknown as RoleDirectoryRow[]
   const processData = (processesResult.data ?? []) as {
     id: string
+    slug: string
+    name: string
     owner_role_id: string | null
   }[]
   const actionData = (actionsResult.data ?? []) as {
@@ -81,6 +90,11 @@ export const load = async ({ locals }) => {
     owner_role_id: string
     system_id: string
   }[]
+  const systemById = new Map(
+    ((systemsResult.data ?? []) as { id: string; slug: string; name: string }[]).map(
+      (system) => [system.id, system],
+    ),
+  )
   const openFlagIndex = buildOpenFlagIndex(
     (flagsResult.data ?? []) as OpenFlagIndexRow[],
   )
@@ -91,6 +105,7 @@ export const load = async ({ locals }) => {
     richToHtml,
     processData,
     actionData,
+    systemById,
   }).map((role) => ({
     ...role,
     directFlagData: getDirectFlagData(openFlagIndex, "role", role.id),

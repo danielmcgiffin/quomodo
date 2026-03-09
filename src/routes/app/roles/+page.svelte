@@ -4,7 +4,6 @@
   import { pendingEnhance } from "$lib/components/pending-enhance"
   import FlagBadgeModal from "$lib/components/FlagBadgeModal.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
-  import RichText from "$lib/components/RichText.svelte"
   import { getAvatarColor } from "$lib/colors"
   import type { DirectFlagBadgeData } from "$lib/flags"
 
@@ -16,6 +15,8 @@
     descriptionHtml: string
     processCount: number
     systemCount: number
+    relatedProcesses: { id: string; slug: string; name: string }[]
+    relatedSystems: { id: string; slug: string; name: string }[]
     directFlagData: DirectFlagBadgeData
   }
   type Props = {
@@ -152,30 +153,6 @@
             <article
               class="sc-card sc-entity-card sc-card-interactive sc-role-card sc-entity-family-card"
             >
-              <div class="sc-role-card-actions">
-                <FlagBadgeModal
-                  kind="direct"
-                  label={`${role.name} direct flags`}
-                  data={role.directFlagData}
-                  viewerRole={data.org.membershipRole}
-                  modalTitle={`${role.name} flags`}
-                  modalDescription="Open flags attached directly to this role."
-                />
-                <InlineEntityFlagControl
-                  inline={true}
-                  action="?/createFlag"
-                  targetType="role"
-                  targetId={role.id}
-                  entityLabel={role.name}
-                  viewerRole={data.org.membershipRole}
-                  fieldTargets={roleFieldTargets}
-                  errorMessage={form?.createFlagError}
-                  errorTargetType={form?.createFlagTargetType}
-                  errorTargetId={form?.createFlagTargetId}
-                  errorTargetPath={form?.createFlagTargetPath}
-                />
-              </div>
-
               <a
                 href={`/app/roles/${role.slug}`}
                 class="sc-entity-card-overlay"
@@ -184,24 +161,73 @@
               ></a>
 
               <div class="sc-entity-card-body">
-                <div class="sc-entity-card-header">
+                <div class="sc-role-title-row">
                   <div class="sc-section-title sc-role-card-title">
                     <span
                       class="sc-avatar"
-                      style={`--avatar-size:36px;--avatar-font:14px; --avatar-bg: ${getAvatarColor(role.name)};`}
+                      style={`--avatar-size:34px;--avatar-font:13px; --avatar-bg: ${getAvatarColor(role.name)};`}
                       >{role.initials}</span
                     >
-                    <span class="min-w-0 truncate">{role.name}</span>
+                    <span class="sc-role-title-text">{role.name}</span>
+                  </div>
+
+                  <div class="sc-role-card-actions">
+                    <FlagBadgeModal
+                      kind="direct"
+                      label={`${role.name} direct flags`}
+                      data={role.directFlagData}
+                      viewerRole={data.org.membershipRole}
+                      modalTitle={`${role.name} flags`}
+                      modalDescription="Open flags attached directly to this role."
+                    />
+                    <InlineEntityFlagControl
+                      inline={true}
+                      action="?/createFlag"
+                      targetType="role"
+                      targetId={role.id}
+                      entityLabel={role.name}
+                      viewerRole={data.org.membershipRole}
+                      fieldTargets={roleFieldTargets}
+                      errorMessage={form?.createFlagError}
+                      errorTargetType={form?.createFlagTargetType}
+                      errorTargetId={form?.createFlagTargetId}
+                      errorTargetPath={form?.createFlagTargetPath}
+                    />
                   </div>
                 </div>
 
-                <div class="sc-page-subtitle sc-entity-card-summary">
-                  <RichText html={role.descriptionHtml} />
-                </div>
+                <div class="sc-role-summary-row" aria-label="Role relationship summary">
+                  <details class="sc-rel-group">
+                    <summary>
+                      <span>Processes</span>
+                      <strong>{role.processCount}</strong>
+                    </summary>
+                    <div class="sc-rel-links">
+                      {#if role.relatedProcesses.length === 0}
+                        <span class="sc-page-subtitle">No linked processes</span>
+                      {:else}
+                        {#each role.relatedProcesses as process}
+                          <a href={`/app/processes/${process.slug}`}>{process.name}</a>
+                        {/each}
+                      {/if}
+                    </div>
+                  </details>
 
-                <div class="sc-byline sc-entity-card-meta">
-                  <span class="sc-pill">{role.processCount} processes</span>
-                  <span class="sc-pill">{role.systemCount} systems</span>
+                  <details class="sc-rel-group">
+                    <summary>
+                      <span>Systems</span>
+                      <strong>{role.systemCount}</strong>
+                    </summary>
+                    <div class="sc-rel-links">
+                      {#if role.relatedSystems.length === 0}
+                        <span class="sc-page-subtitle">No linked systems</span>
+                      {:else}
+                        {#each role.relatedSystems as system}
+                          <a href={`/app/systems/${system.slug}`}>{system.name}</a>
+                        {/each}
+                      {/if}
+                    </div>
+                  </details>
                 </div>
               </div>
             </article>
@@ -213,14 +239,15 @@
 </div>
 
 <style>
-  .sc-role-card-actions {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    z-index: 3;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+  .sc-role-card {
+    min-height: 0;
+  }
+
+  .sc-role-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
     pointer-events: auto;
   }
 
@@ -229,6 +256,112 @@
     align-items: center;
     gap: 10px;
     margin-bottom: 0;
-    max-width: 100%;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .sc-role-title-text {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    text-wrap: balance;
+  }
+
+  .sc-role-card-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    pointer-events: auto;
+    position: relative;
+    z-index: 3;
+  }
+
+  .sc-role-summary-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    pointer-events: auto;
+    position: relative;
+    z-index: 3;
+  }
+
+  .sc-rel-group {
+    position: relative;
+  }
+
+  .sc-rel-group summary {
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: var(--sc-radius-full);
+    border: 1px solid var(--sc-border);
+    background: var(--sc-bg-inset);
+    color: var(--sc-text-muted);
+    font-size: var(--sc-font-sm);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .sc-rel-group summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .sc-rel-group summary:hover,
+  .sc-rel-group summary:focus-visible {
+    border-color: var(--sc-green-border);
+    color: var(--sc-green-dark);
+  }
+
+  .sc-rel-links {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: calc(100% + 6px);
+    min-width: 168px;
+    max-width: 240px;
+    max-height: 180px;
+    overflow: auto;
+    padding: 8px;
+    border-radius: var(--sc-radius-md);
+    border: 1px solid var(--sc-border);
+    background: var(--sc-white);
+    box-shadow: var(--sc-shadow-card);
+    z-index: 5;
+  }
+
+  .sc-rel-group:hover .sc-rel-links,
+  .sc-rel-group:focus-within .sc-rel-links,
+  .sc-rel-group[open] .sc-rel-links {
+    display: grid;
+    gap: 6px;
+  }
+
+  .sc-rel-links a {
+    font-size: var(--sc-font-sm);
+    color: var(--sc-text-muted);
+    text-decoration: none;
+  }
+
+  .sc-rel-links a:hover,
+  .sc-rel-links a:focus-visible {
+    color: var(--sc-green);
+    text-decoration: underline;
+  }
+
+  @media (max-width: 740px) {
+    .sc-role-title-row {
+      flex-wrap: wrap;
+    }
+
+    .sc-rel-links {
+      left: auto;
+      right: 0;
+    }
   }
 </style>
