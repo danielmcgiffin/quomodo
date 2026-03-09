@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest"
 import {
+  escapeFlagsSearchTerm,
   mapActionTargets,
   mapFlagsDashboard,
+  mapFlagsHistoryTimeline,
   mapFlagTargetOptions,
   parseFlagsFilterParams,
   type FlagsActionRow,
@@ -85,9 +87,12 @@ describe("flags mappers", () => {
     })
   })
 
-  it("defaults flags filters to open and drops invalid target params", () => {
+  it("defaults flags filters and keeps legacy status compatibility", () => {
     expect(parseFlagsFilterParams(new URLSearchParams())).toEqual({
       status: "open",
+      view: "open",
+      historyStatus: "all",
+      q: "",
       targetType: null,
       targetId: null,
     })
@@ -102,6 +107,9 @@ describe("flags mappers", () => {
       ),
     ).toEqual({
       status: "dismissed",
+      view: "history",
+      historyStatus: "dismissed",
+      q: "",
       targetType: "role",
       targetId: "r1",
     })
@@ -109,15 +117,80 @@ describe("flags mappers", () => {
     expect(
       parseFlagsFilterParams(
         new URLSearchParams({
-          status: "nope",
-          targetType: "bad",
-          targetId: "x",
+          view: "history",
+          historyStatus: "resolved",
+          q: "   some   long   query   ",
         }),
       ),
     ).toEqual({
       status: "open",
+      view: "history",
+      historyStatus: "resolved",
+      q: "some long query",
       targetType: null,
       targetId: null,
     })
+  })
+
+  it("groups mapped history entries by day for timeline", () => {
+    const processById = new Map(processRows.map((row) => [row.id, row]))
+    const systemById = new Map(systemRows.map((row) => [row.id, row]))
+    const actionTargets = mapActionTargets({ actionRows, processById })
+
+    const rows = [
+      {
+        id: "f2",
+        target_type: "process" as const,
+        target_id: "p1",
+        target_path: null,
+        flag_type: "risk",
+        message: "Later",
+        created_at: "2026-03-07T10:00:00.000Z",
+        status: "resolved",
+        resolved_at: "2026-03-08T10:00:00.000Z",
+      },
+      {
+        id: "f1",
+        target_type: "role" as const,
+        target_id: "r1",
+        target_path: null,
+        flag_type: "risk",
+        message: "Earlier",
+        created_at: "2026-03-07T10:00:00.000Z",
+        status: "dismissed",
+        resolved_at: "2026-03-08T08:00:00.000Z",
+      },
+      {
+        id: "f0",
+        target_type: "system" as const,
+        target_id: "s1",
+        target_path: null,
+        flag_type: "risk",
+        message: "Old",
+        created_at: "2026-03-06T10:00:00.000Z",
+        status: "resolved",
+        resolved_at: "2026-03-06T10:00:00.000Z",
+      },
+    ]
+
+    const entries = mapFlagsDashboard({
+      flagsRows: rows,
+      processById,
+      roleRows,
+      systemById,
+      actionTargets,
+    })
+
+    const timeline = mapFlagsHistoryTimeline({ flagsRows: rows, entries })
+
+    expect(timeline).toHaveLength(2)
+    expect(timeline[0]?.key).toBe("2026-03-08")
+    expect(timeline[0]?.items).toHaveLength(2)
+    expect(timeline[1]?.key).toBe("2026-03-06")
+    expect(timeline[1]?.items).toHaveLength(1)
+  })
+
+  it("sanitizes history q for ilike/or queries", () => {
+    expect(escapeFlagsSearchTerm("  x, y%_z  ")).toBe("x y z")
   })
 })

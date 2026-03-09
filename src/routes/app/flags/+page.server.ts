@@ -3,8 +3,10 @@ import { canModerateFlags, ensureOrgContext } from "$lib/server/atlas"
 import { throwRuntime500 } from "$lib/server/runtime-errors"
 import { wrapAction, createFlag } from "$lib/server/app/actions"
 import {
+  escapeFlagsSearchTerm,
   mapActionTargets,
   mapFlagsDashboard,
+  mapFlagsHistoryTimeline,
   mapFlagTargetOptions,
   parseFlagsFilterParams,
   type FlagsActionRow,
@@ -32,7 +34,7 @@ export const load = async ({ locals, url }) => {
       "id, target_type, target_id, target_path, flag_type, message, created_at, status, resolved_at, resolved_by, resolution_note",
     )
     .eq("org_id", context.orgId)
-    .eq("status", filters.status)
+    .eq("status", "open")
     .order("created_at", { ascending: false })
 
   if (filters.targetType) {
@@ -40,6 +42,33 @@ export const load = async ({ locals, url }) => {
   }
   if (filters.targetId) {
     flagsQuery.eq("target_id", filters.targetId)
+  }
+
+  const historyQuery = supabase
+    .from("flags")
+    .select(
+      "id, target_type, target_id, target_path, flag_type, message, created_at, status, resolved_at, resolved_by, resolution_note",
+    )
+    .eq("org_id", context.orgId)
+    .in("status", ["resolved", "dismissed"])
+    .order("resolved_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(300)
+
+  if (filters.historyStatus !== "all") {
+    historyQuery.eq("status", filters.historyStatus)
+  }
+  if (filters.targetType) {
+    historyQuery.eq("target_type", filters.targetType)
+  }
+  if (filters.targetId) {
+    historyQuery.eq("target_id", filters.targetId)
+  }
+  if (filters.q) {
+    const q = escapeFlagsSearchTerm(filters.q)
+    if (q) {
+      historyQuery.or(`message.ilike.%${q}%,resolution_note.ilike.%${q}%`)
+    }
   }
 
   const [
@@ -71,15 +100,7 @@ export const load = async ({ locals, url }) => {
       .eq("org_id", context.orgId)
       .order("sequence", { ascending: true }),
     flagsQuery,
-    supabase
-      .from("flags")
-      .select(
-        "id, target_type, target_id, target_path, flag_type, message, created_at, status, resolved_at, resolved_by, resolution_note",
-      )
-      .eq("org_id", context.orgId)
-      .in("status", ["resolved", "dismissed"])
-      .order("resolved_at", { ascending: false })
-      .limit(40),
+    historyQuery,
   ])
 
   if (processesResult.error) {
@@ -158,19 +179,26 @@ export const load = async ({ locals, url }) => {
     actionTargets,
     resolverNameById,
   })
+
+  const resolvedHistoryRows = (resolvedHistoryResult.data ?? []) as FlagsRow[]
   const resolvedHistory = mapFlagsDashboard({
-    flagsRows: (resolvedHistoryResult.data ?? []) as FlagsRow[],
+    flagsRows: resolvedHistoryRows,
     processById,
     roleRows: (rolesResult.data ?? []) as FlagsRoleRow[],
     systemById,
     actionTargets,
     resolverNameById,
   })
+  const historyTimeline = mapFlagsHistoryTimeline({
+    flagsRows: resolvedHistoryRows,
+    entries: resolvedHistory,
+  })
 
   return {
     viewerRole: context.membershipRole,
     flags,
     resolvedHistory,
+    historyTimeline,
     targetOptions,
     filters,
   }

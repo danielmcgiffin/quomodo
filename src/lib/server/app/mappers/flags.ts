@@ -69,10 +69,23 @@ export type FlagsDashboardEntry =
     })
 
 export type FlagsFilterStatus = "open" | "resolved" | "dismissed"
+export type FlagsFilterView = "open" | "history"
+export type FlagsHistoryStatus = "all" | "resolved" | "dismissed"
+
 export type FlagsFilterParams = {
   status: FlagsFilterStatus
+  view: FlagsFilterView
+  historyStatus: FlagsHistoryStatus
+  q: string
   targetType: FlagTargetType | null
   targetId: string | null
+}
+
+export type FlagsHistoryTimelineGroup = {
+  key: string
+  label: string
+  railLabel: string
+  items: FlagsDashboardEntry[]
 }
 
 const toTargetLabel = (type: string, name: string) => `${type}: ${name}`
@@ -93,15 +106,39 @@ const formatResolverName = (
   return `User ${resolvedBy.slice(0, 8)}`
 }
 
+const normalizeSearch = (value: string | null) =>
+  (value ?? "").trim().replace(/\s+/g, " ").slice(0, 120)
+
+const isValidHistoryStatus = (value: string | null): value is FlagsHistoryStatus =>
+  value === "all" || value === "resolved" || value === "dismissed"
+
+const isValidView = (value: string | null): value is FlagsFilterView =>
+  value === "open" || value === "history"
+
 export const parseFlagsFilterParams = (
   searchParams: URLSearchParams,
 ): FlagsFilterParams => {
   const rawStatus = searchParams.get("status")
+  const rawView = searchParams.get("view")
+  const rawHistoryStatus = searchParams.get("historyStatus")
   const rawTargetType = searchParams.get("targetType")
   const rawTargetId = searchParams.get("targetId")
 
   const status: FlagsFilterStatus =
     rawStatus === "resolved" || rawStatus === "dismissed" ? rawStatus : "open"
+
+  const view: FlagsFilterView = isValidView(rawView)
+    ? rawView
+    : status === "open"
+      ? "open"
+      : "history"
+
+  const historyStatus: FlagsHistoryStatus = isValidHistoryStatus(rawHistoryStatus)
+    ? rawHistoryStatus
+    : status === "resolved" || status === "dismissed"
+      ? status
+      : "all"
+
   const targetType: FlagTargetType | null =
     rawTargetType === "process" ||
     rawTargetType === "role" ||
@@ -113,6 +150,9 @@ export const parseFlagsFilterParams = (
 
   return {
     status,
+    view,
+    historyStatus,
+    q: normalizeSearch(searchParams.get("q")),
     targetType,
     targetId: targetType ? targetId : null,
   }
@@ -262,3 +302,60 @@ export const mapFlagsDashboard = ({
     }
   })
 }
+
+const historyKeyFromIso = (iso: string) => iso.slice(0, 10)
+
+const formatHistoryLabel = (iso: string) =>
+  new Date(iso).toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
+
+const formatHistoryRailLabel = (iso: string) =>
+  new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
+
+export const mapFlagsHistoryTimeline = ({
+  flagsRows,
+  entries,
+}: {
+  flagsRows: FlagsRow[]
+  entries: FlagsDashboardEntry[]
+}): FlagsHistoryTimelineGroup[] => {
+  const groups: FlagsHistoryTimelineGroup[] = []
+  const indexByKey = new Map<string, number>()
+
+  flagsRows.forEach((row, idx) => {
+    const iso = row.resolved_at ?? row.created_at
+    const key = historyKeyFromIso(iso)
+    const existingIdx = indexByKey.get(key)
+
+    if (existingIdx == null) {
+      indexByKey.set(key, groups.length)
+      groups.push({
+        key,
+        label: formatHistoryLabel(iso),
+        railLabel: formatHistoryRailLabel(iso),
+        items: entries[idx] ? [entries[idx]] : [],
+      })
+      return
+    }
+
+    if (entries[idx]) {
+      groups[existingIdx]?.items.push(entries[idx])
+    }
+  })
+
+  return groups
+}
+
+export const escapeFlagsSearchTerm = (q: string) =>
+  normalizeSearch(q)
+    .replace(/[%,_']/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
