@@ -1,7 +1,7 @@
 # SystemsCraft Master Plan
 
 Owner: Danny McGiffin  
-Last updated: 2026-03-06  
+Last updated: 2026-03-08  
 Status: Active — single source of truth
 Operation Glorious Eagle
 
@@ -30,6 +30,7 @@ Active supporting runbook (kept active):
 Active findings intake:
 
 - `plans/PRODUCT_FINDINGS.md` (ingested into backlog tasks M-18, M-19, and H-01..H-06)
+- `plans/M11_AUDIT_FOLLOWUP_PLAN.md` (implementation sequence derived from the completed M-11 route audit)
 - Performance + correctness audit TODOs (2026-03-06) ingested as `TODO-01`..`TODO-10` in Section 4.
 
 ---
@@ -98,7 +99,8 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
   - [x] **M-09a** Add/logout button where missing in app UX flow.
   - [x] **M-09b** Fix sign-out correctness bug on `/account/sign_out` (maps to `TODO-10`).
 - [ ] **M-10** Build script to fetch/store system logos into local DB workflow.
-- [ ] **M-11** Complete full route screen audit (desktop + mobile + interactive checks).
+- [x] **M-11** Complete full route screen audit (desktop + mobile + interactive checks).
+  - Follow-up plan: `plans/M11_AUDIT_FOLLOWUP_PLAN.md`
 - [ ] **M-12** Implement production error reporting decision (Sentry vs admin-email strategy) and validate alert delivery.
 - [ ] **M-13** Prepare and lock a high-quality demo workspace + secure demo credentials.
 - [ ] **M-18** Flag UX follow-up pass from `plans/PRODUCT_FINDINGS.md`.
@@ -179,6 +181,7 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
 1. M-01 → M-04 (environment + E2E enforcement fully active)
 2. M-05 → M-07 + M-17 (release candidate + deploy + production verification + deploy automation)
 3. M-08 → M-13 + M-18 + M-19 + H-01 → H-05 (demo/sales reliability + UX follow-up)
+   - Audit-derived UI polish order: `M-19` → `H-03` → `M-18` → `H-05`
 4. M-14 → M-16 + H-06 (cleanup backlog + component/token hardening)
 5. Performance/correctness lane (non-revenue-blocking, high leverage):
    - First wave: TODO-10 → TODO-02 → TODO-01 → TODO-03

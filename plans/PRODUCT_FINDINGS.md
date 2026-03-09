@@ -1,0 +1,5 @@
+- In the flag modal, the link should take you to where the flag was made, not to the dashboard.
+- We need a log of flags that got resolved and when and by whom
+- When you click "Resolve" a small text box should appear where you make a comment
+- Flag indicator icons should be next to the title of the item on the card, but after the link icon
+- Cards on all list pages should be grids
