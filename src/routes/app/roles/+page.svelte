@@ -4,6 +4,8 @@
   import { pendingEnhance } from "$lib/components/pending-enhance"
   import FlagBadgeModal from "$lib/components/FlagBadgeModal.svelte"
   import InlineEntityFlagControl from "$lib/components/InlineEntityFlagControl.svelte"
+  import ProcessPortal from "$lib/components/ProcessPortal.svelte"
+  import SystemPortal from "$lib/components/SystemPortal.svelte"
   import { getAvatarColor } from "$lib/colors"
   import type { DirectFlagBadgeData } from "$lib/flags"
 
@@ -207,7 +209,7 @@
                         <span class="sc-page-subtitle">No linked processes</span>
                       {:else}
                         {#each role.relatedProcesses as process}
-                          <a href={`/app/processes/${process.slug}`}>{process.name}</a>
+                          <ProcessPortal {process} />
                         {/each}
                       {/if}
                     </div>
@@ -223,7 +225,7 @@
                         <span class="sc-page-subtitle">No linked systems</span>
                       {:else}
                         {#each role.relatedSystems as system}
-                          <a href={`/app/systems/${system.slug}`}>{system.name}</a>
+                          <SystemPortal {system} size="sm" />
                         {/each}
                       {/if}
                     </div>
@@ -243,12 +245,21 @@
     min-height: 0;
   }
 
+  .sc-role-card :global(.sc-entity-card-overlay) {
+    z-index: 2;
+  }
+
+  .sc-role-card :global(.sc-entity-card-body) {
+    z-index: auto;
+    pointer-events: none;
+  }
+
   .sc-role-title-row {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     gap: 10px;
-    pointer-events: auto;
+    pointer-events: none;
   }
 
   .sc-role-card-title {
@@ -342,14 +353,14 @@
     gap: 6px;
   }
 
-  .sc-rel-links a {
+  .sc-rel-links :global(.sc-portal) {
     font-size: var(--sc-font-sm);
     color: var(--sc-text-muted);
     text-decoration: none;
   }
 
-  .sc-rel-links a:hover,
-  .sc-rel-links a:focus-visible {
+  .sc-rel-links :global(.sc-portal:hover),
+  .sc-rel-links :global(.sc-portal:focus-visible) {
     color: var(--sc-green);
     text-decoration: underline;
   }
