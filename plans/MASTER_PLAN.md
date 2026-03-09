@@ -117,7 +117,7 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
   - Plan: `plans/M20_TRIAD_CARD_PLAN.md`
 - [ ] **H-01** Fix inline editing to be seamless, like Notion.
 - [ ] **H-02** Figure out and fix why Process Details takes so long to load (primary audit hooks: `TODO-01`, `TODO-03`, `TODO-08`).
-- [ ] **H-03** Fix Process Details slide-in title monstrosity.
+- [x] **H-03** Fix Process Details slide-in title monstrosity.
 - [ ] **H-04** Make app background match marketing-site background.
 - [ ] **H-05** Fix plural noun rendering for singular counts (e.g., `1 Systems`).
 
