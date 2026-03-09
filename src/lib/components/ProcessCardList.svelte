@@ -202,7 +202,7 @@
 
   .sc-process-card-title-actions {
     position: relative;
-    z-index: 4;
+    z-index: 6;
     pointer-events: auto;
     margin-left: auto;
     display: inline-flex;

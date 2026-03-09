@@ -415,7 +415,7 @@
     flex-wrap: wrap;
     justify-content: flex-end;
     position: relative;
-    z-index: 3;
+    z-index: 6;
     pointer-events: auto;
   }
 

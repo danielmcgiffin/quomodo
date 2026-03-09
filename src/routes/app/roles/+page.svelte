@@ -288,7 +288,7 @@
     justify-content: flex-end;
     pointer-events: auto;
     position: relative;
-    z-index: 3;
+    z-index: 6;
   }
 
   .sc-role-summary-row {
