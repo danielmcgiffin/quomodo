@@ -31,6 +31,7 @@ Active findings intake:
 
 - `plans/PRODUCT_FINDINGS.md` (ingested into backlog tasks M-18, M-19, and H-01..H-06)
 - `plans/M11_AUDIT_FOLLOWUP_PLAN.md` (implementation sequence derived from the completed M-11 route audit)
+- `plans/M20_TRIAD_CARD_PLAN.md` (implementation spec for atlas list-card content grammar after M-19)
 - Performance + correctness audit TODOs (2026-03-06) ingested as `TODO-01`..`TODO-10` in Section 4.
 
 ---
@@ -113,6 +114,7 @@ Authenticated Playwright suites now fail fast if E2E credentials/secrets are mis
   - Process cards should summarize title + roles + systems without long descriptions.
   - Role cards should summarize title + processes + systems without growing arbitrarily tall.
   - System cards should summarize title + owner + connected processes/roles in the same grammar.
+  - Plan: `plans/M20_TRIAD_CARD_PLAN.md`
 - [ ] **H-01** Fix inline editing to be seamless, like Notion.
 - [ ] **H-02** Figure out and fix why Process Details takes so long to load (primary audit hooks: `TODO-01`, `TODO-03`, `TODO-08`).
 - [ ] **H-03** Fix Process Details slide-in title monstrosity.
